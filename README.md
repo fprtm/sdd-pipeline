@@ -94,6 +94,14 @@ For agents that read a single rules file, add `--bundle` to also emit
 Then, in any agent: **"use spec-driven-development to build \<X\>"** (full mode)
 or **"…lite mode"** for a small feature/bugfix.
 
+## See it in action
+
+A full worked run lives in [`examples/wishlist/`](examples/wishlist/) — the
+"Wishlist + shareable link" feature taken from idea to a spec-complete, secured,
+fully-traceable plan (PRD, diagrams, FSD, ADRs, threat model, tiered backlog,
+test plan, and an honest traceability matrix). Read it to see what each phase
+actually produces before running the pipeline on your own work.
+
 ## Repo layout
 
 ```
@@ -103,6 +111,7 @@ sdd-pipeline/
 ├─ .claude-plugin/          # Claude Code plugin + marketplace manifests
 ├─ skills/                  # 10 SKILL.md files (portable Markdown)
 ├─ templates/               # doc templates the skills fill in
+├─ examples/wishlist/       # a complete worked run of the whole pipeline
 └─ install/install.sh       # multi-agent installer
 ```
 

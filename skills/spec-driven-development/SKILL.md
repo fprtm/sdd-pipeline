@@ -44,6 +44,7 @@ Create these under the repo (make the folders if missing):
 
 ```
 docs/sdd/
+  00-overview.md         # feature brief + gate board + ID registry (this skill)
   00-context.md          # ubiquitous language / glossary (domain-modeling)
   01-prd.md              # to-prd
   02-diagrams.md         # to-diagrams (context, DFD, sequence, ERD)
@@ -57,8 +58,15 @@ docs/sdd/
 
 ## The phases and their gates
 
-Run in order. **A gate that fails blocks the next phase** — say so plainly and
-stop; do not sneak forward.
+First, create `docs/sdd/00-overview.md` from `templates/overview.template.md`:
+the feature brief, the **gate board**, and the **ID registry**. This is the
+tech-lead dashboard — update the gate board's state column as you enter and exit
+each phase (⬜→🟨→✅, or ⛔ with a reason), and bump the ID registry's "next free"
+counters whenever you allocate an ID. Keep it current; it is how a human sees
+status at a glance.
+
+Then run the phases in order. **A gate that fails blocks the next phase** — say
+so plainly, mark it ⛔ on the board, and stop; do not sneak forward.
 
 | # | Phase | Skill to invoke | Exit gate (must be true to proceed) |
 |---|-------|-----------------|-------------------------------------|
