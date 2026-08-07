@@ -1,0 +1,17 @@
+{
+  "name": "sdd-pipeline",
+  "owner": {
+    "name": "ferryaguspratama"
+  },
+  "metadata": {
+    "description": "Spec-Driven Development pipeline for AI coding agents.",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "sdd-pipeline",
+      "source": "./",
+      "description": "Gated, traceable spec-first pipeline: PRD → diagrams → FSD → architecture → security (SSDLC) → tiered backlog → test plan → implement → verify (≥80% coverage) → ship. Stack-neutral; friendly to developers and non-developers."
+    }
+  ]
+}

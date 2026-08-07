@@ -1,0 +1,21 @@
+{
+  "name": "sdd-pipeline",
+  "version": "0.1.0",
+  "description": "Spec-Driven Development pipeline: gated, traceable idea→PRD→diagrams→FSD→architecture→security→backlog→test-plan→implement→verify→ship. Multi-agent, stack-neutral, dev + non-dev friendly.",
+  "author": {
+    "name": "ferryaguspratama"
+  },
+  "keywords": [
+    "spec-driven-development",
+    "sdd",
+    "prd",
+    "fsd",
+    "tdd",
+    "threat-modeling",
+    "ssdlc",
+    "clean-architecture",
+    "traceability",
+    "test-coverage"
+  ],
+  "skills": "./skills"
+}
