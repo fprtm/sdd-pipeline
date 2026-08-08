@@ -43,6 +43,11 @@ Check the change against the code-quality bar. Concretely flag:
   Requests + mass-assignment guarding, framework idioms)? Flag non-idiomatic code.
 - **Repo conventions** — does it match the surrounding code's idioms, structure,
   lint/type rules?
+- **Docs currency (blocking)** — if the change alters a **public interface** or
+  **user-visible behavior**, are the matching docs updated in the *same* change?
+  Inline JSDoc/docstrings for changed public surfaces, the co-located module/
+  feature README, and the user doc if behavior changed. A public API or behavior
+  change with stale/missing docs is **changes-required**, not a nit.
 - **Security** — does it honor the SEC controls the ticket touches (authz on every
   action, validated input, output encoding, no secrets, parameterized queries)?
 

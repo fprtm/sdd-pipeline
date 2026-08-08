@@ -116,6 +116,12 @@ types, API version) explicitly — it is where most integration bugs and most
 integration/e2e tests live. If separate deployables, note **independent
 deploy/versioning** in an ADR.
 
+The topology you pick here also sets **where docs live** (see the orchestrator's
+placement rules): a modular monolith with clean architecture gets a co-located
+`README.md` per module (documenting its public ports); a feature-sliced frontend
+gets a README + user doc per slice; separate repos / monorepo each keep their own
+`docs/dev/`. Record the chosen shape so `documentation` and `implement` follow it.
+
 ## Step 4 — record ADRs
 
 One ADR per significant, hard-to-reverse decision:

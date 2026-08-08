@@ -31,6 +31,12 @@ baseline:
 - **Static checks** — lint, type-check, format.
 - **Secret scanning** — block commits/PRs that contain credentials.
 - **SAST** (where available) for the languages in use.
+- **Docs-drift check** — flag changes where a public interface / exported API
+  changed but no doc (inline JSDoc, the module/feature README, or `docs/`) changed
+  in the same diff. This keeps docs honest for changes made *outside* the pipeline
+  (hand-edited code) — the pipeline itself keeps them current via `implement` +
+  `code-review`, but CI is the backstop. A pre-commit hook can run the same check
+  earlier.
 
 The pipeline is the enforcement point for the verify gate; a merge is not allowed
 if any of these fail.

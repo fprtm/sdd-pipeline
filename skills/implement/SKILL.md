@@ -85,6 +85,22 @@ idiomatic code for the framework, not generic code that ignores it.
 - **Match the surrounding code** — read neighboring files first; mirror their
   naming, structure, and idioms. New code should look like it belongs.
 
+## Document as you go (same change, not later)
+
+A ticket isn't done until its docs match its code — don't defer this to the ship
+phase. As part of each ticket:
+
+- Update the **inline JSDoc/docstrings** for any public interface you add or change
+  (per the stack guide's doc idiom).
+- Update the **co-located doc** for the module/feature you touched — the module's
+  `README.md` (its public interface, in a modular monolith / clean architecture)
+  or the feature slice's README (feature-sliced FE). See `documentation` for the
+  placement rules for the chosen topology.
+- If you changed user-visible behavior, note it for the user doc (`docs/user/…`).
+
+`code-review` will block a public-interface or behavior change that ships without a
+matching doc update — so do it now, while the context is fresh.
+
 ## Keep the trail honest as you go
 
 - Update the ticket's state on the gate board (`00-overview.md`) and flip its row

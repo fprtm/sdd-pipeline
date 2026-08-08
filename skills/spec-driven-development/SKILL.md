@@ -78,6 +78,49 @@ locations (the `infra` phase produces the CI/IaC files; `08-delivery.md` is thei
 human-readable index). Never drop pipeline artifacts at the repo root or in ad-hoc
 places — if it's not in the tree above, it doesn't have a home yet; give it one.
 
+### Placement adapts to the topology (keep two invariants)
+
+The tree above is the default for one project. For whatever topology
+`arch-decision` chose, adapt it — but always keep two rules: (1) the **spec trail
+stays together**, and (2) **code-level docs co-locate with the code they
+describe** (a README/JSDoc next to the module or feature slice). Co-location plus
+an index is what keeps docs readable *at scale* — you read the slice you're
+touching, not one giant document.
+
+- **Separate FE / BE repos:** each repo carries its own `docs/dev/` + inline docs.
+  The product spec trail (`docs/sdd/`) lives once — in the repo where the feature
+  is driven, or a shared specs/docs repo — and both repos link to it. User docs
+  live with the FE (or a shared docs site).
+- **Monorepo:** spec trail at the root `docs/sdd/`; per-app/per-package docs under
+  each package; a root `docs/dev/README.md` index links them.
+- **Modular monolith (clean architecture):** each module gets a **co-located
+  `README.md` documenting its PUBLIC interface (its ports)** — that *is* the
+  deep-module doc. `docs/dev/architecture.md` is the map that links the modules
+  and states the dependency rule (domain ← application ← infrastructure).
+- **Feature-sliced frontend:** each slice (`features/<x>/`) carries its own README
+  and the user-facing doc for that feature (`docs/user/<x>.md`).
+
+A top-level index (`docs/dev/README.md`) links every module/feature doc so nothing
+is orphaned. `documentation` builds and maintains that index; `arch-decision`'s
+topology choice determines which shape above you use.
+
+### Documentation stays current (it is not a one-time, end-of-project act)
+
+Docs are updated **in the same change as the code**, every phase — not batched at
+ship (stale docs are worse than none). Concretely:
+
+- `implement` updates the co-located module/feature doc **and** the inline
+  JSDoc/docstrings **as part of each ticket** (doc-as-you-go).
+- `code-review` **blocks** a change that alters a public interface or user-visible
+  behavior without a matching doc update.
+- `infra` adds a **docs-drift check in CI** so changes made *outside* the pipeline
+  (hand-edited code) still get flagged when a public surface changed but docs
+  didn't. (The agent has no magic git hook otherwise — currency is enforced by the
+  review gate and CI, and in **autopilot** the agent writes the docs automatically
+  per change; in **copilot** it drafts them for your review.)
+- `documentation` (phase 11) is the *final polish + index*, not the first time
+  docs get written.
+
 ## The phases and their gates
 
 First, create `docs/sdd/00-overview.md` from `templates/overview.template.md`:

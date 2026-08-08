@@ -20,6 +20,23 @@ Tidy placement (canonical — don't scatter):
 - **Developer docs →** `docs/dev/` (`README.md`, `api.md`, `architecture.md`)
 - **Inline code docs →** in the source, next to what they describe
 
+### Co-locate with the code, and adapt to the topology
+Docs read best *at scale* when they sit next to what they describe, with one index
+tying them together. Follow the topology `arch-decision` chose (see the
+orchestrator's placement rules):
+
+- **Modular monolith / clean architecture:** give **each module a co-located
+  `README.md` that documents its PUBLIC interface (ports)** — the deep-module doc.
+  `docs/dev/architecture.md` is the map: the module list, the dependency rule
+  (domain ← application ← infrastructure), and links to each module README + ADRs.
+- **Feature-sliced frontend:** each slice (`features/<x>/`) gets its own README
+  (dev) and a user doc `docs/user/<x>.md`.
+- **Separate FE/BE repos:** each repo has its own `docs/dev/`; both link to the one
+  spec trail. **Monorepo:** per-package docs + a root index.
+- Always build a **top-level index** (`docs/dev/README.md`) linking every
+  module/feature doc so nothing is orphaned. This is what makes a feature-sliced,
+  modular codebase easy to navigate rather than a maze.
+
 ## User documentation (`docs/user/<feature>.md`)
 
 For the person who *uses* the feature — plain language, no internals. Reuse the
@@ -59,8 +76,12 @@ For whoever *extends or maintains* it — including a cheaper model or a new dev
   generated or derived over hand-copied prose.
 - **Document the interface, not the implementation** (deep modules): the public
   surface and the *why*, so callers don't need to read internals.
-- **Keep it current** — update docs in the same change as the code; stale docs are
-  a bug. `code-review` should flag public API changes with no doc update.
+- **Keep it current — doc-as-you-go, not once at the end.** Docs are updated in the
+  *same change* as the code, every phase. `implement` writes the module/feature doc
+  + inline JSDoc per ticket; `code-review` **blocks** a public-interface or
+  behavior change with no matching doc update; `infra` runs a docs-drift check in
+  CI for changes made outside the pipeline. This skill at ship is the final polish
+  + index, not the first write. Stale docs are a bug.
 - **Right depth** — enough to use/extend, no filler. Match the stack's doc idiom.
 
 ## Mode-aware
