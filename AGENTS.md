@@ -29,7 +29,7 @@ gates** and keeps a **traceability matrix** linking every requirement to a test:
 | 1 Product spec | `to-prd` | `docs/sdd/01-prd.md` (REQ-xxx) |
 | 2 Visual models | `to-diagrams` | `docs/sdd/02-diagrams.md` (context, DFD, sequence) |
 | 3 Functional spec | `to-fsd` | `docs/sdd/03-fsd.md` (FSD-xxx) |
-| 4 Architecture gate | `arch-decision` | `docs/sdd/04-architecture.md` (ADR-xxx, FE+BE+topology) |
+| 4 Architecture gate | `arch-decision` → `stack-conventions` | `docs/sdd/04-architecture.md` (ADRs) + `04-stack-guide.md` (stack best practices as rules) |
 | 5 Security gate (SSDLC) | `threat-model` | `docs/sdd/05-threat-model.md` (SEC-xxx) |
 | 6 Backlog | `backlog-leveling` | `docs/sdd/06-backlog.md` (tiered TICKET-xxx) |
 | 7 Test plan | `test-plan` | `docs/sdd/07-test-plan.md` (TEST-xxx, ≥80% target) |
@@ -39,10 +39,15 @@ gates** and keeps a **traceability matrix** linking every requirement to a test:
 | 11 Ship | finish/`handoff` | deployed, matrix green |
 | any | `traceability` · `stakeholder-brief` · `handoff` | matrix, non-IT brief, resumable snapshot |
 
-This pack is **self-sufficient** (17 skills; runs end to end alone). For
+This pack is **self-sufficient** (18 skills; runs end to end alone). For
 debugging, planning, git worktrees, and grilling, **defer to skills you already
 have** (mattpocock/skills, superpowers); prefer an installed TDD/code-review skill
 over `implement`/`code-review` if present.
+
+**Stack-aware:** `stack-conventions` (phase 4) reads the chosen stack's official
+docs (via a docs tool like Context7 if available, else the official sites) and
+writes version-pinned rules to `04-stack-guide.md` — TS strict, Laravel/Eloquent
+conventions, framework idioms — which `implement` follows and `code-review` checks.
 
 ## Code-quality bar
 

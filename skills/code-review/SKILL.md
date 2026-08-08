@@ -38,6 +38,9 @@ Check the change against the code-quality bar. Concretely flag:
 - **Dependency rule** — imports that violate the architecture's direction?
 - **Clarity/correctness** — unclear names, boolean traps, silent nulls, illegal
   states representable, effects tangled into the core, comments that restate code?
+- **Stack conventions** — does it follow `docs/sdd/04-stack-guide.md` (the
+  chosen stack's official best practices, e.g. TS strict/no-`any`, Laravel Form
+  Requests + mass-assignment guarding, framework idioms)? Flag non-idiomatic code.
 - **Repo conventions** — does it match the surrounding code's idioms, structure,
   lint/type rules?
 - **Security** — does it honor the SEC controls the ticket touches (authz on every

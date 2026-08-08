@@ -140,4 +140,6 @@ Architecture style chosen with a written dependency rule; stack decided with an
 ADR per significant choice; the user signed off — or, if they deferred, the
 agent chose the most robust/scalable/maintainable option **and stated the
 reasoning**. Then invoke `traceability` (register ADR IDs and which FSDs they
-constrain) and proceed to the **security gate** (`threat-model`).
+constrain), run **`stack-conventions`** to capture the chosen stack's official
+best practices as enforceable rules (`04-stack-guide.md`), and proceed to the
+**security gate** (`threat-model`).

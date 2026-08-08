@@ -66,6 +66,12 @@ non-negotiable output quality of this pipeline:
 Run the "check before done" from `code-standards` on your diff before you consider
 a ticket finished.
 
+**Also follow `docs/sdd/04-stack-guide.md`** — the stack-specific conventions
+captured by `stack-conventions` (e.g. TypeScript strict flags, Laravel/Eloquent
+conventions, the framework's validation/DI/testing idioms). `code-standards` is
+the stack-neutral bar; the stack guide is how it's realized in *this* stack. Write
+idiomatic code for the framework, not generic code that ignores it.
+
 ## Honor the architecture and security
 
 - **Dependency rule** — obey the direction from `04-architecture.md` (e.g. domain

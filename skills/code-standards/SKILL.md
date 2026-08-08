@@ -15,6 +15,11 @@ preferences; they are how the code stays cheap to change and safe for a junior d
 or a cheaper model to extend. `implement` writes to this bar; `code-review`
 checks against it.
 
+> **Scope:** this skill is the **stack-neutral** bar (true in any language). The
+> **stack-specific** rules — TypeScript strict flags, Laravel/Eloquent
+> conventions, a framework's idioms — live in `docs/sdd/04-stack-guide.md`,
+> produced by `stack-conventions` from the official docs. Apply both together.
+
 ## SSOT — Single Source of Truth
 Every fact lives in exactly one authoritative place; everything else *derives*
 from it.

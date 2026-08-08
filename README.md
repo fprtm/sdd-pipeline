@@ -56,6 +56,7 @@ there and it routes the rest.
 | `to-diagrams` | context / DFD / sequence / ERD (Mermaid) | 2 |
 | `to-fsd` | Functional Spec (FSD-xxx) | 3 |
 | `arch-decision` | architecture + stack + topology gate (ADR) | 4 |
+| `stack-conventions` | official best practices of the chosen stack, as rules | 4 |
 | `threat-model` | SSDLC security gate (SEC-xxx, STRIDE) | 5 |
 | `backlog-leveling` | tiered, executor-friendly backlog | 6 |
 | `test-plan` | happy/regression/edge/e2e + coverage target | 7 |
@@ -68,7 +69,7 @@ there and it routes the rest.
 | `stakeholder-brief` | plain-language brief + sign-off for non-IT | any |
 | `handoff` | resumable snapshot for another agent / cheaper model | any |
 
-17 self-sufficient skills — the pipeline runs end to end with nothing else
+18 self-sufficient skills — the pipeline runs end to end with nothing else
 installed, and **defers** to your debugging/planning/worktree/grilling skills
 (mattpocock/skills, superpowers) when they're present.
 
@@ -80,6 +81,16 @@ naming), knowledge-level DRY (no premature abstraction — rule of three), YAGNI
 (only what a requirement needs; no dead code), and deep modules (simple interfaces
 hiding real complexity, logic in the domain layer). `implement` writes to it;
 `code-review` enforces it.
+
+### Stack-aware (reads the docs, writes idiomatic code)
+
+`code-standards` is stack-neutral. On top of it, `stack-conventions` reads the
+**official docs** of whatever stack `arch-decision` picked (using a docs tool like
+Context7 if available, else the official sites) and writes version-pinned rules to
+`04-stack-guide.md` — e.g. TypeScript `strict` + `noUncheckedIndexedAccess` and
+no `any`; Laravel Form-Request validation, Eloquent conventions, and mass-assignment
+guarding. `implement` follows it and `infra` wires the config (tsconfig, linters)
+into CI, so the code is idiomatic to the framework, not generic.
 
 ### It represents a full team
 
@@ -156,7 +167,7 @@ sdd-pipeline/
 ├─ README.md
 ├─ AGENTS.md                # entry point for non-Claude agents
 ├─ .claude-plugin/          # Claude Code plugin + marketplace manifests
-├─ skills/                  # 17 SKILL.md files (portable Markdown)
+├─ skills/                  # 18 SKILL.md files (portable Markdown)
 ├─ templates/               # doc templates the skills fill in
 ├─ examples/wishlist/       # a complete worked run of the whole pipeline
 └─ install/install.sh       # multi-agent installer

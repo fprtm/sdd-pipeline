@@ -50,6 +50,7 @@ docs/sdd/
   02-diagrams.md         # to-diagrams (context, DFD, sequence, ERD)
   03-fsd.md              # to-fsd
   04-architecture.md     # arch-decision (ADRs + stack)
+  04-stack-guide.md      # stack-conventions (official best practices as rules)
   05-threat-model.md     # threat-model (SSDLC)
   06-backlog.md          # backlog-leveling (tiered tickets)
   07-test-plan.md        # test-plan
@@ -78,7 +79,7 @@ so plainly, mark it ⛔ on the board, and stop; do not sneak forward.
 | 1 | Product spec | `to-prd` | Every REQ has a user, a why, and acceptance criteria |
 | 2 | Model & visualize | `domain-modeling` (if present) + `to-diagrams` | Glossary agreed; context + DFD + key sequence diagrams exist |
 | 3 | Functional spec | `to-fsd` | Every REQ maps to ≥1 FSD; no FSD is orphaned |
-| 4 | **Architecture gate** | `arch-decision` | Arch style + stack + topology (FE/BE) chosen with ADRs; user signed off (or agent chose the most robust/scalable/maintainable default and said so) |
+| 4 | **Architecture gate** | `arch-decision` → `stack-conventions` | Arch style + stack + topology (FE/BE) chosen with ADRs (user signed off, or agent chose the most robust default and said so); chosen stack's official best practices captured as rules in `04-stack-guide.md` |
 | 5 | **Security gate (SSDLC)** | `threat-model` | Each data flow threat-modeled; every High/Critical threat has a control (SEC-xxx) |
 | 6 | Backlog | `backlog-leveling` | Tickets tiered (T1/T2/T3), each traces to an FSD, each has acceptance criteria a junior/cheap model can execute |
 | 7 | Test plan | `test-plan` | Happy + regression + edge + e2e cases defined; coverage target set (default ≥80%) |
@@ -101,7 +102,7 @@ role, so one agent (or a human + agent) covers the whole org:
 |------|----------|-------|
 | Product manager | 0–1 | `discovery`, `to-prd` |
 | Business analyst / systems analyst | 2–3 | `to-diagrams`, `to-fsd` |
-| Architect / tech lead | 4 | `arch-decision` |
+| Architect / tech lead | 4 | `arch-decision`, `stack-conventions` |
 | Security engineer (AppSec) | 5, re-check at 10 | `threat-model` |
 | Delivery lead | 6 | `backlog-leveling` |
 | QA / test lead | 7, 10 | `test-plan`, `coverage-check` |
@@ -128,9 +129,10 @@ the decisions each role would have signed off.
 
 - Prefer skills that already exist in the environment. This pack is
   **self-sufficient** — it ships `discovery`, `to-prd`, `to-diagrams`, `to-fsd`,
-  `arch-decision`, `threat-model`, `backlog-leveling`, `test-plan`,
-  `code-standards`, `implement`, `code-review`, `infra`, `coverage-check`,
-  `traceability`, `handoff`, and `stakeholder-brief`. For debugging, planning,
+  `arch-decision`, `stack-conventions`, `threat-model`, `backlog-leveling`,
+  `test-plan`, `code-standards`, `implement`, `code-review`, `infra`,
+  `coverage-check`, `traceability`, `handoff`, and `stakeholder-brief`. For
+  debugging, planning,
   worktrees, and grilling, **defer to the user's installed skills** (e.g.
   mattpocock/skills or superpowers) when present; also prefer an installed
   TDD/code-review skill over `implement`/`code-review` if one exists. If nothing
