@@ -25,6 +25,7 @@ gates** and keeps a **traceability matrix** linking every requirement to a test:
 
 | Phase | Skill | Output |
 |-------|-------|--------|
+| 0 Discover | `discovery` | `docs/sdd/00-context.md` + discovery brief (deep needs) |
 | 1 Product spec | `to-prd` | `docs/sdd/01-prd.md` (REQ-xxx) |
 | 2 Visual models | `to-diagrams` | `docs/sdd/02-diagrams.md` (context, DFD, sequence) |
 | 3 Functional spec | `to-fsd` | `docs/sdd/03-fsd.md` (FSD-xxx) |
@@ -32,14 +33,30 @@ gates** and keeps a **traceability matrix** linking every requirement to a test:
 | 5 Security gate (SSDLC) | `threat-model` | `docs/sdd/05-threat-model.md` (SEC-xxx) |
 | 6 Backlog | `backlog-leveling` | `docs/sdd/06-backlog.md` (tiered TICKET-xxx) |
 | 7 Test plan | `test-plan` | `docs/sdd/07-test-plan.md` (TEST-xxx, ≥80% target) |
-| 8 Implement | your TDD/impl skill | code |
-| 9 Verify gate | `coverage-check` + your review skill | proof |
-| 10 Ship | your finish/handoff skill | merged, matrix green |
+| 8 Implement | `implement` (or your TDD skill) | tested code, ticket by ticket |
+| 9 Infra & delivery | `infra` | CI/CD, IaC, envs, secrets, observability, deploy |
+| 10 Verify gate | `coverage-check` + your review skill | proof |
+| 11 Ship | your finish/handoff skill | deployed, matrix green |
 | — | `traceability` | `docs/sdd/traceability.md` (run after each phase) |
 
-Phases 8–10 **defer to skills you already have** (e.g. mattpocock/skills or
-superpowers for TDD, code review, git worktrees, finishing branches). If none
-are installed, the orchestrator does them inline with ordinary good practice.
+For debugging, code review, git worktrees, grilling, and finishing branches,
+**defer to skills you already have** (e.g. mattpocock/skills or superpowers);
+prefer an installed TDD skill over `implement` if present. If none are installed,
+the orchestrator uses this pack's skills / ordinary good practice inline.
+
+## Modes
+
+- **Autopilot** — agent runs the whole pipeline autonomously as a full team;
+  collects requirements exhaustively up front (batched), picks robust defaults
+  where the user doesn't decide (recording assumptions), and stops only for
+  blockers or irreversible/outward actions (deploy, spend, delete, send). Works
+  for non-developers and developers.
+- **Copilot** — same full sequence and rigor, but pauses at each gate for a
+  developer to review/approve and defers technical calls to them.
+- **Modular** — invoke any single skill directly, without the orchestrator.
+
+Size is orthogonal: **full** (new product/subsystem) vs **lite** (feature/bugfix).
+Neither mode nor size ever removes a gate or reduces requirement collection.
 
 ## Principles baked in
 

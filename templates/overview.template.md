@@ -2,7 +2,7 @@
 
 > **Plain-language summary:** _one paragraph: what this is and where it stands._
 
-- **Mode:** full | lite
+- **Interaction mode:** autopilot | copilot   ·   **Size:** full | lite
 - **Owner (PM):** <name> · **Tech lead:** <name>
 - **Problem (one sentence):**
 - **Status:** discovery | speccing | building | verifying | shipped
@@ -12,7 +12,7 @@ _The tech-lead dashboard. A gate may not be ✅ until its exit condition holds._
 
 | # | Phase | Gate | State |
 |---|-------|------|-------|
-| 0 | Discover | problem confirmed in one sentence | ⬜ |
+| 0 | Discover | problem confirmed in one sentence; 9 discovery Qs answered | ⬜ |
 | 1 | PRD | every REQ has user + why + acceptance criteria | ⬜ |
 | 2 | Diagrams | context + DFD + key sequences exist | ⬜ |
 | 3 | FSD | every REQ ↔ FSD; error flows enumerated | ⬜ |
@@ -21,8 +21,9 @@ _The tech-lead dashboard. A gate may not be ✅ until its exit condition holds._
 | 6 | Backlog | tickets tiered + self-contained + traced | ⬜ |
 | 7 | Test plan | happy+regression+edge+e2e; coverage target set | ⬜ |
 | 8 | Implement | tickets done red→green→refactor | ⬜ |
-| 9 | Verify | coverage ≥ target, review clean, threats re-checked | ⬜ |
-| 10 | Ship | traceability matrix green; changelog written | ⬜ |
+| 9 | Infra & delivery | CI+gates early; IaC, secrets, observability, deploy+rollback | ⬜ |
+| 10 | Verify | coverage ≥ target, review clean, threats re-checked | ⬜ |
+| 11 | Ship | traceability matrix green; deployed + smoke-checked | ⬜ |
 
 _States: ⬜ not started · 🟨 in progress · ✅ passed · ⛔ blocked (note why)_
 

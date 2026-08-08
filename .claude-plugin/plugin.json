@@ -1,7 +1,7 @@
 {
   "name": "sdd-pipeline",
   "version": "0.1.0",
-  "description": "Spec-Driven Development pipeline: gated, traceable idea→PRD→diagrams→FSD→architecture→security→backlog→test-plan→implement→verify→ship. Multi-agent, stack-neutral, dev + non-dev friendly.",
+  "description": "Spec-Driven Development pipeline: gated, traceable discovery→PRD→diagrams→FSD→architecture→security→backlog→test-plan→implement→infra→verify→ship. Autopilot & copilot modes. Multi-agent, stack-neutral, dev + non-dev friendly.",
   "author": {
     "name": "ferryaguspratama"
   },
@@ -15,7 +15,11 @@
     "ssdlc",
     "clean-architecture",
     "traceability",
-    "test-coverage"
+    "test-coverage",
+    "autopilot",
+    "copilot",
+    "ci-cd",
+    "infrastructure"
   ],
   "skills": "./skills"
 }

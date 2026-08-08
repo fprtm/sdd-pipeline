@@ -30,12 +30,16 @@ down so a junior dev — or a cheap model — can execute the easy parts safely.
 ## The pipeline
 
 ```
-0 Discover ─▶ 1 PRD ─▶ 2 Diagrams ─▶ 3 FSD ─▶ 4 Architecture ┐
-                                                              ▼
-        ship ◀─ 9 Verify ◀─ 8 Implement ◀─ 7 Test plan ◀─ 6 Backlog ◀─ 5 Security
-              (coverage≥80%,                (happy/regression/    (tiered   (STRIDE,
-               review, threat                edge/e2e)             tickets)  SSDLC)
-               re-check)
+0 Discover ─▶ 1 PRD ─▶ 2 Diagrams ─▶ 3 FSD ─▶ 4 Architecture ─▶ 5 Security ┐
+ (deep needs                          (REQ↔FSD,   (style/stack/    (STRIDE,   │
+  collection)                          errors)     topology)        SSDLC)    ▼
+                                                                          6 Backlog
+                                                                          (tiered)
+                                                                              │
+  11 Ship ◀─ 10 Verify ◀─ 9 Infra ◀─ 8 Implement ◀─ 7 Test plan ◀───────────┘
+ (deployed,   (cov≥80%,   (CI/CD,IaC, (TDD, ticket   (happy/regression/
+  matrix       review,     secrets,    by ticket)     edge/e2e, ≥80%)
+  green)       threats)    observ.)
 ```
 
 Each box is a skill in `skills/`. The orchestrator is
@@ -46,7 +50,8 @@ there and it routes the rest.
 
 | Skill | Role | New / defers |
 |-------|------|--------------|
-| `spec-driven-development` | orchestrator + gates + routing | **new** |
+| `spec-driven-development` | orchestrator + gates + routing + modes | **new** |
+| `discovery` | deep requirement collection (dev + non-dev) | **new** |
 | `to-prd` | Product Requirements (REQ-xxx) | **new** |
 | `to-diagrams` | context / DFD / sequence / ERD (Mermaid) | **new** |
 | `to-fsd` | Functional Spec (FSD-xxx) | **new** |
@@ -54,9 +59,25 @@ there and it routes the rest.
 | `threat-model` | SSDLC security gate (SEC-xxx, STRIDE) | **new** |
 | `backlog-leveling` | tiered, executor-friendly backlog | **new** |
 | `test-plan` | happy/regression/edge/e2e + coverage target | **new** |
+| `implement` | the coding phase, test-first, ticket-by-ticket | **new** (defers to installed TDD skill) |
+| `infra` | CI/CD, IaC, envs, secrets, observability, deploy | **new** |
 | `coverage-check` | verify-gate coverage enforcement | **new** |
 | `traceability` | the single-source-of-truth matrix | **new** |
-| TDD / debug / review / worktrees / finish | phases 8–10 | **defers** to your installed skills |
+| debug / review / worktrees / grilling / finish | supporting | **defers** to your installed skills |
+
+### Two ways to run it
+
+- **Autopilot** — the agent runs the whole pipeline as an autonomous team,
+  collecting requirements exhaustively up front (batched questions), choosing the
+  most robust defaults where you don't decide, and stopping only for blockers or
+  irreversible actions (deploy, spend, delete). Friendly for non-developers and
+  developers.
+- **Copilot** — same full sequence and same rigor, but it pauses at each gate for
+  a developer to review/approve and defers technical calls where you have a
+  preference. Developer-friendly.
+
+Or use any skill **modularly** on its own (`to-prd`, `threat-model`, …) — you
+just give up the automatic gating and traceability wiring.
 
 ## Install
 
@@ -91,8 +112,9 @@ For agents that read a single rules file, add `--bundle` to also emit
 ./install/install.sh codex --bundle
 ```
 
-Then, in any agent: **"use spec-driven-development to build \<X\>"** (full mode)
-or **"…lite mode"** for a small feature/bugfix.
+Then, in any agent: **"use spec-driven-development to build \<X\>"**. It will ask
+your **interaction mode** (autopilot / copilot) and **size** (full / lite), or you
+can say them up front: e.g. *"…in copilot mode, lite"*.
 
 ## See it in action
 
@@ -109,7 +131,7 @@ sdd-pipeline/
 ├─ README.md
 ├─ AGENTS.md                # entry point for non-Claude agents
 ├─ .claude-plugin/          # Claude Code plugin + marketplace manifests
-├─ skills/                  # 10 SKILL.md files (portable Markdown)
+├─ skills/                  # 13 SKILL.md files (portable Markdown)
 ├─ templates/               # doc templates the skills fill in
 ├─ examples/wishlist/       # a complete worked run of the whole pipeline
 └─ install/install.sh       # multi-agent installer

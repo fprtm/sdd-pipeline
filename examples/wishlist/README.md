@@ -42,7 +42,11 @@ PII leakage, cache-after-revoke).
 
 Point your agent at the pack and say:
 
-> use `spec-driven-development` to build "\<your feature\>" — full mode
+> use `spec-driven-development` to build "\<your feature\>"
 
-For a small change, ask for **lite mode** and the gates get lighter (one-para
-PRD, one sequence diagram, a handful of tickets) without disappearing.
+It asks two things: **interaction mode** — *autopilot* (agent runs the whole team
+autonomously, collecting needs exhaustively up front and stopping only for
+blockers or irreversible actions) or *copilot* (same rigor, but pauses at each
+gate for you to review) — and **size**: *full* (new product/subsystem) or *lite*
+(feature/bugfix, lighter gates that still apply). You can state them up front,
+e.g. *"…autopilot, full"*.
