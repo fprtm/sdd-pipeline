@@ -1,0 +1,38 @@
+# CI for the SDD Pipeline repo. Runs the worked example's test suite with the
+# coverage gate — the same gate the `coverage-check` skill enforces (>= 80%).
+# This is TICKET-019 realized for the example.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  wishlist-example:
+    name: Wishlist example — tests + coverage gate
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: examples/wishlist/impl
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js (type-stripping capable)
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      # The project is zero-dependency, so there is nothing to install. A real
+      # project would `npm ci` and run a scanner here:
+      #   - npm ci
+      #   - npm audit --audit-level=high
+      #   - trivy fs . / a SAST step
+      - name: Test with coverage gate (>= 80% line & branch)
+        run: npm run test:ci
+
+      - name: Secret scan (basic)
+        run: |
+          if grep -rInE '(AKIA[0-9A-Z]{16}|-----BEGIN [A-Z ]*PRIVATE KEY-----)' src; then
+            echo "Potential secret committed"; exit 1
+          fi

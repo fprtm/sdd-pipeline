@@ -1,8 +1,10 @@
-# Wishlist — runnable backend proof (phases 8–9)
+# Wishlist — runnable proof (phases 8–10)
 
-This is the **implement + verify** phases of the SDD Pipeline, run for real on the
-wishlist spec in `../docs/sdd/`. It proves the pipeline goes past paper: the
-security-critical and domain logic is implemented, tested, and measured.
+This is the **implement + infra + verify** phases of the SDD Pipeline, run for real
+on the wishlist spec in `../docs/sdd/`. It proves the pipeline goes past paper: the
+domain, application, security controls, and a working HTTP delivery layer (plus the
+SSR shared page) are implemented, tested, and measured — and there's real
+infra-as-code (Dockerfile, compose, CI with the coverage gate).
 
 ## Run it
 
@@ -19,9 +21,11 @@ dependency-free so it runs anywhere Node does.)
 
 ## Result
 
-- **31 tests, all passing**
-- **Coverage: 100% line / 100% branch / 100% functions** on implemented modules
-  (gate is ≥ 80% — see `07-test-plan.md`)
+- **50 tests, all passing** (domain, application, security, HTTP integration)
+- **Coverage: ~99% line / ~96% branch / 100% functions** (gate is ≥ 80% — see
+  `07-test-plan.md`)
+- **Runs for real:** `npm start` boots a demo API; `docker compose up --build`
+  runs it containerized with a `/healthz` check.
 
 ## What each test proves (traces to the plan)
 
@@ -40,20 +44,21 @@ dependency-free so it runs anywhere Node does.)
 
 ## Honest scope — what is and isn't here
 
-**Implemented & proven (backend logic):** domain (wishlist, sharing), application
-services, in-memory adapters (mirroring the Postgres constraints), access control
-(authn + IDOR guard), contract validation, account-deletion purge, and the
-security behaviors above.
+**Implemented & proven:** domain (wishlist, sharing), application services,
+in-memory adapters (mirroring the Postgres constraints), access control (authn +
+IDOR guard), contract validation, account-deletion purge, **the HTTP delivery
+layer** (routes + auth + CSRF + rate limiting + secure-cookie policy), the
+**SSR shared page** (output-encoded, CSP, no PII), **cache-bust on revoke**, a
+`/healthz` probe, and a runnable demo boot. Plus infra-as-code: Dockerfile,
+docker-compose, and CI that enforces the coverage gate.
 
-**Deliberately NOT built in this proof** (would need a running stack/infra to be
-meaningful, so faking them would be dishonest):
-- HTTP routing layer, real Postgres adapter (TICKET-005/008/011/012/013 wiring)
-- CSRF, secure-cookie config, rate limiting (SEC-003/004/006 → TICKET-010/014)
-- CDN cache-bust on revoke (SEC-008 → TICKET-012/018)
-- Frontend: owner SPA + SSR shared page + a11y (TICKET-015..018)
-- Performance load test, availability/SLO (TEST-032, REQ-NF-004)
-
-These stay 🟡 in the traceability matrix — the pipeline does not paint them green.
+**Deliberately NOT built** (would need a real environment/browser, so faking them
+would be dishonest — they stay 🟡 in the matrix):
+- Owner interactive SPA — Save/Remove/Share UI + a11y audit (TICKET-015/016/017, TEST-033)
+- Real Postgres adapter (parameterized queries = the SQLi half of SEC-007), real
+  auth/session service (cookie-on-login), real catalog client
+- Actual cloud provisioning + deploy (irreversible — needs a human)
+- Performance load test / availability SLO measured on a live env (TEST-032, REQ-NF-004)
 
 ## A finding surfaced during implementation
 

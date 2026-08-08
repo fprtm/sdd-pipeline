@@ -8,6 +8,7 @@
     "node": ">=23.6"
   },
   "scripts": {
+    "start": "node src/main.ts",
     "test": "node --test --experimental-test-coverage",
     "test:ci": "node --test --experimental-test-coverage --test-coverage-lines=0.8 --test-coverage-branches=0.8"
   }

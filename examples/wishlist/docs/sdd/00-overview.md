@@ -10,8 +10,9 @@
 - **Owner (PM):** A. Rahman · **Tech lead:** D. Putri
 - **Problem (one sentence):** Shoppers who aren't ready to buy have no way to
   remember or share products they like, so they leave and don't come back.
-- **Status:** building — backend logic implemented & tested (`impl/`: 31 tests,
-  100% coverage); FE + infra pending
+- **Status:** building — backend + HTTP delivery + SSR shared page + infra-as-code
+  implemented & tested (`impl/`: 50 tests, ~99%/96% coverage); owner SPA, real
+  adapters, and actual deploy pending
 
 ## Gate board
 _A gate may not be ✅ until its exit condition holds._
@@ -26,9 +27,10 @@ _A gate may not be ✅ until its exit condition holds._
 | 5 | Security (SSDLC) | every High/Critical threat has a control | ✅ |
 | 6 | Backlog | tickets tiered + self-contained + traced | ✅ |
 | 7 | Test plan | happy+regression+edge+e2e; coverage target set | ✅ |
-| 8 | Implement | tickets done red→green→refactor | 🟨 backend logic done (`impl/`); FE/routes/infra pending |
-| 9 | Verify | coverage ≥ target, review clean, threats re-checked | 🟨 coverage 100% on built modules (≥80% ✅); FE/infra + full threat re-check pending |
-| 10 | Ship | traceability matrix green; changelog written | ⛔ blocked — delivery (HTTP/FE/infra) not built |
+| 8 | Implement | tickets done red→green→refactor | 🟨 backend + HTTP routes + SSR shared page done (`impl/`, 50 tests); owner SPA + real adapters pending |
+| 9 | Infra & delivery | CI+gates early; IaC, secrets, observability, deploy+rollback | 🟨 CI + Dockerfile + compose + runbook + /healthz done; real provisioning + deploy pending (needs a human) |
+| 10 | Verify | coverage ≥ target, review clean, threats re-checked | 🟨 coverage ~99%/96% (≥80% ✅); threat controls SEC-001..008 tested; a11y/perf on live env pending |
+| 11 | Ship | traceability matrix green; deployed + smoke-checked | ⛔ blocked — real adapters + actual deploy outstanding |
 
 _States: ⬜ not started · 🟨 in progress · ✅ passed · ⛔ blocked_
 

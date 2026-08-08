@@ -1,0 +1,41 @@
+# Local topology (illustrative, per ADR-003/005).
+# The demo API uses in-memory adapters, so it boots without Postgres. The `db`
+# service is included to show where the REAL Postgres adapter would connect —
+# uncomment its use once the persistence adapter is wired.
+
+services:
+  api:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      # Real deployment would inject these (never commit real secrets):
+      # DATABASE_URL: postgres://wishlist:${DB_PASSWORD}@db:5432/wishlist
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/healthz"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+    # depends_on:
+    #   db:
+    #     condition: service_healthy
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: wishlist
+      POSTGRES_USER: wishlist
+      # From a secret/env at deploy time — placeholder here, not a real secret:
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-devpassword}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U wishlist"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    volumes:
+      - wishlist_db:/var/lib/postgresql/data
+
+volumes:
+  wishlist_db:

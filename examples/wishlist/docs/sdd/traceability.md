@@ -3,20 +3,20 @@
 > Single source of truth linking every requirement down to its tests. If this
 > lies, the pipeline is theater.
 
-**Summary:** 12 requirements tracked (+1 dropped) · planning coverage **complete** ·
-**backend logic implemented & tested** (`impl/`: 31 tests, 100% line/branch/func
-coverage on implemented modules; gate ≥ 80%) · HTTP delivery, frontend, and infra
-**not built**.
+**Summary:** 12 requirements tracked (+1 dropped) · planning **complete** ·
+**backend + HTTP delivery + SSR shared page + infra-as-code implemented & tested**
+(`impl/`: 50 tests, ~99% line / ~96% branch; gate ≥ 80%) · **not built:** owner
+interactive SPA, real Postgres/auth/catalog adapters, and actual cloud deploy.
 
-**Status right now:** the security-critical + domain logic is proven by passing
-tests (marked 🟩 below); the HTTP/FE/infra delivery and the ops-only NFRs are not
-built (🟡). **Ship gate: still NOT met** — a feature isn't shipped until it's
-wired end-to-end and deployed. The pipeline does not paint delivery green just
-because the logic underneath it is.
+**Status right now:** the domain, application, security controls, and the HTTP
+delivery layer are built and proven by passing tests (🟩 below). CI + IaC + the
+delivery runbook exist as code. **Ship gate still NOT met** — real adapters and an
+actual deploy are outstanding (a deploy is an irreversible action requiring a
+human). The pipeline does not paint "shipped" green until it truly is.
 
-> Legend addition: 🟩 **logic proven** — the behavior is implemented and covered
-> by passing tests at the domain/application layer (see `impl/`), but not yet
-> delivered through HTTP/FE/infra. Full 🟢 requires end-to-end wiring + deploy.
+> Legend addition: 🟩 **built & tested (not deployed)** — implemented and covered
+> by passing tests, including HTTP delivery where applicable, but not yet running
+> in a real environment. Full 🟢 requires real adapters + deploy + post-deploy check.
 
 | REQ | FSD | ADR (constrains) | SEC | Ticket | Test (planned) | Status |
 |-----|-----|------------------|-----|--------|----------------|--------|
@@ -49,24 +49,29 @@ missing) · ⚪ dropped.
   REQ-NF-005 (a11y) are satisfied via architecture/ops and cross-cutting UI work
   rather than a single behavior spec — recorded here so it's a decision, not a gap.
 
-## Phase 8–9 result — backend proof (`impl/`)
+## Phase 8–10 result — built & tested (`impl/`, 50 tests)
 
-🟩 **logic proven** (implemented + passing tests, 100% coverage):
-- REQ-001 → FSD-001/002/003 → TEST-001/002/003/012/013 (save, dedupe, cap, errors)
+🟩 **built & tested** (domain + application + HTTP delivery, passing tests):
+- REQ-001 → FSD-001/002/003 → TEST-001/002/003/012/013 + HTTP TEST-017 (save, dedupe, cap, errors)
 - REQ-002 → FSD-004/005 → TEST-004/005/015/016 (list, archived, empty, placeholder)
-- REQ-003 → FSD-006 → TEST-006 (remove, idempotent)
-- REQ-005 → FSD-008 → TEST-007/024 (share idempotent, token entropy + hash-at-rest)
-- REQ-006 → FSD-009/011 → TEST-008/025 (revoke terminal, uniform 404)
-- REQ-007 → FSD-010/012 → TEST-009/026/027 (resolve, no PII, read-only)
-- REQ-NF-002 → FSD-007/013 → TEST-010/011/020/021 (authn, IDOR guard, purge)
-- REQ-NF-003 → FSD-003 → TEST-003 (cap)
+- REQ-003 → FSD-006 → TEST-006 + HTTP DELETE (remove, idempotent)
+- REQ-005 → FSD-008 → TEST-007/024 + HTTP TEST-018 (share idempotent, token entropy, hash-at-rest)
+- REQ-006 → FSD-009/011 → TEST-008/025 + HTTP TEST-031 (revoke terminal, uniform 404, cache-bust)
+- REQ-007 → FSD-010/012 → TEST-009/026/027 + SSR TEST-018/030 (resolve, no PII, read-only, XSS-encoded)
+- REQ-NF-002 → FSD-007/013 + SEC-001..008 → TEST-010/011/020/021/022/023/028/030/031
+  (authn, IDOR guard 404, secure-cookie policy, CSRF, rate-limit, XSS encode, cache-bust, purge)
+- REQ-NF-003 → FSD-003 → TEST-003/028 (cap + rate limit)
 
-🟡 **not built** (needs running HTTP/FE/infra — deliberately not faked):
-- SEC-003/004/006/008 controls: cookies/CSRF, rate limiting, CDN cache-bust
-  (→ TICKET-010/014/012/018)
-- FE tickets 015–018 (owner SPA, SSR shared page, a11y) → TEST-017/018/019/033
-- REQ-NF-001 perf load test (TEST-032), REQ-NF-004 availability/SLO (ops)
-- Real Postgres adapter + HTTP routes (in-memory adapters stand in for the proof)
+🟢 **infra as code** (exists + CI runs the gate): Dockerfile, docker-compose,
+`.github/workflows/ci.yml` (coverage gate + secret scan), `/healthz`, delivery
+runbook (`08-delivery.md`).
+
+🟡 **still not built** (needs a real environment / browser — not faked):
+- Owner interactive SPA (TICKET-015/016/017) — Save/Remove/Share UI + a11y (TEST-033)
+- Real Postgres adapter (parameterized queries close the SQLi half of SEC-007),
+  real auth/session service (cookie-on-login), real catalog client
+- Actual cloud provisioning + deploy (irreversible — needs a human), and
+  REQ-NF-001 perf load test / REQ-NF-004 availability SLO measured on a live env
 
 ## What flips this to green
 1. Implement the backlog (phase 8), one ticket at a time, TDD.
