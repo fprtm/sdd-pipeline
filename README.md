@@ -59,19 +59,30 @@ there and it routes the rest.
 | `stack-conventions` | official best practices of the chosen stack, as rules | 4 |
 | `threat-model` | SSDLC security gate (SEC-xxx, STRIDE) | 5 |
 | `backlog-leveling` | tiered, executor-friendly backlog | 6 |
+| `estimate` | effort/cost from the tiered backlog (for non-IT/PM) | 6 |
 | `test-plan` | happy/regression/edge/e2e + coverage target | 7 |
 | `code-standards` | the SSOT/DRY/YAGNI/deep-module code bar | 8·10 |
 | `implement` | the coding phase, test-first, ticket-by-ticket | 8 |
+| `debug` | systematic root-cause debugging + regression test | 8·10 |
 | `infra` | CI/CD, IaC, envs, secrets, observability, deploy | 9 |
 | `code-review` | Standards + Spec review | 10 |
 | `coverage-check` | verify-gate coverage enforcement | 10 |
+| `documentation` | user guide + developer docs (JSDoc/API/README) | 11 |
 | `traceability` | the single-source-of-truth matrix | all |
+| `decision-log` | running record of every significant decision + "why" | any |
 | `stakeholder-brief` | plain-language brief + sign-off for non-IT | any |
 | `handoff` | resumable snapshot for another agent / cheaper model | any |
 
-18 self-sufficient skills — the pipeline runs end to end with nothing else
-installed, and **defers** to your debugging/planning/worktree/grilling skills
-(mattpocock/skills, superpowers) when they're present.
+22 self-sufficient skills — the pipeline runs end to end with nothing else
+installed, and **defers** to your planning/worktree/grilling and (if you prefer
+them) TDD/review/debug skills (mattpocock/skills, superpowers) when present.
+
+### Tidy by design (predictable file placement)
+
+Every artifact has one canonical home, so runs never scatter files: the spec trail
+in `docs/sdd/`, user docs in `docs/user/`, developer docs in `docs/dev/`, and
+code/tests/CI/IaC in their normal repo locations. The orchestrator documents this
+layout as the single source of truth for *where things live*.
 
 ### Code-quality bar (SSOT · DRY · YAGNI · deep modules)
 
@@ -167,7 +178,7 @@ sdd-pipeline/
 ├─ README.md
 ├─ AGENTS.md                # entry point for non-Claude agents
 ├─ .claude-plugin/          # Claude Code plugin + marketplace manifests
-├─ skills/                  # 18 SKILL.md files (portable Markdown)
+├─ skills/                  # 22 SKILL.md files (portable Markdown)
 ├─ templates/               # doc templates the skills fill in
 ├─ examples/wishlist/       # a complete worked run of the whole pipeline
 └─ install/install.sh       # multi-agent installer

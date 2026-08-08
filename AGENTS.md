@@ -31,18 +31,26 @@ gates** and keeps a **traceability matrix** linking every requirement to a test:
 | 3 Functional spec | `to-fsd` | `docs/sdd/03-fsd.md` (FSD-xxx) |
 | 4 Architecture gate | `arch-decision` → `stack-conventions` | `docs/sdd/04-architecture.md` (ADRs) + `04-stack-guide.md` (stack best practices as rules) |
 | 5 Security gate (SSDLC) | `threat-model` | `docs/sdd/05-threat-model.md` (SEC-xxx) |
-| 6 Backlog | `backlog-leveling` | `docs/sdd/06-backlog.md` (tiered TICKET-xxx) |
+| 6 Backlog | `backlog-leveling` (+ `estimate`) | `06-backlog.md` (tiered TICKET-xxx); `ESTIMATE.md` |
 | 7 Test plan | `test-plan` | `docs/sdd/07-test-plan.md` (TEST-xxx, ≥80% target) |
-| 8 Implement | `implement` + `code-standards` | tested code that clears the SSOT/DRY/YAGNI bar |
+| 8 Implement | `implement` + `code-standards` (+ `debug`) | tested code clearing the SSOT/DRY/YAGNI bar |
 | 9 Infra & delivery | `infra` | CI/CD, IaC, envs, secrets, observability, deploy |
-| 10 Verify gate | `coverage-check` + `code-review` + `threat-model` re-check | proof |
-| 11 Ship | finish/`handoff` | deployed, matrix green |
-| any | `traceability` · `stakeholder-brief` · `handoff` | matrix, non-IT brief, resumable snapshot |
+| 10 Verify gate | `coverage-check` + `code-review` + `threat-model` re-check (+ `debug`) | proof |
+| 11 Ship | `documentation` + finish/`handoff` | deployed, docs written, matrix green |
+| any | `traceability` · `decision-log` · `stakeholder-brief` · `handoff` | matrix, decision "why", non-IT brief, snapshot |
 
-This pack is **self-sufficient** (18 skills; runs end to end alone). For
-debugging, planning, git worktrees, and grilling, **defer to skills you already
-have** (mattpocock/skills, superpowers); prefer an installed TDD/code-review skill
-over `implement`/`code-review` if present.
+This pack is **self-sufficient** (22 skills; runs end to end alone). For planning,
+git worktrees, and grilling, **defer to skills you already have** (mattpocock/
+skills, superpowers); prefer an installed TDD / code-review / debugging skill over
+`implement` / `code-review` / `debug` if present.
+
+## Tidy output layout (canonical — one home per artifact)
+
+Spec trail → `docs/sdd/` (00–08 + `ESTIMATE.md`, `DECISIONS.md`,
+`STAKEHOLDER-BRIEF.md`, `HANDOFF.md`, `traceability.md`); user docs →
+`docs/user/`; developer docs → `docs/dev/` (+ inline JSDoc/docstrings); code,
+tests, CI, IaC in their normal repo locations. Never scatter files — if it isn't
+in this layout, give it a home here first.
 
 **Stack-aware:** `stack-conventions` (phase 4) reads the chosen stack's official
 docs (via a docs tool like Context7 if available, else the official sites) and

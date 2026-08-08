@@ -42,24 +42,41 @@ Never make a stakeholder read a data-flow diagram to learn what a feature does.
 
 Create these under the repo (make the folders if missing):
 
+**Tidy placement (canonical — one home per artifact; never scatter files).**
+Create folders as needed; put each output exactly here so any agent or human
+knows where to look. This layout is the SSOT for *where things live*:
+
 ```
-docs/sdd/
-  00-overview.md         # feature brief + gate board + ID registry (this skill)
-  00-context.md          # ubiquitous language / glossary (domain-modeling)
-  01-prd.md              # to-prd
-  02-diagrams.md         # to-diagrams (context, DFD, sequence, ERD)
-  03-fsd.md              # to-fsd
-  04-architecture.md     # arch-decision (ADRs + stack)
-  04-stack-guide.md      # stack-conventions (official best practices as rules)
-  05-threat-model.md     # threat-model (SSDLC)
-  06-backlog.md          # backlog-leveling (tiered tickets)
-  07-test-plan.md        # test-plan
-  08-delivery.md         # infra: environments, pipeline, runbook, SLOs (optional doc)
-  traceability.md        # the matrix — always current
+docs/
+  sdd/                     # the spec-driven trail (the "how/why we built it")
+    00-overview.md         # feature brief + gate board + ID registry (this skill)
+    00-context.md          # ubiquitous language / glossary (domain-modeling)
+    01-prd.md              # to-prd
+    02-diagrams.md         # to-diagrams (context, DFD, sequence, ERD)
+    03-fsd.md              # to-fsd
+    04-architecture.md     # arch-decision (ADRs + stack)
+    04-stack-guide.md      # stack-conventions (official best practices as rules)
+    05-threat-model.md     # threat-model (SSDLC)
+    06-backlog.md          # backlog-leveling (tiered tickets)
+    07-test-plan.md        # test-plan
+    08-delivery.md         # infra: environments, pipeline, runbook, SLOs
+    ESTIMATE.md            # estimate (effort/cost)
+    DECISIONS.md           # decision-log (running "why")
+    STAKEHOLDER-BRIEF.md   # stakeholder-brief (for non-IT)
+    HANDOFF.md             # handoff (resumable snapshot; transient)
+    traceability.md        # the matrix — always current
+  user/
+    <feature>.md           # documentation FOR USERS (documentation skill)
+  dev/
+    README.md              # how to run/test/extend (documentation skill)
+    api.md                 # API/contract reference
+    architecture.md        # dev overview, links the ADRs
 ```
 
-The `infra` phase also produces real files in the repo (CI config, IaC,
-deploy scripts) — `08-delivery.md` is the human-readable index/runbook for them.
+Code, tests, CI config, IaC, and inline JSDoc/docstrings live in the normal repo
+locations (the `infra` phase produces the CI/IaC files; `08-delivery.md` is their
+human-readable index). Never drop pipeline artifacts at the repo root or in ad-hoc
+places — if it's not in the tree above, it doesn't have a home yet; give it one.
 
 ## The phases and their gates
 
@@ -86,7 +103,7 @@ so plainly, mark it ⛔ on the board, and stop; do not sneak forward.
 | 8 | Implement | `implement` (or installed `tdd`/`executing-plans`) | Work one ticket at a time, red→green→refactor; each ticket's tests pass |
 | 9 | Infra & delivery | `infra` | CI + coverage/security gates set up (early); IaC, envs, secrets, observability, deploy+rollback ready |
 | 10 | **Verify gate** | `coverage-check` + `code-review` + re-check `threat-model` | Tests pass, coverage ≥ target, review clean, no unmitigated High/Critical threat |
-| 11 | Ship | `finishing-a-development-branch` / `handoff` (if present) | Traceability matrix green; changelog written; deployed + smoke-checked |
+| 11 | Ship | `documentation` + `finishing-a-development-branch`/`handoff` (if present) | Traceability matrix green; user + developer docs written; changelog written; deployed + smoke-checked |
 
 > Phase 9 (`infra`) is partly *early*: stand up the CI pipeline and the coverage +
 > security gates at the **start** of implementation so every ticket lands green;
@@ -104,12 +121,13 @@ role, so one agent (or a human + agent) covers the whole org:
 | Business analyst / systems analyst | 2–3 | `to-diagrams`, `to-fsd` |
 | Architect / tech lead | 4 | `arch-decision`, `stack-conventions` |
 | Security engineer (AppSec) | 5, re-check at 10 | `threat-model` |
-| Delivery lead | 6 | `backlog-leveling` |
+| Delivery lead | 6 | `backlog-leveling`, `estimate` |
 | QA / test lead | 7, 10 | `test-plan`, `coverage-check` |
-| Engineer | 8 | `implement` (+ `code-standards`) |
+| Engineer | 8, + when bugs arise | `implement` (+ `code-standards`), `debug` |
 | DevOps / SRE / platform | 9 | `infra` |
 | Reviewer / staff engineer | 10 | `code-review` |
-| Tech writer / delivery manager | any | `stakeholder-brief`, `handoff` |
+| Tech writer | 11, any | `documentation` |
+| Delivery manager / scribe | any | `stakeholder-brief`, `handoff`, `decision-log` |
 
 Say this out loud when you switch phases ("acting as the architect now…") so a
 non-technical user can follow who's "in the room". In **copilot** mode the human
@@ -119,24 +137,33 @@ the decisions each role would have signed off.
 ## Cross-cutting skills (any time)
 
 - `traceability` — after every phase that changes an ID; the SSOT for coverage.
+- `decision-log` — the moment any non-trivial decision is made (scope cut,
+  trade-off, accepted risk, spec refinement, and **every autopilot default chosen
+  for the user**). Appends to `docs/sdd/DECISIONS.md`; links to ADRs, never
+  duplicates them.
 - `stakeholder-brief` — whenever a non-technical person needs to understand or
   approve the work (especially after PRD, and before ship). Translates status to
   plain language and writes decisions back into the specs.
 - `handoff` — when a run gets long, the model/tool changes, or work pauses. Writes
   `docs/sdd/HANDOFF.md` so another agent (even a cheaper model) can continue cold.
 
+Phase touchpoints for the new skills: `estimate` runs after the backlog (phase 6)
+when someone wants effort/cost; `debug` runs inside phases 8/10 whenever something
+fails; `documentation` is a ship deliverable (phase 11) — write `docs/user/` +
+`docs/dev/` before calling it shipped.
+
 ## How to route
 
 - Prefer skills that already exist in the environment. This pack is
   **self-sufficient** — it ships `discovery`, `to-prd`, `to-diagrams`, `to-fsd`,
   `arch-decision`, `stack-conventions`, `threat-model`, `backlog-leveling`,
-  `test-plan`, `code-standards`, `implement`, `code-review`, `infra`,
-  `coverage-check`, `traceability`, `handoff`, and `stakeholder-brief`. For
-  debugging, planning,
-  worktrees, and grilling, **defer to the user's installed skills** (e.g.
-  mattpocock/skills or superpowers) when present; also prefer an installed
-  TDD/code-review skill over `implement`/`code-review` if one exists. If nothing
-  else is installed, everything runs from this pack alone.
+  `estimate`, `test-plan`, `code-standards`, `implement`, `code-review`, `debug`,
+  `infra`, `coverage-check`, `documentation`, `traceability`, `decision-log`,
+  `handoff`, and `stakeholder-brief`. For planning, worktrees, and grilling,
+  **defer to the user's installed skills** (e.g. mattpocock/skills or superpowers)
+  when present; also prefer an installed TDD / code-review / debugging skill over
+  `implement` / `code-review` / `debug` if one exists. If nothing else is
+  installed, everything runs from this pack alone.
 - **Code-quality bar:** all code produced (phase 8) and reviewed (phase 10) must
   clear `code-standards` — SSOT, DRY, YAGNI, deep modules. This is the pipeline's
   output-quality contract, not an optional nicety.
