@@ -48,22 +48,47 @@ there and it routes the rest.
 
 ## Skills in this pack
 
-| Skill | Role | New / defers |
-|-------|------|--------------|
-| `spec-driven-development` | orchestrator + gates + routing + modes | **new** |
-| `discovery` | deep requirement collection (dev + non-dev) | **new** |
-| `to-prd` | Product Requirements (REQ-xxx) | **new** |
-| `to-diagrams` | context / DFD / sequence / ERD (Mermaid) | **new** |
-| `to-fsd` | Functional Spec (FSD-xxx) | **new** |
-| `arch-decision` | architecture + stack + topology gate (ADR) | **new** |
-| `threat-model` | SSDLC security gate (SEC-xxx, STRIDE) | **new** |
-| `backlog-leveling` | tiered, executor-friendly backlog | **new** |
-| `test-plan` | happy/regression/edge/e2e + coverage target | **new** |
-| `implement` | the coding phase, test-first, ticket-by-ticket | **new** (defers to installed TDD skill) |
-| `infra` | CI/CD, IaC, envs, secrets, observability, deploy | **new** |
-| `coverage-check` | verify-gate coverage enforcement | **new** |
-| `traceability` | the single-source-of-truth matrix | **new** |
-| debug / review / worktrees / grilling / finish | supporting | **defers** to your installed skills |
+| Skill | Role in the "team" | Phase |
+|-------|--------------------|-------|
+| `spec-driven-development` | orchestrator + gates + routing + modes | all |
+| `discovery` | deep requirement collection (dev + non-dev) | 0 |
+| `to-prd` | Product Requirements (REQ-xxx) | 1 |
+| `to-diagrams` | context / DFD / sequence / ERD (Mermaid) | 2 |
+| `to-fsd` | Functional Spec (FSD-xxx) | 3 |
+| `arch-decision` | architecture + stack + topology gate (ADR) | 4 |
+| `threat-model` | SSDLC security gate (SEC-xxx, STRIDE) | 5 |
+| `backlog-leveling` | tiered, executor-friendly backlog | 6 |
+| `test-plan` | happy/regression/edge/e2e + coverage target | 7 |
+| `code-standards` | the SSOT/DRY/YAGNI/deep-module code bar | 8·10 |
+| `implement` | the coding phase, test-first, ticket-by-ticket | 8 |
+| `infra` | CI/CD, IaC, envs, secrets, observability, deploy | 9 |
+| `code-review` | Standards + Spec review | 10 |
+| `coverage-check` | verify-gate coverage enforcement | 10 |
+| `traceability` | the single-source-of-truth matrix | all |
+| `stakeholder-brief` | plain-language brief + sign-off for non-IT | any |
+| `handoff` | resumable snapshot for another agent / cheaper model | any |
+
+17 self-sufficient skills — the pipeline runs end to end with nothing else
+installed, and **defers** to your debugging/planning/worktree/grilling skills
+(mattpocock/skills, superpowers) when they're present.
+
+### Code-quality bar (SSOT · DRY · YAGNI · deep modules)
+
+Everything the pipeline writes must clear `code-standards`: one source of truth
+per fact (types inferred from a single schema, named constants, ubiquitous
+naming), knowledge-level DRY (no premature abstraction — rule of three), YAGNI
+(only what a requirement needs; no dead code), and deep modules (simple interfaces
+hiding real complexity, logic in the domain layer). `implement` writes to it;
+`code-review` enforces it.
+
+### It represents a full team
+
+Each phase plays a role — PM, analyst, architect, security, delivery lead, QA,
+engineer, DevOps/SRE, reviewer, tech writer — so one agent covers the whole org.
+In **copilot** the human is the senior in the loop; in **autopilot** the agent
+plays every seat and records what each role would have signed off. The agent
+announces which role it's "wearing" as it moves through phases, so a non-technical
+user can follow along.
 
 ### Two ways to run it
 
@@ -131,7 +156,7 @@ sdd-pipeline/
 ├─ README.md
 ├─ AGENTS.md                # entry point for non-Claude agents
 ├─ .claude-plugin/          # Claude Code plugin + marketplace manifests
-├─ skills/                  # 13 SKILL.md files (portable Markdown)
+├─ skills/                  # 17 SKILL.md files (portable Markdown)
 ├─ templates/               # doc templates the skills fill in
 ├─ examples/wishlist/       # a complete worked run of the whole pipeline
 └─ install/install.sh       # multi-agent installer

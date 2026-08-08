@@ -92,16 +92,52 @@ so plainly, mark it ⛔ on the board, and stop; do not sneak forward.
 > provision and deploy near the end. It's listed at 9 for reading order, not to
 > imply CI waits until implementation is finished.
 
+## The team this represents
+
+Running this pipeline is like running a full delivery team. Each phase plays a
+role, so one agent (or a human + agent) covers the whole org:
+
+| Role | Phase(s) | Skill |
+|------|----------|-------|
+| Product manager | 0–1 | `discovery`, `to-prd` |
+| Business analyst / systems analyst | 2–3 | `to-diagrams`, `to-fsd` |
+| Architect / tech lead | 4 | `arch-decision` |
+| Security engineer (AppSec) | 5, re-check at 10 | `threat-model` |
+| Delivery lead | 6 | `backlog-leveling` |
+| QA / test lead | 7, 10 | `test-plan`, `coverage-check` |
+| Engineer | 8 | `implement` (+ `code-standards`) |
+| DevOps / SRE / platform | 9 | `infra` |
+| Reviewer / staff engineer | 10 | `code-review` |
+| Tech writer / delivery manager | any | `stakeholder-brief`, `handoff` |
+
+Say this out loud when you switch phases ("acting as the architect now…") so a
+non-technical user can follow who's "in the room". In **copilot** mode the human
+is the senior in the loop; in **autopilot** the agent plays every seat and records
+the decisions each role would have signed off.
+
+## Cross-cutting skills (any time)
+
+- `traceability` — after every phase that changes an ID; the SSOT for coverage.
+- `stakeholder-brief` — whenever a non-technical person needs to understand or
+  approve the work (especially after PRD, and before ship). Translates status to
+  plain language and writes decisions back into the specs.
+- `handoff` — when a run gets long, the model/tool changes, or work pauses. Writes
+  `docs/sdd/HANDOFF.md` so another agent (even a cheaper model) can continue cold.
+
 ## How to route
 
-- Prefer skills that already exist in the environment. This pack ships the
-  phases most collections lack: `discovery`, `to-prd`, `to-diagrams`, `to-fsd`,
-  `arch-decision`, `threat-model`, `backlog-leveling`, `test-plan`, `implement`,
-  `infra`, `coverage-check`, `traceability`. For debugging, code review,
-  planning, worktrees, grilling, and finishing branches, **defer to the user's
-  installed skills** (e.g. mattpocock/skills or superpowers) when present — and
-  for `implement` too, prefer a dedicated TDD skill if one is installed. If none
-  is installed, do the phase inline using these skills / ordinary good practice.
+- Prefer skills that already exist in the environment. This pack is
+  **self-sufficient** — it ships `discovery`, `to-prd`, `to-diagrams`, `to-fsd`,
+  `arch-decision`, `threat-model`, `backlog-leveling`, `test-plan`,
+  `code-standards`, `implement`, `code-review`, `infra`, `coverage-check`,
+  `traceability`, `handoff`, and `stakeholder-brief`. For debugging, planning,
+  worktrees, and grilling, **defer to the user's installed skills** (e.g.
+  mattpocock/skills or superpowers) when present; also prefer an installed
+  TDD/code-review skill over `implement`/`code-review` if one exists. If nothing
+  else is installed, everything runs from this pack alone.
+- **Code-quality bar:** all code produced (phase 8) and reviewed (phase 10) must
+  clear `code-standards` — SSOT, DRY, YAGNI, deep modules. This is the pipeline's
+  output-quality contract, not an optional nicety.
 - Announce each phase as you enter it, name the gate, and after the phase state
   whether the gate passed.
 - After **every** phase that creates or changes an ID, invoke `traceability` to

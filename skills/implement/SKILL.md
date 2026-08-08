@@ -47,6 +47,25 @@ Cover the **error/alternate flows** from the FSD, not just the happy path — th
 where defects and the interesting tests live. Every bug found gets a failing
 regression test before the fix.
 
+## Write to the code-quality bar (`code-standards`)
+
+Every line you write must clear the bar in `code-standards` — this is the
+non-negotiable output quality of this pipeline:
+
+- **SSOT** — state each fact once; infer types from a single schema; use named
+  constants; use the ubiquitous language from `00-context.md`.
+- **DRY** — unify duplicated *knowledge*, but don't abstract merely-similar code
+  (rule of three). A wrong abstraction is worse than duplication.
+- **YAGNI** — build only what the ticket's REQ/FSD needs. No speculative options,
+  no dead code, no "might need later". Delete on sight.
+- **Deep modules** — a simple interface hiding real complexity; push complexity
+  down, keep callers' lives easy; logic in the domain/app layer, not controllers/UI.
+- **Clarity** — explicit over clever (a cheaper model must be able to extend it),
+  make illegal states unrepresentable, typed errors over silent nulls.
+
+Run the "check before done" from `code-standards` on your diff before you consider
+a ticket finished.
+
 ## Honor the architecture and security
 
 - **Dependency rule** — obey the direction from `04-architecture.md` (e.g. domain

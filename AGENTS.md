@@ -33,16 +33,31 @@ gates** and keeps a **traceability matrix** linking every requirement to a test:
 | 5 Security gate (SSDLC) | `threat-model` | `docs/sdd/05-threat-model.md` (SEC-xxx) |
 | 6 Backlog | `backlog-leveling` | `docs/sdd/06-backlog.md` (tiered TICKET-xxx) |
 | 7 Test plan | `test-plan` | `docs/sdd/07-test-plan.md` (TEST-xxx, ≥80% target) |
-| 8 Implement | `implement` (or your TDD skill) | tested code, ticket by ticket |
+| 8 Implement | `implement` + `code-standards` | tested code that clears the SSOT/DRY/YAGNI bar |
 | 9 Infra & delivery | `infra` | CI/CD, IaC, envs, secrets, observability, deploy |
-| 10 Verify gate | `coverage-check` + your review skill | proof |
-| 11 Ship | your finish/handoff skill | deployed, matrix green |
-| — | `traceability` | `docs/sdd/traceability.md` (run after each phase) |
+| 10 Verify gate | `coverage-check` + `code-review` + `threat-model` re-check | proof |
+| 11 Ship | finish/`handoff` | deployed, matrix green |
+| any | `traceability` · `stakeholder-brief` · `handoff` | matrix, non-IT brief, resumable snapshot |
 
-For debugging, code review, git worktrees, grilling, and finishing branches,
-**defer to skills you already have** (e.g. mattpocock/skills or superpowers);
-prefer an installed TDD skill over `implement` if present. If none are installed,
-the orchestrator uses this pack's skills / ordinary good practice inline.
+This pack is **self-sufficient** (17 skills; runs end to end alone). For
+debugging, planning, git worktrees, and grilling, **defer to skills you already
+have** (mattpocock/skills, superpowers); prefer an installed TDD/code-review skill
+over `implement`/`code-review` if present.
+
+## Code-quality bar
+
+All code (phase 8) and review (phase 10) must clear `code-standards`: **SSOT**
+(one authoritative source per fact; types inferred from one schema; named
+constants; ubiquitous naming), **DRY** (knowledge, not keystrokes; rule of three),
+**YAGNI** (only what a requirement needs; no dead code), **deep modules** (simple
+interfaces hiding complexity; logic in the domain layer). This is the output
+contract, not a nicety.
+
+## It represents a full team
+
+Each phase = a role (PM, analyst, architect, security, delivery lead, QA,
+engineer, DevOps/SRE, reviewer, tech writer). One agent covers the whole org; it
+announces which role it's "wearing" per phase so non-technical users can follow.
 
 ## Modes
 
