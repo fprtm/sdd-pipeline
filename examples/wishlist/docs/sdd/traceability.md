@@ -3,17 +3,20 @@
 > Single source of truth linking every requirement down to its tests. If this
 > lies, the pipeline is theater.
 
-**Summary:** 12 requirements tracked (+1 dropped) · planning coverage **complete**
-(every requirement has FSD + ticket + planned test) · **passing tests: 0**
-(implementation is phase 8, not yet done).
+**Summary:** 12 requirements tracked (+1 dropped) · planning coverage **complete** ·
+**backend logic implemented & tested** (`impl/`: 31 tests, 100% line/branch/func
+coverage on implemented modules; gate ≥ 80%) · HTTP delivery, frontend, and infra
+**not built**.
 
-**Status right now:** 🟡 all rows "not built" — the spec trail is complete and
-self-consistent, but nothing is proven until code + passing tests exist.
-**Ship gate: NOT met** (blocked by phases 8–9: implement + verify).
+**Status right now:** the security-critical + domain logic is proven by passing
+tests (marked 🟩 below); the HTTP/FE/infra delivery and the ops-only NFRs are not
+built (🟡). **Ship gate: still NOT met** — a feature isn't shipped until it's
+wired end-to-end and deployed. The pipeline does not paint delivery green just
+because the logic underneath it is.
 
-> This is the honest state of a spec-complete example. When implementation lands
-> and each planned TEST is green with coverage ≥ 80%, rows flip 🟡 → 🟢 and the
-> ship gate opens. The pipeline never downgrades a gate to look finished.
+> Legend addition: 🟩 **logic proven** — the behavior is implemented and covered
+> by passing tests at the domain/application layer (see `impl/`), but not yet
+> delivered through HTTP/FE/infra. Full 🟢 requires end-to-end wiring + deploy.
 
 | REQ | FSD | ADR (constrains) | SEC | Ticket | Test (planned) | Status |
 |-----|-----|------------------|-----|--------|----------------|--------|
@@ -45,6 +48,25 @@ missing) · ⚪ dropped.
 - **Requirements with no FSD, by design:** REQ-NF-004 (availability) and
   REQ-NF-005 (a11y) are satisfied via architecture/ops and cross-cutting UI work
   rather than a single behavior spec — recorded here so it's a decision, not a gap.
+
+## Phase 8–9 result — backend proof (`impl/`)
+
+🟩 **logic proven** (implemented + passing tests, 100% coverage):
+- REQ-001 → FSD-001/002/003 → TEST-001/002/003/012/013 (save, dedupe, cap, errors)
+- REQ-002 → FSD-004/005 → TEST-004/005/015/016 (list, archived, empty, placeholder)
+- REQ-003 → FSD-006 → TEST-006 (remove, idempotent)
+- REQ-005 → FSD-008 → TEST-007/024 (share idempotent, token entropy + hash-at-rest)
+- REQ-006 → FSD-009/011 → TEST-008/025 (revoke terminal, uniform 404)
+- REQ-007 → FSD-010/012 → TEST-009/026/027 (resolve, no PII, read-only)
+- REQ-NF-002 → FSD-007/013 → TEST-010/011/020/021 (authn, IDOR guard, purge)
+- REQ-NF-003 → FSD-003 → TEST-003 (cap)
+
+🟡 **not built** (needs running HTTP/FE/infra — deliberately not faked):
+- SEC-003/004/006/008 controls: cookies/CSRF, rate limiting, CDN cache-bust
+  (→ TICKET-010/014/012/018)
+- FE tickets 015–018 (owner SPA, SSR shared page, a11y) → TEST-017/018/019/033
+- REQ-NF-001 perf load test (TEST-032), REQ-NF-004 availability/SLO (ops)
+- Real Postgres adapter + HTTP routes (in-memory adapters stand in for the proof)
 
 ## What flips this to green
 1. Implement the backlog (phase 8), one ticket at a time, TDD.

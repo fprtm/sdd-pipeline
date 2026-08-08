@@ -95,7 +95,13 @@
 - **Business rules:** raw token is shown to the owner but never stored in the
   clear; no userId/PII in the URL (path is /s/{token})
 - **Acceptance (G/W/T):** Given I have a wishlist, when I Share, then I receive an
-  unguessable link and a second Share returns the same active link
+  unguessable link; and a second Share while one is active does **not** mint a
+  second link (idempotent — at most one active link)
+- **Refined during phase 8 (see impl/README.md):** because only the token *hash*
+  is stored (SEC-002), the raw URL cannot be re-derived server-side; so a second
+  Share reports `alreadyActive` rather than re-returning the token. The client
+  retains the original link; to get a new URL the owner revokes then re-shares.
+  Security (hash-at-rest) was chosen over the convenience of re-showing the URL.
 
 ### FSD-009 — Revoke a share link
 - **Traces to:** REQ-006 · **Diagram:** 02-diagrams.md §6

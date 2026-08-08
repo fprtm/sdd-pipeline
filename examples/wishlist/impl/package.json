@@ -1,0 +1,14 @@
+{
+  "name": "wishlist-impl",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Runnable backend proof for the SDD Pipeline wishlist worked example. Zero dependencies: TypeScript run directly by Node's type stripping, tested with node:test + built-in coverage.",
+  "engines": {
+    "node": ">=23.6"
+  },
+  "scripts": {
+    "test": "node --test --experimental-test-coverage",
+    "test:ci": "node --test --experimental-test-coverage --test-coverage-lines=0.8 --test-coverage-branches=0.8"
+  }
+}
