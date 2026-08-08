@@ -131,10 +131,21 @@ just give up the automatic gating and traceability wiring.
 ### Claude Code (plugin)
 
 ```bash
-# from a clone of this repo, add it as a local marketplace, then install
-/plugin marketplace add ./sdd-pipeline
+# straight from GitHub — no clone needed
+/plugin marketplace add fprtm/sdd-pipeline
 /plugin install sdd-pipeline@sdd-pipeline
 ```
+
+Or, if you already have a local clone:
+
+```bash
+# from inside the clone, register it as a local marketplace
+/plugin marketplace add .
+/plugin install sdd-pipeline@sdd-pipeline
+```
+
+`sdd-pipeline@sdd-pipeline` is `<plugin-name>@<marketplace-name>` — both happen to
+be named "sdd-pipeline" in the manifests, not a GitHub account.
 
 Or copy skills into your project/user scope with the installer:
 
