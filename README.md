@@ -48,7 +48,9 @@ down so a junior dev — or a cheap model — can execute the easy parts safely.
 
 Each box is a skill in `skills/`. The orchestrator is
 [`spec-driven-development`](skills/spec-driven-development/SKILL.md) — start
-there and it routes the rest.
+there and it routes the rest. On existing code, a **pre-0 `map-codebase`** step
+runs first (brownfield). For small work the whole thing collapses — see the size
+dial below.
 
 ## Skills in this pack
 
@@ -116,45 +118,45 @@ plays every seat and records what each role would have signed off. The agent
 announces which role it's "wearing" as it moves through phases, so a non-technical
 user can follow along.
 
-### Two ways to run it
+## How to run it — three independent dials
 
-- **Autopilot** — the agent runs the whole pipeline as an autonomous team,
-  collecting requirements exhaustively up front (batched questions), choosing the
-  most robust defaults where you don't decide, and stopping only for blockers or
-  irreversible actions (deploy, spend, delete). Friendly for non-developers and
-  developers.
-- **Copilot** — same full sequence and same rigor, but it pauses at each gate for
-  a developer to review/approve and defers technical calls where you have a
-  preference. Developer-friendly.
+You (or the agent) set three dials. They're **separate and combine freely** — e.g.
+`autopilot + quick + full-build`, or `copilot + full + docs-only`. If you say
+nothing, the agent infers them and tells you its choice so you can correct it. Full
+detail + copy-paste recipes are in the **[Usage Guide](docs/GUIDE.md)**.
 
-Or use any skill **modularly** on its own (`to-prd`, `threat-model`, …) — you
-just give up the automatic gating and traceability wiring.
+**Dial 1 · Mode — who drives**
+- **Autopilot** — the agent runs the whole thing itself; collects requirements up
+  front; picks robust defaults where you don't decide; stops only for blockers or
+  irreversible actions (deploy, spend, delete). Good for non-devs, or when you
+  trust it to just go.
+- **Copilot** — same rigor, but **pauses at each gate** for you to review/approve
+  and defers technical calls to you. Good for developers who want control.
 
-### Just brainstorming? Stop at documents — no code required
+**Dial 2 · Size — how much ceremony/documentation**
+- **quick** — tiny change → understand, fix test-first, done. **No docs.**
+- **lite** — a feature/bugfix → one collapsed `CHANGE-<slug>.md`.
+- **full** — new product/subsystem → the whole `docs/sdd/` trail (~11 files).
+- Quality never drops with size — a test is always written; only the paperwork
+  shrinks. Over-ceremony (15 docs for a one-liner) is treated as a failure mode.
 
-You don't have to build anything to use this. Ask for **`docs-only`** mode and the
-pipeline runs phases 0–7 (discovery → PRD → diagrams → FSD → architecture →
-security → tiered backlog + estimate → test plan) and **stops** — a complete,
-traceable spec ready to hand to a developer, a team, or your future self, with
-zero code written. Say *"spec+review"* instead if you want a checkpoint to
-explicitly approve before any implementation begins.
+**Dial 3 · Stop-point — how far it goes**
+- **docs-only** — phases 0–7, a complete spec with **zero code**. For brainstorming
+  or handing a plan to someone else.
+- **spec+review** — spec, then it asks before writing any code.
+- **full-build** — all the way to implement, verify, ship (default for "build this").
 
-### Works on existing code, not just new projects (brownfield)
+Or ignore the pipeline and use any skill **modularly** (`to-prd`, `threat-model`,
+`map-codebase`, …) — you just give up the automatic gating and traceability wiring.
 
-Most real work is on code that already exists. When there's a codebase, the
-pipeline starts with **`map-codebase`** — it learns the stack, module map,
-conventions actually in use, tests, and risky areas *before* touching anything.
-Then `arch-decision` runs in **respect-existing** mode (it won't re-pick your
-stack), changes are framed as changes (not new products), and `implement` adds
-**characterization tests** to legacy code before altering it, so it can prove it
-didn't break what worked.
+### Brownfield: works on existing code, not just new projects
 
-### Right-sized — a one-liner doesn't get 15 documents
-
-Ceremony matches the work: **quick** (tiny change → understand, fix test-first,
-done — no doc tree), **lite** (a feature → one collapsed `CHANGE-*.md`), **full**
-(new product/subsystem → the whole trail). Over-ceremony is treated as a real
-failure mode, not a virtue.
+Not a dial — it's auto-detected. When there's already a codebase, the pipeline
+starts with **`map-codebase`** (learns the stack, module map, conventions, tests,
+and risky areas *before* touching anything). Then `arch-decision` runs in
+**respect-existing** mode (it won't re-pick your stack), changes are framed as
+changes, and `implement` adds **characterization tests** to legacy code before
+altering it — so it can prove it didn't break what worked.
 
 ## Install
 
@@ -200,17 +202,21 @@ For agents that read a single rules file, add `--bundle` to also emit
 ./install/install.sh codex --bundle
 ```
 
-Then, in any agent: **"use spec-driven-development to build \<X\>"**. It will ask
-your **interaction mode** (autopilot / copilot) and **size** (full / lite), or you
-can say them up front: e.g. *"…in copilot mode, lite"*.
+Then, in any agent: **"use spec-driven-development to \<do X\>"**. It picks the
+three dials (mode / size / stop-point) and tells you, or you can say them up front:
+e.g. *"…copilot, lite"* or *"…docs-only, just a plan"*. See the
+[Usage Guide](docs/GUIDE.md) for recipes.
 
 ## See it in action
 
 A full worked run lives in [`examples/wishlist/`](examples/wishlist/) — the
 "Wishlist + shareable link" feature taken from idea to a spec-complete, secured,
 fully-traceable plan (PRD, diagrams, FSD, ADRs, threat model, tiered backlog,
-test plan, and an honest traceability matrix). Read it to see what each phase
-actually produces before running the pipeline on your own work.
+test plan, honest traceability matrix) **plus a runnable, tested backend** in
+[`examples/wishlist/impl/`](examples/wishlist/impl/) (zero-dependency TypeScript,
+54 tests, ~99% coverage, HTTP + SSR + infra-as-code). It also includes a
+brownfield change ([`CHANGE-clear-wishlist.md`](examples/wishlist/docs/sdd/CHANGE-clear-wishlist.md))
+showing lite mode on existing code.
 
 ## Repo layout
 
@@ -218,16 +224,21 @@ actually produces before running the pipeline on your own work.
 sdd-pipeline/
 ├─ README.md
 ├─ AGENTS.md                # entry point for non-Claude agents
+├─ CHANGELOG.md             # version history
 ├─ .claude-plugin/          # Claude Code plugin + marketplace manifests
+├─ docs/GUIDE.md            # the usage manual
 ├─ skills/                  # 22 SKILL.md files (portable Markdown)
 ├─ templates/               # doc templates the skills fill in
-├─ examples/wishlist/       # a complete worked run of the whole pipeline
+├─ tools/                   # check-traceability.mjs (anti-drift checker)
+├─ examples/wishlist/       # a complete worked run (+ runnable, tested impl)
 └─ install/install.sh       # multi-agent installer
 ```
 
 ## Status
 
-v0.1.0 — usable end to end. Contributions/adjustments welcome; the skills are
+**v0.3.0** — usable end to end; 22 self-sufficient skills; a worked example with a
+runnable, tested backend (54 tests). Pre-1.0, so things may still move. See
+[CHANGELOG.md](CHANGELOG.md). Contributions/adjustments welcome — the skills are
 plain Markdown, so fork and adapt to your own conventions.
 
 ## License
