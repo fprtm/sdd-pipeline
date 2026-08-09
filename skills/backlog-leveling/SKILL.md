@@ -4,8 +4,9 @@ description: >-
   Turn the FSD + architecture into an implementation backlog of tickets, each
   tiered by difficulty (T1/T2/T3) so trivial work can be handed to a junior dev
   or a cheap model and hard work to a senior/strong model. Use when the user
-  says "break this into tickets / backlog / tasks", or as phase 6 of
-  spec-driven-development. Every TICKET-xxx traces to an FSD and is self-contained.
+  says "break this into tickets / backlog / tasks / estimate / how long", or as
+  phase 6 of spec-driven-development. Every TICKET-xxx traces to an FSD and is
+  self-contained; the tiers also drive a rough effort/cost estimate.
 ---
 
 # backlog-leveling — tiered, executor-friendly backlog
@@ -74,9 +75,30 @@ Put the tier in the ticket **and** summarize the split at the top of the backlog
 - **Right-size**: a ticket should be finishable in one focused sitting. If it
   can't be, split it — and keep the IDs stable.
 
+## Estimate (optional — the tiers make it cheap)
+
+When someone asks "how long / how much / can a cheap model do most of this?", the
+tiered backlog gives a transparent estimate — derived from it, not guessed. Write
+`docs/sdd/ESTIMATE.md` (template: `estimate.template.md`). Ranges with shown
+assumptions, never false precision.
+
+- **Count by tier**, apply a size band (state it, let the user override): T1
+  ~0.5–1 unit, T2 ~1–3, T3 ~3–8 (1 unit ≈ a focused half-day of a competent dev).
+- **Add overhead** ~25–40% (review, integration, infra, fixing findings) — state the %.
+- **Effort vs. calendar:** effort is total work; calendar is shorter when the
+  backlog's parallel waves let tickets run at once. Show both + the parallelism
+  assumed.
+- **Cost shape by executor tier:** T1 → cheap/small model or junior (low cost),
+  T2 → mid, T3 → senior/strong (cost concentrates here — don't skimp). If the user
+  gives rates, compute a rough figure; else keep it relative (low/med/high).
+- **Headline in plain language** for non-IT (e.g. "~3–5 dev-weeks; ~2–3 weeks
+  calendar with 2 people; most work is routine, ~4 tickets need a senior").
+- Estimates are **ranges, not commitments** — say so, and re-estimate when the
+  backlog changes. Record confirmed estimating assumptions in `decision-log`.
+
 ## Exit gate
 
 Every FSD and every code-bearing SEC has ≥1 ticket; every ticket is tiered, has
 acceptance criteria and a definition of done, and passes the self-containment
 test; parallelizable tickets are marked. Invoke `traceability`, then proceed to
-`test-plan`.
+`test-plan`. (Produce `ESTIMATE.md` too if effort/cost was asked for.)

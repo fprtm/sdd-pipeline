@@ -51,6 +51,7 @@ there and it routes the rest.
 | Skill | Role in the "team" | Phase |
 |-------|--------------------|-------|
 | `spec-driven-development` | orchestrator + gates + routing + modes | all |
+| `map-codebase` | understand an EXISTING codebase before changing it (brownfield) | pre-0 |
 | `discovery` | deep requirement collection (dev + non-dev) | 0 |
 | `to-prd` | Product Requirements (REQ-xxx) | 1 |
 | `to-diagrams` | context / DFD / sequence / ERD (Mermaid) | 2 |
@@ -58,8 +59,7 @@ there and it routes the rest.
 | `arch-decision` | architecture + stack + topology gate (ADR) | 4 |
 | `stack-conventions` | official best practices of the chosen stack, as rules | 4 |
 | `threat-model` | SSDLC security gate (SEC-xxx, STRIDE) | 5 |
-| `backlog-leveling` | tiered, executor-friendly backlog | 6 |
-| `estimate` | effort/cost from the tiered backlog (for non-IT/PM) | 6 |
+| `backlog-leveling` | tiered, executor-friendly backlog + effort/cost estimate | 6 |
 | `test-plan` | happy/regression/edge/e2e + coverage target | 7 |
 | `code-standards` | the SSOT/DRY/YAGNI/deep-module code bar | 8·10 |
 | `implement` | the coding phase, test-first, ticket-by-ticket | 8 |
@@ -134,6 +134,23 @@ security → tiered backlog + estimate → test plan) and **stops** — a comple
 traceable spec ready to hand to a developer, a team, or your future self, with
 zero code written. Say *"spec+review"* instead if you want a checkpoint to
 explicitly approve before any implementation begins.
+
+### Works on existing code, not just new projects (brownfield)
+
+Most real work is on code that already exists. When there's a codebase, the
+pipeline starts with **`map-codebase`** — it learns the stack, module map,
+conventions actually in use, tests, and risky areas *before* touching anything.
+Then `arch-decision` runs in **respect-existing** mode (it won't re-pick your
+stack), changes are framed as changes (not new products), and `implement` adds
+**characterization tests** to legacy code before altering it, so it can prove it
+didn't break what worked.
+
+### Right-sized — a one-liner doesn't get 15 documents
+
+Ceremony matches the work: **quick** (tiny change → understand, fix test-first,
+done — no doc tree), **lite** (a feature → one collapsed `CHANGE-*.md`), **full**
+(new product/subsystem → the whole trail). Over-ceremony is treated as a real
+failure mode, not a virtue.
 
 ## Install
 

@@ -25,13 +25,14 @@ gates** and keeps a **traceability matrix** linking every requirement to a test:
 
 | Phase | Skill | Output |
 |-------|-------|--------|
+| pre-0 (brownfield) | `map-codebase` | `docs/sdd/00-codebase-map.md` — run first when code already exists |
 | 0 Discover | `discovery` | `docs/sdd/00-context.md` + discovery brief (deep needs) |
 | 1 Product spec | `to-prd` | `docs/sdd/01-prd.md` (REQ-xxx) |
 | 2 Visual models | `to-diagrams` | `docs/sdd/02-diagrams.md` (context, DFD, sequence) |
 | 3 Functional spec | `to-fsd` | `docs/sdd/03-fsd.md` (FSD-xxx) |
 | 4 Architecture gate | `arch-decision` → `stack-conventions` | `docs/sdd/04-architecture.md` (ADRs) + `04-stack-guide.md` (stack best practices as rules) |
 | 5 Security gate (SSDLC) | `threat-model` | `docs/sdd/05-threat-model.md` (SEC-xxx) |
-| 6 Backlog | `backlog-leveling` (+ `estimate`) | `06-backlog.md` (tiered TICKET-xxx); `ESTIMATE.md` |
+| 6 Backlog | `backlog-leveling` | `06-backlog.md` (tiered TICKET-xxx) + `ESTIMATE.md` (effort/cost) |
 | 7 Test plan | `test-plan` | `docs/sdd/07-test-plan.md` (TEST-xxx, ≥80% target) |
 | 8 Implement | `implement` + `code-standards` (+ `debug`) | tested code clearing the SSOT/DRY/YAGNI bar |
 | 9 Infra & delivery | `infra` | CI/CD, IaC, envs, secrets, observability, deploy |
@@ -83,9 +84,16 @@ announces which role it's "wearing" per phase so non-technical users can follow.
   developer to review/approve and defers technical calls to them.
 - **Modular** — invoke any single skill directly, without the orchestrator.
 
-Size is orthogonal: **full** (new product/subsystem) vs **lite** (feature/bugfix).
+Size is orthogonal — match ceremony to the work, don't reflexively go full:
+**quick** (tiny change → fix test-first, no doc tree), **lite** (a feature → one
+collapsed `CHANGE-*.md`), **full** (new product/subsystem → the whole trail).
 
-**Stop-point** is a third, orthogonal choice — how far to run:
+**Brownfield:** if code already exists, run `map-codebase` first, then
+`arch-decision` in respect-existing mode, frame work as changes, and add
+characterization tests before altering legacy. Don't run the "choose a stack"
+flow on a repo that already has one.
+
+**Stop-point** is another orthogonal choice — how far to run:
 - **`docs-only`** — phases 0–7 only (discovery → PRD → diagrams → FSD →
   architecture → security → backlog+estimate → test plan), **no code written**.
   The right choice for brainstorming, spec'ing something for another team, or

@@ -49,6 +49,7 @@ knows where to look. This layout is the SSOT for *where things live*:
 ```
 docs/
   sdd/                     # the spec-driven trail (the "how/why we built it")
+    00-codebase-map.md     # map-codebase (BROWNFIELD only — existing code)
     00-overview.md         # feature brief + gate board + ID registry (this skill)
     00-context.md          # ubiquitous language / glossary (domain-modeling)
     01-prd.md              # to-prd
@@ -60,11 +61,12 @@ docs/
     06-backlog.md          # backlog-leveling (tiered tickets)
     07-test-plan.md        # test-plan
     08-delivery.md         # infra: environments, pipeline, runbook, SLOs
-    ESTIMATE.md            # estimate (effort/cost)
+    ESTIMATE.md            # backlog-leveling (effort/cost)
     DECISIONS.md           # decision-log (running "why")
     STAKEHOLDER-BRIEF.md   # stakeholder-brief (for non-IT)
     HANDOFF.md             # handoff (resumable snapshot; transient)
-    traceability.md        # the matrix — always current
+    CHANGE-<slug>.md       # lite mode: the collapsed one-file spec for a change
+    traceability.md        # the matrix — always current (checked by tools/check-traceability.mjs)
   user/
     <feature>.md           # documentation FOR USERS (documentation skill)
   dev/
@@ -161,11 +163,12 @@ role, so one agent (or a human + agent) covers the whole org:
 
 | Role | Phase(s) | Skill |
 |------|----------|-------|
+| Onboarding engineer (brownfield) | before 0, on existing code | `map-codebase` |
 | Product manager | 0–1 | `discovery`, `to-prd` |
 | Business analyst / systems analyst | 2–3 | `to-diagrams`, `to-fsd` |
 | Architect / tech lead | 4 | `arch-decision`, `stack-conventions` |
 | Security engineer (AppSec) | 5, re-check at 10 | `threat-model` |
-| Delivery lead | 6 | `backlog-leveling`, `estimate` |
+| Delivery lead | 6 | `backlog-leveling` (tickets + estimate) |
 | QA / test lead | 7, 10 | `test-plan`, `coverage-check` |
 | Engineer | 8, + when bugs arise | `implement` (+ `code-standards`), `debug` |
 | DevOps / SRE / platform | 9 | `infra` |
@@ -191,19 +194,21 @@ the decisions each role would have signed off.
 - `handoff` — when a run gets long, the model/tool changes, or work pauses. Writes
   `docs/sdd/HANDOFF.md` so another agent (even a cheaper model) can continue cold.
 
-Phase touchpoints for the new skills: `estimate` runs after the backlog (phase 6)
-when someone wants effort/cost; `debug` runs inside phases 8/10 whenever something
+Phase touchpoints: **`map-codebase` runs first whenever the code already exists**
+(brownfield — see the Modes section); `backlog-leveling` also produces the
+effort/cost estimate (phase 6); `debug` runs inside phases 8/10 whenever something
 fails; `documentation` is a ship deliverable (phase 11) — write `docs/user/` +
 `docs/dev/` before calling it shipped.
 
 ## How to route
 
 - Prefer skills that already exist in the environment. This pack is
-  **self-sufficient** — it ships `discovery`, `to-prd`, `to-diagrams`, `to-fsd`,
-  `arch-decision`, `stack-conventions`, `threat-model`, `backlog-leveling`,
-  `estimate`, `test-plan`, `code-standards`, `implement`, `code-review`, `debug`,
-  `infra`, `coverage-check`, `documentation`, `traceability`, `decision-log`,
-  `handoff`, and `stakeholder-brief`. For planning, worktrees, and grilling,
+  **self-sufficient** — it ships `map-codebase`, `discovery`, `to-prd`,
+  `to-diagrams`, `to-fsd`, `arch-decision`, `stack-conventions`, `threat-model`,
+  `backlog-leveling` (tickets + estimate), `test-plan`, `code-standards`,
+  `implement`, `code-review`, `debug`, `infra`, `coverage-check`, `documentation`,
+  `traceability`, `decision-log`, `handoff`, and `stakeholder-brief`. For planning,
+  worktrees, and grilling,
   **defer to the user's installed skills** (e.g. mattpocock/skills or superpowers)
   when present; also prefer an installed TDD / code-review / debugging skill over
   `implement` / `code-review` / `debug` if one exists. If nothing else is
@@ -260,11 +265,27 @@ Both modes cover all phases 0–11. The difference is autonomy and when you paus
 
 ### Size (orthogonal to interaction mode)
 
-- **Full** — new product or subsystem: run every phase at full weight.
-- **Lite** — a feature or bugfix: collapse to a one-paragraph PRD → one sequence
-  diagram → an FSD bullet list → confirm the existing architecture still holds →
-  a quick threat check → 1–3 tickets → test plan → implement → verify. The gates
-  still apply; they're just lighter.
+Match the ceremony to the work. **The default gravity of this pipeline is heavy —
+resist it for small tasks.** Don't generate a 15-file `docs/sdd/` tree for a
+one-line fix; that's noise, not rigor.
+
+- **Full** — new product or subsystem: run every phase at full weight, full doc tree.
+- **Lite** — a feature or a non-trivial bugfix: collapse to a one-paragraph PRD →
+  one sequence diagram → an FSD bullet list → confirm the existing architecture
+  still holds → a quick threat check → 1–3 tickets → test plan → implement →
+  verify. Output collapses to **one file** — `docs/sdd/CHANGE-<slug>.md` holding
+  those sections — plus updates to `traceability.md` if the project already has
+  one. The gates still apply in spirit; they're just lighter.
+- **Quick** — a tiny, low-risk change (typo, copy tweak, obvious one-liner, adding
+  a well-bounded endpoint): **skip the doc tree entirely.** Understand the code
+  (map the immediate area), make the change test-first, run the tests, and note
+  the change in one or two sentences (a commit message or a line in `CHANGE`/`DECISIONS`
+  if the project keeps one). Still non-negotiable even here: a test for the change,
+  and not breaking what works. Ceremony 0, safety intact.
+
+If unsure which size, ask — or infer from the request and **state your choice**
+("this looks like a quick change; I'll do it test-first without the full spec
+tree — say the word if you want the full treatment").
 
 ### Stop-point (orthogonal to interaction mode and size)
 
@@ -274,7 +295,7 @@ default to implementing just because you can.
 - **`docs-only`** (brainstorm / spec / plan a build for someone else) — run
   phases **0–7**: `discovery` → `to-prd` → `to-diagrams` → `to-fsd` →
   `arch-decision` → `stack-conventions` → `threat-model` → `backlog-leveling`
-  (+ `estimate`) → `test-plan`. Produces the full `docs/sdd/` trail — PRD,
+  (tickets + estimate) → `test-plan`. Produces the full `docs/sdd/` trail — PRD,
   diagrams, FSD, ADRs, threat model, tiered backlog, effort estimate, test plan —
   with **zero code written**. This is the right stop-point for "just brainstorm
   and prep the documents," handing the spec to another team/developer, or getting
@@ -290,6 +311,27 @@ into implementation"), and **actually stop** there; don't drift into `implement`
 uninvited. Mark the gate board's phase-8 row `⬜ (not started — docs-only run)` so
 it reads honestly, not as if it were skipped by oversight.
 
+### Brownfield vs. greenfield (which entry point)
+
+Most real work is on code that already exists. Check first: **is there a codebase?**
+
+- **Greenfield** (new project) — start at phase 0 (`discovery`) as described; you
+  *choose* the stack and structure.
+- **Brownfield** (existing code) — **start with `map-codebase`** to learn the
+  stack, structure, conventions, tests, and seams before touching anything. Then
+  the pipeline runs in change-aware mode:
+  - `arch-decision` runs **respect-existing**: don't re-pick the stack; record the
+    existing architecture as constraints, and only decide where the change truly
+    introduces one.
+  - `stack-conventions` uses the conventions **observed in the code** (match them),
+    not just a framework's defaults.
+  - `to-prd`/`to-fsd` frame the work as a **change** to existing behavior, not a
+    new product.
+  - `implement` adds **characterization tests** for legacy code it's about to
+    change but that isn't covered — prove you didn't break what worked.
+
+Don't run the greenfield "choose a stack" flow on a repo that already has one.
+
 ### Modular use (no orchestrator)
 
 Any skill here also works standalone — invoke `to-prd`, `threat-model`,
@@ -297,10 +339,13 @@ Any skill here also works standalone — invoke `to-prd`, `threat-model`,
 You lose the automatic gating and traceability wiring, so if you want the chain
 enforced (including a clean docs-only stop), prefer `docs-only` above instead.
 
-Default if the user doesn't say: ask once — "autopilot or copilot?", "full or
-lite?", and "docs-only, spec+review, or full-build?" — then proceed. In autopilot
-with no answer, assume **autopilot + full + full-build** for a new product build,
-**autopilot + lite + full-build** for a small change, and state the assumption —
-but if the request itself sounds like brainstorming/planning ("let's figure out
-…", "spec this out", "I just want a plan"), default the stop-point to
-**docs-only** instead and say so.
+Default if the user doesn't say: first detect **brownfield vs greenfield** (is
+there code?) and, if brownfield, run `map-codebase` before anything. Then pick
+size by the work's actual scope — **don't reflexively go full**: a tiny change is
+**quick**, a feature is **lite**, a new product/subsystem is **full**. Ask once
+if genuinely unsure — "autopilot or copilot?" and "how far: docs-only, or build
+it?" — then proceed and **state your assumptions** ("existing repo, so I'll map it
+first; this is a small change so I'll go quick — test-first, no full spec tree").
+If the request sounds like planning ("let's figure out…", "spec this out", "just a
+plan"), default the stop-point to **docs-only**. Over-ceremony is a failure mode
+as real as under-rigor — right-size it.
