@@ -5,7 +5,7 @@
 
 **Summary:** 12 requirements tracked (+1 dropped) · planning **complete** ·
 **backend + HTTP delivery + SSR shared page + infra-as-code implemented & tested**
-(`impl/`: 50 tests, ~99% line / ~96% branch; gate ≥ 80%) · **not built:** owner
+(`impl/`: 54 tests, ~99% line / ~96% branch; gate ≥ 80%) · **not built:** owner
 interactive SPA, real Postgres/auth/catalog adapters, and actual cloud deploy.
 
 **Status right now:** the domain, application, security controls, and the HTTP
@@ -49,7 +49,7 @@ missing) · ⚪ dropped.
   REQ-NF-005 (a11y) are satisfied via architecture/ops and cross-cutting UI work
   rather than a single behavior spec — recorded here so it's a decision, not a gap.
 
-## Phase 8–10 result — built & tested (`impl/`, 50 tests)
+## Phase 8–10 result — built & tested (`impl/`, 54 tests)
 
 🟩 **built & tested** (domain + application + HTTP delivery, passing tests):
 - REQ-001 → FSD-001/002/003 → TEST-001/002/003/012/013 + HTTP TEST-017 (save, dedupe, cap, errors)

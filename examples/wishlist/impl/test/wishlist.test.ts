@@ -96,6 +96,36 @@ test('TEST-006b: removing a non-present item is a success no-op', async () => {
   await service.remove(SESSION, 'P-nope'); // must not throw
 });
 
+// TEST-034 — clear empties the caller's wishlist (CHANGE: clear-wishlist)
+test('TEST-034: clearing the wishlist removes all of my items', async () => {
+  const { service, repo } = svc();
+  await service.save(SESSION, { productId: 'P1' });
+  await service.save(SESSION, { productId: 'P2' });
+  await service.clearMine(SESSION);
+  assert.equal(await repo.count('u1'), 0);
+  // idempotent: clearing an empty wishlist is a no-op success
+  await service.clearMine(SESSION);
+});
+
+// TEST-035 — clear is owner-scoped (does not touch another user) (SEC-001)
+test('TEST-035: clearing my wishlist does not affect another user', async () => {
+  const { service, repo } = svc();
+  await service.save(SESSION, { productId: 'P1' });
+  await repo.add('u2', 'P2', new Date('2026-01-01T00:00:00Z'));
+  await service.clearMine(SESSION);
+  assert.equal(await repo.count('u1'), 0);
+  assert.equal(await repo.count('u2'), 1); // untouched
+});
+
+// unauthenticated clear → 401
+test('clearing without a session is 401', async () => {
+  const { service } = svc();
+  await assert.rejects(
+    () => service.clearMine(null),
+    (e: unknown) => e instanceof AppError && e.status === 401,
+  );
+});
+
 // TEST-011 — not authenticated → 401 (FSD-001 error, FSD-007)
 test('TEST-011: unauthenticated save is rejected 401', async () => {
   const { service } = svc();

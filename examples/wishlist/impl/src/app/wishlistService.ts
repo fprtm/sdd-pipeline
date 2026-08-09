@@ -2,7 +2,7 @@
 // maps to the API's owner-scoped operations. All userIds come from the session.
 
 import type { WishlistRepo } from '../domain/wishlist.ts';
-import { addItem, removeItem, listItems } from '../domain/wishlist.ts';
+import { addItem, removeItem, listItems, clearItems } from '../domain/wishlist.ts';
 import type { Catalog } from '../adapters/fakeCatalog.ts';
 import type { Clock } from '../lib/clock.ts';
 import { requireAuth } from './access.ts';
@@ -48,6 +48,12 @@ export class WishlistService {
   async remove(session: Session | null, productId: string): Promise<void> {
     const userId = requireAuth(session);
     await removeItem(this.repo, userId, productId);
+  }
+
+  // CHANGE (clear-wishlist): remove all of the caller's items (owner-scoped, idempotent).
+  async clearMine(session: Session | null): Promise<void> {
+    const userId = requireAuth(session);
+    await clearItems(this.repo, userId);
   }
 
   // FSD-004 + FSD-005: list newest-first, enriched, archived flagged.

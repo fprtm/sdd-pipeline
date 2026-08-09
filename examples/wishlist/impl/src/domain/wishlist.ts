@@ -60,3 +60,12 @@ export async function listItems(
 ): Promise<WishlistItem[]> {
   return repo.list(userId);
 }
+
+// CHANGE (clear-wishlist): remove all of the caller's items. Idempotent — reuses
+// the owner-scoped deleteAllForUser port that already backs account deletion.
+export async function clearItems(
+  repo: WishlistRepo,
+  userId: string,
+): Promise<void> {
+  await repo.deleteAllForUser(userId);
+}

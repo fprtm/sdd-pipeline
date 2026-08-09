@@ -131,6 +131,13 @@ export function createServer(deps: ServerDeps): http.Server {
       if (path === '/v1/wishlist/items' && method === 'GET') {
         return send(res, 200, { items: await deps.wishlist.listMine(session) });
       }
+      if (path === '/v1/wishlist/items' && method === 'DELETE') {
+        // CHANGE (clear-wishlist): DELETE on the collection clears all items.
+        await deps.wishlist.clearMine(session);
+        res.writeHead(204);
+        res.end();
+        return;
+      }
       if (path.startsWith('/v1/wishlist/items/') && method === 'DELETE') {
         const productId = decodeURIComponent(path.slice('/v1/wishlist/items/'.length));
         await deps.wishlist.remove(session, productId);

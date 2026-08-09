@@ -155,6 +155,21 @@ test('TEST-028h: exceeding the rate limit returns 429', async () => {
   });
 });
 
+// CHANGE (clear-wishlist): DELETE the collection clears all; single-item DELETE still works
+test('TEST-034h: DELETE /v1/wishlist/items clears all, then list is empty', async () => {
+  await withServer(buildServer(), async (base) => {
+    for (const productId of ['P1', 'P2']) {
+      await fetch(`${base}/v1/wishlist/items`, {
+        method: 'POST', headers: authHeaders, body: JSON.stringify({ productId }),
+      });
+    }
+    const clear = await fetch(`${base}/v1/wishlist/items`, { method: 'DELETE', headers: authHeaders });
+    assert.equal(clear.status, 204);
+    const list = await (await fetch(`${base}/v1/wishlist/items`, { headers: { cookie: 'sid=s1' } })).json();
+    assert.equal(list.items.length, 0);
+  });
+});
+
 // healthz liveness probe (infra)
 test('GET /healthz returns ok', async () => {
   await withServer(buildServer(), async (base) => {

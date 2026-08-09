@@ -21,7 +21,7 @@ dependency-free so it runs anywhere Node does.)
 
 ## Result
 
-- **50 tests, all passing** (domain, application, security, HTTP integration)
+- **54 tests, all passing** (domain, application, security, HTTP integration)
 - **Coverage: ~99% line / ~96% branch / 100% functions** (gate is ≥ 80% — see
   `07-test-plan.md`)
 - **Runs for real:** `npm start` boots a demo API; `docker compose up --build`

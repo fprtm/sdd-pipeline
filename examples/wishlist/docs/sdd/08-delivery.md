@@ -11,7 +11,7 @@
 ## Pipeline (CI) — TICKET-019
 `.github/workflows/ci.yml` runs on every push/PR:
 - **Tests + coverage gate** — `npm run test:ci` fails the build below 80% line &
-  branch (the `coverage-check` gate). Currently: 50 tests, ~99% line / ~96% branch.
+  branch (the `coverage-check` gate). Currently: 54 tests, ~99% line / ~96% branch.
 - **Secret scan** — blocks committed private keys / access keys.
 - _(Real project adds: `npm ci`, dependency vulnerability scan (`npm audit` /
   Trivy), SAST — closes the threat-model supply-chain baseline item.)_
