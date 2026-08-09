@@ -236,7 +236,7 @@ sdd-pipeline/
 
 ## Status
 
-**v0.3.0** — usable end to end; 22 self-sufficient skills; a worked example with a
+**v0.4.0** — usable end to end; 22 self-sufficient skills; a worked example with a
 runnable, tested backend (54 tests). Pre-1.0, so things may still move. See
 [CHANGELOG.md](CHANGELOG.md). Contributions/adjustments welcome — the skills are
 plain Markdown, so fork and adapt to your own conventions.

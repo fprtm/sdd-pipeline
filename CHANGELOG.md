@@ -3,6 +3,37 @@
 All notable changes to SDD Pipeline. Versioning is [SemVer](https://semver.org/);
 pre-1.0, so minors may still move fast. Plain-language where possible.
 
+## [0.4.0] — 2026-08-10
+Right-sizing, brownfield, anti-drift, and a usage guide — mostly from a critical
+self-audit against real developer/vibe-coder pain points.
+### Added
+- **`map-codebase`** — the brownfield entry point: understand an EXISTING codebase
+  (stack, module map, conventions actually in use, tests, seams, risks) before
+  changing it. The pipeline now runs change-aware: `arch-decision` in
+  respect-existing mode, work framed as changes, and characterization tests before
+  altering legacy code. (Most real work isn't greenfield — this was the #1 gap.)
+- **Stop-point dial** — `docs-only` (phases 0–7, no code), `spec+review` (spec then
+  a checkpoint), `full-build` (default). Just want a plan? Stop at documents.
+- **`quick` size** — tiny/low-risk changes get **no doc tree** (understand → fix
+  test-first → done). `lite` collapses to one `CHANGE-<slug>.md`. Over-ceremony is
+  now an explicit failure mode; the agent right-sizes and states its choice.
+- **`tools/check-traceability.mjs`** — a zero-dependency validator that catches
+  matrix drift (untracked spine ids, broken/typo refs, freelance tickets/tests,
+  dead links). Wired into the `traceability` + `infra` skills and repo CI. It
+  caught a real inconsistency in the worked example, now fixed.
+- **`docs/GUIDE.md`** — a complete usage manual: the three dials (mode / size /
+  stop-point) and how they combine, invocation, defaults, copy-paste recipes, a
+  reference for all skills, file placement, guarantees, and an FAQ.
+- Worked example gained a **runnable, tested backend** (`examples/wishlist/impl/`,
+  54 tests, ~99% coverage) and a **brownfield change** (`CHANGE-clear-wishlist.md`)
+  dogfooding lite mode on existing code.
+### Changed
+- **Consolidated `estimate` into `backlog-leveling`** (the tiers already drive the
+  estimate) — one fewer skill to reason about; still writes `ESTIMATE.md`.
+- README reworked: fixed the misleading "two ways to run it" into one coherent
+  "three independent dials" section (source of the quick/lite/full vs
+  autopilot/copilot confusion), refreshed layout, version, and status.
+
 ## [0.3.0] — 2026-08-08
 Delivery, documentation, and tidiness.
 ### Added
@@ -35,6 +66,7 @@ Initial release.
 - Portable SKILL.md skills + templates + multi-agent installer + Claude Code plugin/marketplace manifests.
 - Worked example (`examples/wishlist/`): full spec set + a runnable, tested backend (zero-dep TypeScript on Node type-stripping, HTTP delivery, SSR shared page, infra-as-code; 50 tests, ~99%/96% coverage).
 
+[0.4.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.4.0
 [0.3.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.3.0
 [0.2.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.2.0
 [0.1.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.1.0
