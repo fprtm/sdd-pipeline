@@ -34,7 +34,24 @@ Status legend:
   with no test, a High SEC with no verifying test).
 - ⚪ **dropped** — deliberately out of scope; keep the row, strike the ID.
 
-## Checks to run each time
+## Run the checker — don't eyeball it
+
+A matrix maintained by hand drifts. This pack ships a zero-dependency validator,
+`tools/check-traceability.mjs` — run it after updating the matrix (and wire it
+into CI via `infra`) so drift fails loudly instead of hiding:
+
+```bash
+node tools/check-traceability.mjs docs/sdd
+```
+
+It flags: spine IDs (REQ/REQ-NF/FSD/SEC) defined but missing from the matrix,
+broken references (a matrix id that isn't defined anywhere — usually a typo or a
+rename), tickets/tests that trace to nothing upstream, and dead markdown links.
+Copy the script into the target project (the `infra` phase does this) so it runs
+in that repo's CI. Treat a non-zero exit as a real defect in the matrix, not a
+nuisance — that is the whole point of anti-drift.
+
+## Checks to run each time (the checker automates most of these)
 
 1. **Every Must/Should REQ** reaches a passing test. If not → 🔴.
 2. **No orphan FSD** (FSD with no REQ) and **no orphan test** (test proving

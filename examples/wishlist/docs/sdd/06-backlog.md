@@ -193,7 +193,7 @@
 - **Dependencies:** TICKET-013 · **Files:** `apps/web/routes/shared`
 
 ### TICKET-019 — CI: dependency scanning + coverage gate
-- **Traces to:** SEC baseline (supply chain), coverage-check · **Tier:** T1
+- **Traces to:** REQ-NF-002 (supply-chain baseline), SEC-007 · **Tier:** T1
 - **Goal:** Enforce dependency hygiene and the ≥80% coverage gate in CI.
 - **Context:** commit a lockfile; add a dependency vulnerability scan; wire the
   test+coverage command from the test plan and fail the build below 80% line+branch.

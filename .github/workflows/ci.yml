@@ -36,3 +36,14 @@ jobs:
           if grep -rInE '(AKIA[0-9A-Z]{16}|-----BEGIN [A-Z ]*PRIVATE KEY-----)' src; then
             echo "Potential secret committed"; exit 1
           fi
+
+  traceability:
+    name: Traceability matrix is consistent
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: Check the example's traceability matrix
+        run: node tools/check-traceability.mjs examples/wishlist/docs/sdd
