@@ -9,6 +9,10 @@ It's designed for the way people build with AI now: spec first, diagrams matter,
 tests matter, security is designed in (not bolted on), and the backlog is broken
 down so a junior dev — or a cheap model — can execute the easy parts safely.
 
+> **📖 New here or forgot how it works? Read the [Usage Guide](docs/GUIDE.md)** —
+> how to use it, the 3 dials (size / mode / stop-point), every skill, and
+> copy-paste recipes for common jobs.
+
 > Not a rewrite of existing skills. This pack **fills the gaps** other skill
 > collections (e.g. [mattpocock/skills](https://github.com/mattpocock/skills),
 > [obra/superpowers](https://github.com/obra/superpowers)) leave, and **defers**
