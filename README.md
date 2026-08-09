@@ -126,6 +126,15 @@ user can follow along.
 Or use any skill **modularly** on its own (`to-prd`, `threat-model`, …) — you
 just give up the automatic gating and traceability wiring.
 
+### Just brainstorming? Stop at documents — no code required
+
+You don't have to build anything to use this. Ask for **`docs-only`** mode and the
+pipeline runs phases 0–7 (discovery → PRD → diagrams → FSD → architecture →
+security → tiered backlog + estimate → test plan) and **stops** — a complete,
+traceable spec ready to hand to a developer, a team, or your future self, with
+zero code written. Say *"spec+review"* instead if you want a checkpoint to
+explicitly approve before any implementation begins.
+
 ## Install
 
 ### Claude Code (plugin)

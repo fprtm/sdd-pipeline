@@ -143,6 +143,7 @@ so plainly, mark it ⛔ on the board, and stop; do not sneak forward.
 | 5 | **Security gate (SSDLC)** | `threat-model` | Each data flow threat-modeled; every High/Critical threat has a control (SEC-xxx) |
 | 6 | Backlog | `backlog-leveling` | Tickets tiered (T1/T2/T3), each traces to an FSD, each has acceptance criteria a junior/cheap model can execute |
 | 7 | Test plan | `test-plan` | Happy + regression + edge + e2e cases defined; coverage target set (default ≥80%) |
+| — | **`docs-only` stops here** — phases 0–7 alone are a complete, code-free deliverable (see Modes) |
 | 8 | Implement | `implement` (or installed `tdd`/`executing-plans`) | Work one ticket at a time, red→green→refactor; each ticket's tests pass |
 | 9 | Infra & delivery | `infra` | CI + coverage/security gates set up (early); IaC, envs, secrets, observability, deploy+rollback ready |
 | 10 | **Verify gate** | `coverage-check` + `code-review` + re-check `threat-model` | Tests pass, coverage ≥ target, review clean, no unmitigated High/Critical threat |
@@ -225,10 +226,11 @@ agents both allocate IDs; allocate the ID range first, then hand out slices.
 
 ## Modes
 
-Ask the user how they want to work. There are two independent choices:
-**interaction mode** (how much the agent drives) and **size** (how heavy the
-ceremony is). Neither ever removes a gate or the deep requirement collection —
-they change cadence and weight, not rigor.
+Ask the user how they want to work. There are three independent choices:
+**interaction mode** (how much the agent drives), **size** (how heavy the
+ceremony is), and **stop-point** (how far to run). None of them ever removes a
+gate or the deep requirement collection for the phases that *do* run — they
+change cadence, weight, and how far you go, not rigor.
 
 ### Interaction mode
 
@@ -264,13 +266,41 @@ Both modes cover all phases 0–11. The difference is autonomy and when you paus
   a quick threat check → 1–3 tickets → test plan → implement → verify. The gates
   still apply; they're just lighter.
 
+### Stop-point (orthogonal to interaction mode and size)
+
+Not every request wants code. Ask **how far to run** and stop there — don't
+default to implementing just because you can.
+
+- **`docs-only`** (brainstorm / spec / plan a build for someone else) — run
+  phases **0–7**: `discovery` → `to-prd` → `to-diagrams` → `to-fsd` →
+  `arch-decision` → `stack-conventions` → `threat-model` → `backlog-leveling`
+  (+ `estimate`) → `test-plan`. Produces the full `docs/sdd/` trail — PRD,
+  diagrams, FSD, ADRs, threat model, tiered backlog, effort estimate, test plan —
+  with **zero code written**. This is the right stop-point for "just brainstorm
+  and prep the documents," handing the spec to another team/developer, or getting
+  buy-in before committing engineering time.
+- **`spec+review`** — phases 0–7, plus a **human checkpoint**: present the
+  traceability matrix and ask for explicit go-ahead before touching phase 8.
+- **`full-build`** (default for "build/ship this") — all phases, 0–11, through
+  implementation, infra, verify, and ship.
+
+State the stop-point back to the user before starting ("I'll run discovery
+through test-plan and stop — no code — let me know if you want me to continue
+into implementation"), and **actually stop** there; don't drift into `implement`
+uninvited. Mark the gate board's phase-8 row `⬜ (not started — docs-only run)` so
+it reads honestly, not as if it were skipped by oversight.
+
 ### Modular use (no orchestrator)
 
-Any skill here works standalone — invoke `to-prd`, `threat-model`, `test-plan`,
-`arch-decision`, etc. directly when you only need that one artifact. You lose the
-automatic gating and traceability wiring, so if you want the chain enforced,
-route through this orchestrator instead.
+Any skill here also works standalone — invoke `to-prd`, `threat-model`,
+`test-plan`, `arch-decision`, etc. directly when you only need that one artifact.
+You lose the automatic gating and traceability wiring, so if you want the chain
+enforced (including a clean docs-only stop), prefer `docs-only` above instead.
 
-Default if the user doesn't say: ask once — "autopilot or copilot?" and "full or
-lite?" — then proceed. In autopilot with no answer, assume **autopilot + full**
-for a new build, **autopilot + lite** for a small change, and state the assumption.
+Default if the user doesn't say: ask once — "autopilot or copilot?", "full or
+lite?", and "docs-only, spec+review, or full-build?" — then proceed. In autopilot
+with no answer, assume **autopilot + full + full-build** for a new product build,
+**autopilot + lite + full-build** for a small change, and state the assumption —
+but if the request itself sounds like brainstorming/planning ("let's figure out
+…", "spec this out", "I just want a plan"), default the stop-point to
+**docs-only** instead and say so.

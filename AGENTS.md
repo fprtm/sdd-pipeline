@@ -84,6 +84,18 @@ announces which role it's "wearing" per phase so non-technical users can follow.
 - **Modular** — invoke any single skill directly, without the orchestrator.
 
 Size is orthogonal: **full** (new product/subsystem) vs **lite** (feature/bugfix).
+
+**Stop-point** is a third, orthogonal choice — how far to run:
+- **`docs-only`** — phases 0–7 only (discovery → PRD → diagrams → FSD →
+  architecture → security → backlog+estimate → test plan), **no code written**.
+  The right choice for brainstorming, spec'ing something for another team, or
+  getting buy-in before committing engineering time.
+- **`spec+review`** — phases 0–7, then a human checkpoint before phase 8.
+- **`full-build`** (default when the request is "build/ship this") — all phases
+  0–11 through implementation and deploy.
+
+If the request sounds like planning rather than building, default to
+`docs-only` and say so.
 Neither mode nor size ever removes a gate or reduces requirement collection.
 
 ## Principles baked in
