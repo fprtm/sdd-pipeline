@@ -12,6 +12,8 @@
 //      something upstream (REQ/FSD/SEC/ADR) in its own section (no freelance
 //      ticket/test).
 //   4. No dead relative markdown links.
+//   5. No duplicate id definitions — the same id (e.g. REQ-003) defined twice
+//      with different content is a copy-paste/renumbering bug, not a citation.
 // Exits non-zero on any problem.
 
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
@@ -21,6 +23,11 @@ const dir = process.argv[2] ?? 'docs/sdd';
 const MATRIX = 'traceability.md';
 const ID_RE = /\b(REQ-NF|REQ|FSD|ADR-FE|ADR|SEC|TICKET|TEST|DEC)-\d+\b/g;
 const typeOf = (id) => id.match(/^(REQ-NF|REQ|FSD|ADR-FE|ADR|SEC|TICKET|TEST|DEC)/)[1];
+// A DEFINITION is an id at the *start* of a heading or table row (its own
+// entry), not an id merely cited later in the line (e.g. a heading like
+// "## Containers (ADR-005)" cites ADR-005, it doesn't define it).
+const HEADING_DEF = /^#{1,6}\s+((?:REQ-NF|REQ|FSD|ADR-FE|ADR|SEC|TICKET|TEST|DEC)-\d+)\b/;
+const ROW_DEF = /^\s*\|\s*((?:REQ-NF|REQ|FSD|ADR-FE|ADR|SEC|TICKET|TEST|DEC)-\d+)\b/;
 
 const SPINE = new Set(['REQ-NF', 'REQ', 'FSD', 'SEC']); // must appear in the matrix
 const UPSTREAM = new Set(['REQ-NF', 'REQ', 'FSD', 'SEC', 'ADR', 'ADR-FE']); // valid parents
@@ -32,22 +39,25 @@ if (!existsSync(dir)) {
 }
 const files = readdirSync(dir).filter((f) => f.endsWith('.md'));
 
-const defined = new Map();          // id -> file
+const defined = new Map();          // id -> file (first/canonical definition)
+const definedAt = new Map();        // id -> [{file, line, text}] every heading/row occurrence
 const matrixRefs = new Set();
-const problems = { orphan: [], broken: [], freelance: [], deadLink: [] };
+const problems = { orphan: [], broken: [], freelance: [], deadLink: [], duplicate: [] };
 
 for (const file of files) {
   const path = join(dir, file);
   const text = readFileSync(path, 'utf8');
   const lines = text.split('\n');
 
-  // DEFINITIONS: first id on a heading line or table row, in the spec docs.
+  // DEFINITIONS: an id anchored at the start of a heading or table row.
   if (!NON_DEFINING.has(file)) {
     lines.forEach((line, i) => {
-      if (!/^#{1,6}\s/.test(line) && !/^\s*\|/.test(line)) return;
-      const ids = line.match(ID_RE);
-      if (!ids) return;
-      const id = ids[0];
+      const m = HEADING_DEF.exec(line) ?? ROW_DEF.exec(line);
+      if (!m) return;
+      const id = m[1];
+      const occ = { file, line: i + 1, text: line.trim().slice(0, 80) };
+      if (!definedAt.has(id)) definedAt.set(id, []);
+      definedAt.get(id).push(occ);
       if (defined.has(id)) return; // only check each id at its first (canonical) definition
       defined.set(id, file);
       // UPSTREAM trace for TICKET/TEST: this line + a small window must name a parent.
@@ -80,6 +90,14 @@ for (const id of matrixRefs) {
     problems.broken.push(id);
   }
 }
+// Duplicate definitions: the same id defined more than once (copy-paste or a
+// renumbering slip — e.g. two different requirements both titled REQ-003).
+for (const [id, occs] of definedAt) {
+  if (occs.length > 1) {
+    const where = occs.map((o) => `${o.file}:${o.line} "${o.text}"`).join('  |  ');
+    problems.duplicate.push(`${id} defined ${occs.length}x — ${where}`);
+  }
+}
 
 const total = Object.values(problems).reduce((n, a) => n + a.length, 0);
 const show = (title, arr) => {
@@ -92,10 +110,11 @@ console.log(`  defined: ${defined.size} · matrix refs: ${matrixRefs.size}`);
 show('Spine orphans (defined but not in the matrix)', problems.orphan);
 show('Broken refs (in the matrix but never defined)', problems.broken);
 show('Freelance tickets/tests (trace to nothing upstream)', problems.freelance);
+show('Duplicate id definitions', problems.duplicate);
 show('Dead links', problems.deadLink);
 
 if (total === 0) {
-  console.log('\n✓ Traceability is consistent — spine tracked, no broken refs, dead links, or freelance items.');
+  console.log('\n✓ Traceability is consistent — spine tracked, no broken refs, no duplicate ids, no dead links, or freelance items.');
   process.exit(0);
 }
 console.log(`\n${total} problem(s). The matrix isn't honest until these are resolved.`);
