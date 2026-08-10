@@ -13,12 +13,6 @@ down so a junior dev — or a cheap model — can execute the easy parts safely.
 > how to use it, the 3 dials (size / mode / stop-point), every skill, and
 > copy-paste recipes for common jobs.
 
-> Not a rewrite of existing skills. This pack **fills the gaps** other skill
-> collections (e.g. [mattpocock/skills](https://github.com/mattpocock/skills),
-> [obra/superpowers](https://github.com/obra/superpowers)) leave, and **defers**
-> to them for TDD, code review, worktrees, and finishing branches when they're
-> installed.
-
 ## What makes it different
 
 | Principle | What it means |
