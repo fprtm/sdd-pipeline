@@ -83,7 +83,10 @@ use threat-model on the payment flow
 use map-codebase to understand this repo
 ```
 
-**Other agents (Codex / Cursor / OpenCode …):** point them at `AGENTS.md`, or run
+**OpenCode:** add `{ "plugin": ["sdd-pipeline@git+https://github.com/fprtm/sdd-pipeline.git"] }`
+to `opencode.json` and restart — no clone needed, installs from GitHub directly.
+
+**Other agents (Codex / Cursor / …):** point them at `AGENTS.md`, or run
 `install/install.sh <target>` — see the README's Install section.
 
 ---

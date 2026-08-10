@@ -3,6 +3,22 @@
 All notable changes to SDD Pipeline. Versioning is [SemVer](https://semver.org/);
 pre-1.0, so minors may still move fast. Plain-language where possible.
 
+## [0.5.2] — 2026-08-10
+### Fixed
+- **Wrong recommended install path for OpenCode.** The README/GUIDE only
+  documented `install.sh opencode` (clone the repo, run a shell script,
+  `--dest` for global scope, manual restart, manual re-copy on every update) —
+  a fallback we wrote by guessing OpenCode's skills directory, never verified
+  against OpenCode's actual docs. OpenCode has its own native plugin manager
+  that installs directly from a git URL (`{ "plugin":
+  ["name@git+https://github.com/owner/repo.git"] }` in `opencode.json`, then
+  restart) — the same pattern `obra/superpowers` documents and uses. Found
+  because a user's own OpenCode install attempt looked unnecessarily manual;
+  verified by reading superpowers' own OpenCode setup doc, a directly
+  comparable markdown-only skills pack. README/GUIDE now document the native
+  method as primary for OpenCode; `install.sh opencode` is kept as a labeled
+  fallback for environments where the native mechanism isn't available.
+
 ## [0.5.1] — 2026-08-10
 ### Fixed
 - **Installer dropped `templates/` and `tools/`** — 9 of 22 skills reference
@@ -119,6 +135,7 @@ Initial release.
 - Portable SKILL.md skills + templates + multi-agent installer + Claude Code plugin/marketplace manifests.
 - Worked example (`examples/wishlist/`): full spec set + a runnable, tested backend (zero-dep TypeScript on Node type-stripping, HTTP delivery, SSR shared page, infra-as-code; 50 tests, ~99%/96% coverage).
 
+[0.5.2]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.5.2
 [0.5.1]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.5.1
 [0.5.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.5.0
 [0.4.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.4.0
