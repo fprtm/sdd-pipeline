@@ -3,10 +3,8 @@
   "owner": {
     "name": "ferryaguspratama"
   },
-  "metadata": {
-    "description": "Spec-Driven Development pipeline for AI coding agents.",
-    "version": "0.5.3"
-  },
+  "description": "Spec-Driven Development pipeline for AI coding agents.",
+  "version": "0.5.4",
   "plugins": [
     {
       "name": "sdd-pipeline",

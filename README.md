@@ -181,6 +181,11 @@ Or copy skills into your project/user scope with the installer:
 ./install/install.sh claude        # -> ~/.claude/skills (all projects)
 ```
 
+If a skill name here also exists in another installed pack, Claude Code's
+documented precedence applies: enterprise > personal (`~/.claude/skills`) >
+project (`./.claude/skills`) > bundled — deterministic, unlike some other
+tools' plain folder-scan.
+
 ### OpenCode
 
 > A previous version of this doc recommended `{ "plugin": ["sdd-pipeline@git+..."] }`
@@ -268,7 +273,7 @@ sdd-pipeline/
 
 ## Status
 
-**v0.5.3** — usable end to end; 22 self-sufficient skills; a worked example with a
+**v0.5.4** — usable end to end; 22 self-sufficient skills; a worked example with a
 runnable, tested backend (54 tests); a self-sufficiency audit and a token-usage
 pass behind it. Pre-1.0, so things may still move. See [CHANGELOG.md](CHANGELOG.md).
 Contributions/adjustments welcome — the skills are plain Markdown, so fork and

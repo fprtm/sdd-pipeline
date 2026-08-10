@@ -3,6 +3,30 @@
 All notable changes to SDD Pipeline. Versioning is [SemVer](https://semver.org/);
 pre-1.0, so minors may still move fast. Plain-language where possible.
 
+## [0.5.4] — 2026-08-11
+### Fixed
+- **`marketplace.json` schema bug** — `description` and `version` were nested
+  under a `"metadata"` object, but Claude Code's documented marketplace.json
+  schema (code.claude.com/docs/en/plugin-marketplaces) puts both at the
+  **top level**; the only recognized `metadata.*` field is `metadata.pluginRoot`.
+  The nested values were likely silently ignored by Claude Code. Fixed by
+  moving both to top-level keys.
+### Verified (audit, prompted by the user asking to check Claude Code's own
+docs the same way OpenCode's were checked)
+- Fetched code.claude.com/docs/en/plugin-marketplaces directly and confirmed,
+  field by field: `/plugin marketplace add owner/repo` (GitHub shorthand) and
+  `/plugin marketplace add .` (local path) are both valid documented syntax;
+  `/plugin install <name>@<marketplace>` matches the documented pattern;
+  `plugin.json`'s fields (`name`, `version`, `description`, `author`, `license`,
+  `keywords`) are all recognized; skills load from the `skills/` directory by
+  default with no explicit declaration needed (confirmed — matches this repo's
+  layout). Also confirmed `~/.claude/skills` (personal) and `./.claude/skills`
+  (project) are real, documented mechanisms matching `install.sh`'s `claude`/
+  `claude-proj` targets, with a **documented, deterministic precedence** order
+  (enterprise > personal > project > bundled) when names collide — unlike
+  OpenCode's undocumented same-name behavior noted in 0.5.3. No other changes
+  were needed; the install commands were already correct.
+
 ## [0.5.3] — 2026-08-10
 ### Corrected (transparency note)
 - **v0.5.2's OpenCode install instructions were wrong.** They recommended
@@ -163,6 +187,7 @@ Initial release.
 - Portable SKILL.md skills + templates + multi-agent installer + Claude Code plugin/marketplace manifests.
 - Worked example (`examples/wishlist/`): full spec set + a runnable, tested backend (zero-dep TypeScript on Node type-stripping, HTTP delivery, SSR shared page, infra-as-code; 50 tests, ~99%/96% coverage).
 
+[0.5.4]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.5.4
 [0.5.3]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.5.3
 [0.5.2]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.5.2
 [0.5.1]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.5.1
