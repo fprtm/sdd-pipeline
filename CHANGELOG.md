@@ -3,6 +3,20 @@
 All notable changes to SDD Pipeline. Versioning is [SemVer](https://semver.org/);
 pre-1.0, so minors may still move fast. Plain-language where possible.
 
+## [0.5.1] — 2026-08-10
+### Fixed
+- **Installer dropped `templates/` and `tools/`** — 9 of 22 skills reference
+  `templates/*.template.md` or `tools/check-traceability.mjs` by a pack-root-
+  relative path, but `install/install.sh` only ever copied `skills/`, so every
+  install target (`claude`, `claude-proj`, `cursor`, `opencode`, `generic`)
+  silently produced dangling references. Found by a user's own install attempt
+  via OpenCode, which had to improvise a manual workaround — not a real,
+  repeatable "install from GitHub" flow. `copy_skills()` now copies
+  `templates/` and `tools/` alongside the skill folders for every target;
+  verified by actually running the installer and checking the files resolve.
+  Known remaining gap: `--bundle` mode (a single concatenated markdown file)
+  still can't carry sibling files — out of scope for a single-file format.
+
 ## [0.5.0] — 2026-08-10
 Token efficiency, a self-sufficiency audit, and an honest correction.
 ### Changed
@@ -105,6 +119,7 @@ Initial release.
 - Portable SKILL.md skills + templates + multi-agent installer + Claude Code plugin/marketplace manifests.
 - Worked example (`examples/wishlist/`): full spec set + a runnable, tested backend (zero-dep TypeScript on Node type-stripping, HTTP delivery, SSR shared page, infra-as-code; 50 tests, ~99%/96% coverage).
 
+[0.5.1]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.5.1
 [0.5.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.5.0
 [0.4.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.4.0
 [0.3.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.3.0
