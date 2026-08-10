@@ -161,7 +161,9 @@ Run in order for `full`; collapsed for `lite`; mostly skipped for `quick`.
 | 11 | Ship | docs, changelog, deployed |
 
 Everything is linked in `traceability.md` (REQ → FSD → SEC → ticket → test), and a
-checker (`tools/check-traceability.mjs`) keeps that honest.
+checker (`tools/check-traceability.mjs`) keeps that honest — it catches ids that
+are speced but untracked, broken/typo references, tickets or tests that trace to
+nothing upstream, the same id accidentally defined twice, and dead doc links.
 
 ---
 
@@ -230,7 +232,8 @@ the code** (a README per module/slice), with a top-level index in `docs/dev/`.
 - **Gates that block** — no code before architecture + security are decided; no
   ship before tests pass, coverage ≥ 80%, review is clean, and the matrix is green.
 - **Traceability** — every requirement traces to a test; a runnable checker catches
-  drift so the docs can't quietly lie.
+  drift (untracked ids, broken refs, duplicate id definitions, dead links) so the
+  docs can't quietly lie.
 - **Code quality bar** — SSOT / DRY / YAGNI / deep modules, plus your stack's own
   best practices (from its official docs).
 - **Security by design** — threats modelled before code; controls tracked to tests.
@@ -255,3 +258,10 @@ stop-and-confirm, even in autopilot.
 
 **How do I install it / run it in another tool?** See the README's Install section
 (GitHub plugin for Claude Code; `install/install.sh` for Cursor/Codex/OpenCode/etc.).
+
+**Is trigger accuracy (does it fire from natural phrasing) proven?** Not
+independently yet — that requires the pack to be genuinely installed in a real
+agent session, which can only really be tested in your own environment, not
+faked in advance. If a request doesn't invoke the skill you expected, that's
+useful signal — it usually means a trigger description needs sharpening, not
+that something is fundamentally broken.

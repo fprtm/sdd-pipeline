@@ -73,9 +73,10 @@ dial below.
 | `stakeholder-brief` | plain-language brief + sign-off for non-IT | any |
 | `handoff` | resumable snapshot for another agent / cheaper model | any |
 
-22 self-sufficient skills — the pipeline runs end to end with nothing else
-installed, and **defers** to your planning/worktree/grilling and (if you prefer
-them) TDD/review/debug skills (mattpocock/skills, superpowers) when present.
+22 self-sufficient skills — every phase's gate is satisfiable with this pack
+alone, nothing else required. If you also have other skills installed for
+planning, worktrees, grilling, TDD, review, or debugging, this pack prefers
+those when present; otherwise its own versions run the phase completely.
 
 ### Tidy by design (predictable file placement)
 
@@ -230,10 +231,16 @@ sdd-pipeline/
 
 ## Status
 
-**v0.4.0** — usable end to end; 22 self-sufficient skills; a worked example with a
-runnable, tested backend (54 tests). Pre-1.0, so things may still move. See
-[CHANGELOG.md](CHANGELOG.md). Contributions/adjustments welcome — the skills are
-plain Markdown, so fork and adapt to your own conventions.
+**v0.5.0** — usable end to end; 22 self-sufficient skills; a worked example with a
+runnable, tested backend (54 tests); a self-sufficiency audit and a token-usage
+pass behind it. Pre-1.0, so things may still move. See [CHANGELOG.md](CHANGELOG.md).
+Contributions/adjustments welcome — the skills are plain Markdown, so fork and
+adapt to your own conventions.
+
+Trigger accuracy (does the right skill fire from natural phrasing) is **not yet
+independently verified** — it needs the pack genuinely installed in a real agent
+session to test honestly. If you try it and something doesn't trigger the way
+you'd expect, that's exactly the kind of report that improves it — open an issue.
 
 ## License
 

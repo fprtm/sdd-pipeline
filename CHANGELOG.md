@@ -3,6 +3,45 @@
 All notable changes to SDD Pipeline. Versioning is [SemVer](https://semver.org/);
 pre-1.0, so minors may still move fast. Plain-language where possible.
 
+## [0.5.0] — 2026-08-10
+Token efficiency, a self-sufficiency audit, and an honest correction.
+### Changed
+- **Orchestrator split** — `spec-driven-development/SKILL.md` cut from 3091 to
+  1767 mandatory-load words (-43%); the team/role table, per-topology placement
+  detail, and doc-currency rationale moved to a companion `reference.md`, read
+  only on demand. Nothing was dropped — verified by diffing every skill
+  reference between old and new.
+- **Broadened the orchestrator's trigger description** so ordinary "add a
+  feature / build X / fix this bug" requests invoke it (it right-sizes
+  internally), not only requests that explicitly ask for rigor.
+- Dropped the "not a rewrite, defers to mattpocock/superpowers" framing from the
+  README — stale since `code-review`/`implement`/`debug` became self-sufficient,
+  not defer-only.
+### Fixed
+- **Self-sufficiency audit** (all external-skill mentions checked): two real
+  misattributions fixed — the glossary (`00-context.md`) is produced by this
+  pack's own `discovery`, not the external `domain-modeling` skill it was
+  wrongly credited to; the ship-phase row wrongly bundled this pack's own
+  `handoff` with the genuinely-external `finishing-a-development-branch` under
+  one "if present". Confirmed: every phase's primary skill is one of this
+  pack's own 22 — zero hard external dependency.
+- `tools/check-traceability.mjs` gained **duplicate-id detection** (the same id
+  defined twice — a renumbering/copy-paste bug). Its first version had a real
+  false-positive bug (a heading merely *citing* an id, e.g. "(ADR-005)" in
+  parentheses, was misread as a second definition) — fixed by requiring the id
+  to anchor the start of a heading/table row, not just appear in the line.
+### Corrected (transparency note)
+- An earlier commit claimed the trigger-description broadening was "validated
+  via A/B subagent test." That validation was invalid: the test prompts named
+  the skill pack directly, which primed the (haiku) test subagents to role-play
+  reacting to a skill that was never actually installed in that environment,
+  rather than genuinely exercising trigger matching. Caught by a third, more
+  careful test run and corrected in the commit history rather than hidden. The
+  description change itself stands on its own merits; the "validated" claim
+  does not. Real trigger-accuracy evidence requires the pack to be genuinely
+  installed somewhere — that's on the user's own test environment, not
+  reproducible from here.
+
 ## [0.4.0] — 2026-08-10
 Right-sizing, brownfield, anti-drift, and a usage guide — mostly from a critical
 self-audit against real developer/vibe-coder pain points.
@@ -66,6 +105,7 @@ Initial release.
 - Portable SKILL.md skills + templates + multi-agent installer + Claude Code plugin/marketplace manifests.
 - Worked example (`examples/wishlist/`): full spec set + a runnable, tested backend (zero-dep TypeScript on Node type-stripping, HTTP delivery, SSR shared page, infra-as-code; 50 tests, ~99%/96% coverage).
 
+[0.5.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.5.0
 [0.4.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.4.0
 [0.3.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.3.0
 [0.2.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.2.0
