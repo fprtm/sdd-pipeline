@@ -39,10 +39,18 @@ if [ -z "$TARGET" ]; then
 fi
 
 copy_skills() {
+  # Copies skills/ PLUS templates/ and tools/ as siblings at the same
+  # destination — several skills reference templates/*.template.md and
+  # tools/check-traceability.mjs by a path relative to the pack root, and a
+  # skills-only copy leaves those references dangling. Harmless for tools that
+  # scan for SKILL.md files (a stray templates/ or tools/ folder with no
+  # SKILL.md is just skipped by the scanner).
   local out="$1"
   mkdir -p "$out"
   cp -R "$SKILLS_DIR/." "$out/"
-  echo "Installed skills → $out"
+  [ -d "$ROOT/templates" ] && cp -R "$ROOT/templates" "$out/templates"
+  [ -d "$ROOT/tools" ] && cp -R "$ROOT/tools" "$out/tools"
+  echo "Installed skills (+ templates/, tools/) → $out"
 }
 
 emit_bundle() {
