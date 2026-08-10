@@ -5,13 +5,20 @@
 # Usage:
 #   ./install/install.sh <target> [--dest <dir>]
 #
-# Targets:
-#   claude       ~/.claude/skills           (Claude Code, user scope)
-#   claude-proj  ./.claude/skills           (Claude Code, current project)
-#   cursor       ./.cursor/rules            (Cursor)
-#   codex        ./AGENTS.md (append pack pointer)      (Codex / generic)
-#   opencode     ./.opencode/skills         (OpenCode)
+# Targets (verified against each tool's own docs — see CHANGELOG for sources):
+#   claude       ~/.claude/skills           (Claude Code, user scope; real SKILL.md scan)
+#   claude-proj  ./.claude/skills           (Claude Code, current project; real SKILL.md scan)
+#   codex        ./.agents/skills + AGENTS.md pointer     (Codex CLI; real SKILL.md scan)
+#   opencode     ./.opencode/skills         (OpenCode, project scope; real SKILL.md scan)
+#   cursor       ./AGENTS.md (append pack pointer)        (Cursor has no per-skill discovery —
+#                                                           Cursor ignores plain .md under
+#                                                           .cursor/rules, it only reads .mdc there;
+#                                                           AGENTS.md is Cursor's own documented
+#                                                           plain-markdown fallback)
 #   generic      --dest <dir> required; copies skills/ there
+#
+# .agents/skills is scanned by BOTH Codex and OpenCode — for one install that
+# covers both tools globally, use: ./install.sh generic --dest ~/.agents/skills
 #
 # For agents that read a single rules file, use --bundle to also emit one
 # concatenated markdown file (all skills in order) you can point the agent at.
@@ -70,18 +77,29 @@ emit_bundle() {
   echo "Wrote bundle → $out"
 }
 
+point_agents_md() {
+  touch ./AGENTS.md
+  if ! grep -q "SDD Pipeline" ./AGENTS.md 2>/dev/null; then
+    printf '\n# SDD Pipeline\nSee sdd-pipeline/AGENTS.md and skills/. Invoke spec-driven-development first.\n' >> ./AGENTS.md
+  fi
+  echo "Pointed ./AGENTS.md at the pack."
+}
+
 case "$TARGET" in
   claude)       copy_skills "${DEST:-$HOME/.claude/skills}" ;;
   claude-proj)  copy_skills "${DEST:-./.claude/skills}" ;;
-  cursor)       copy_skills "${DEST:-./.cursor/rules/sdd-pipeline}" ;;
   opencode)     copy_skills "${DEST:-./.opencode/skills}" ;;
   codex)
-      # Codex reads AGENTS.md; append a pointer and (optionally) a bundle.
-      touch ./AGENTS.md
-      if ! grep -q "SDD Pipeline" ./AGENTS.md 2>/dev/null; then
-        printf '\n# SDD Pipeline\nSee sdd-pipeline/AGENTS.md and skills/. Invoke spec-driven-development first.\n' >> ./AGENTS.md
-      fi
-      echo "Pointed ./AGENTS.md at the pack."
+      # Codex auto-discovers SKILL.md under .agents/skills (walking up to repo
+      # root); also point AGENTS.md as a harmless, human-readable fallback note.
+      copy_skills "${DEST:-./.agents/skills}"
+      point_agents_md
+      ;;
+  cursor)
+      # Cursor has no per-skill SKILL.md discovery — plain .md under
+      # .cursor/rules is explicitly ignored (Cursor only reads .mdc there).
+      # AGENTS.md is Cursor's own documented plain-markdown fallback.
+      point_agents_md
       ;;
   generic)
       [ -n "$DEST" ] || { echo "generic requires --dest DIR" >&2; exit 2; }

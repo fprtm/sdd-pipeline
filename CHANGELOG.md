@@ -3,6 +3,47 @@
 All notable changes to SDD Pipeline. Versioning is [SemVer](https://semver.org/);
 pre-1.0, so minors may still move fast. Plain-language where possible.
 
+## [0.5.5] — 2026-08-11
+Prompted by the user asking whether we should match superpowers' zero-clone
+OpenCode install (a real `.opencode/plugins/superpowers.js` npm-style plugin —
+fetched and read the actual file: it does message-injection bootstrapping and
+OpenCode-specific tool-name mapping, real platform-specific runtime code, not a
+small shim). Decision, stated plainly: **not replicated** — it would compromise
+this pack's core design (plain `SKILL.md`, portable to every tool the same way,
+zero runtime code to break or that I can't test from here) to save one `git
+clone` step on a single tool. Instead, did the same doc-verification pass for
+every other install target and found two more real bugs, plus one documented
+alternative worth adding:
+### Fixed
+- **`install.sh cursor` was producing files Cursor never reads.** It copied
+  `SKILL.md` into `.cursor/rules/sdd-pipeline/`. Verified against
+  `cursor.com/docs/rules`: "*A plain `.md` file in `.cursor/rules` is ignored
+  by the rules system*" — Cursor only reads its own `.mdc` Rules format there.
+  Cursor's own documented plain-markdown fallback is `AGENTS.md`. `cursor`
+  target now points `AGENTS.md` at the pack (same mechanism as `codex`)
+  instead of copying files nothing would read.
+- **`install.sh codex` under-delivered.** It only appended a note to
+  `AGENTS.md`, never using Codex's real per-skill discovery. Verified against
+  Codex's official docs (`developers.openai.com/codex/skills`, redirects to
+  `learn.chatgpt.com/docs/build-skills`): Codex auto-scans `.agents/skills`
+  (working dir up to repo root; `~/.agents/skills` globally) for `SKILL.md` —
+  automatic, no `config.toml` registration needed. `codex` target now also
+  copies into `.agents/skills` for real discovery, keeping the `AGENTS.md`
+  pointer as a bonus.
+### Added
+- **`.agents/skills` is scanned by both Codex and OpenCode** — one install
+  (`install.sh generic --dest ~/.agents/skills`) now covers both tools
+  globally. Documented in the README/GUIDE install sections.
+- **OpenCode Option B**: documented the verified `skills` array config
+  (`{"skills": ["~/sdd-pipeline/skills"]}` in `opencode.json`, from
+  `opencode.ai/v2/docs/skills`) as an update-friendlier alternative to
+  `install.sh` — clone once, `git pull` to update, no re-copy. Note: the exact
+  syntax is a flat array of path/URL strings, not the nested
+  `{"skills":{"paths":[...]}}"` shape a community tool guessed; stated as
+  unverified whether `templates/`/`tools/` resolve correctly this way, since
+  it bypasses `install.sh`'s co-location — copy-based install remains the
+  recommendation unless a user wants to verify this themselves.
+
 ## [0.5.4] — 2026-08-11
 ### Fixed
 - **`marketplace.json` schema bug** — `description` and `version` were nested
@@ -187,6 +228,7 @@ Initial release.
 - Portable SKILL.md skills + templates + multi-agent installer + Claude Code plugin/marketplace manifests.
 - Worked example (`examples/wishlist/`): full spec set + a runnable, tested backend (zero-dep TypeScript on Node type-stripping, HTTP delivery, SSR shared page, infra-as-code; 50 tests, ~99%/96% coverage).
 
+[0.5.5]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.5.5
 [0.5.4]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.5.4
 [0.5.3]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.5.3
 [0.5.2]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.5.2

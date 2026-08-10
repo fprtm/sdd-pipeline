@@ -210,8 +210,25 @@ cd sdd-pipeline
 ```
 
 Then **restart OpenCode** (skills load at startup). Bonus: OpenCode also scans
-`~/.claude/skills/`, so if you already installed this pack for Claude Code
-(`install.sh claude`), OpenCode picks it up automatically with no extra step.
+`~/.claude/skills/` and `~/.agents/skills/`, so if you already installed this
+pack for Claude Code or Codex, OpenCode picks it up automatically with no
+extra step.
+
+**Option B — point OpenCode at the clone instead of copying** (verified
+against `opencode.ai/v2/docs/skills`; update with `git pull`, no re-copy):
+
+```bash
+git clone https://github.com/fprtm/sdd-pipeline.git ~/sdd-pipeline
+```
+```json
+// in opencode.json (global or project)
+{ "skills": ["~/sdd-pipeline/skills"] }
+```
+Untested caveat, stated plainly: this points the scanner directly at the
+clone's `skills/` folder, bypassing `install.sh` — so it's unconfirmed whether
+skills that reference `templates/`/`tools/` (siblings of `skills/`, one level
+up) resolve correctly this way. Prefer the copy-based method above unless you
+specifically want git-pull-only updates and can verify it yourself.
 
 One real caveat, not yet resolved: OpenCode resolves skills by folder name with
 no documented namespacing, so a name this pack shares with another installed
@@ -219,24 +236,46 @@ pack (e.g. `code-review`) can collide — whichever is scanned last wins,
 non-deterministically. Renaming this pack's more generic skill names is on the
 table if this turns out to bite in practice.
 
-### Other agents (multi-agent, generic clone-and-copy)
+### Cursor
+
+Cursor has no per-skill discovery mechanism — verified against
+[cursor.com/docs/rules](https://cursor.com/docs/rules): a plain `.md` file
+under `.cursor/rules` is explicitly **ignored** (Cursor only reads its own
+`.mdc` Rules format there). Cursor's own documented plain-markdown fallback is
+`AGENTS.md`, so that's what this pack targets:
 
 ```bash
-./install/install.sh cursor        # -> ./.cursor/rules/sdd-pipeline
+./install/install.sh cursor        # points ./AGENTS.md at the pack
+```
+
+### Codex CLI
+
+Codex auto-discovers `SKILL.md` under `.agents/skills` — verified against
+[developers.openai.com/codex/skills](https://learn.chatgpt.com/docs/build-skills)
+— walking up from your working directory to the repo root (project) or
+`~/.agents/skills` (global, all projects):
+
+```bash
+./install/install.sh codex                          # -> ./.agents/skills (+ AGENTS.md pointer)
+./install/install.sh generic --dest ~/.agents/skills # global — also covers OpenCode, see above
+```
+
+### Other agents (generic clone-and-copy)
+
+```bash
 ./install/install.sh opencode      # -> ./.opencode/skills (project scope; use --dest for global)
-./install/install.sh codex         # points ./AGENTS.md at the pack
 ./install/install.sh generic --dest /path/to/agent/skills
 ```
 
-Every target also copies `templates/` and `tools/` alongside the skills (several
-skills reference them). Because this is a **copy, not a symlink**, re-run the
-installer after every `git pull` to pick up updates.
+Every `copy`-based target also copies `templates/` and `tools/` alongside the
+skills (several skills reference them). Because this is a **copy, not a
+symlink**, re-run the installer after every `git pull` to pick up updates.
 
 For agents that read a single rules file, add `--bundle` to also emit
 `sdd-pipeline.bundle.md` (all skills concatenated in order):
 
 ```bash
-./install/install.sh codex --bundle
+./install/install.sh generic --dest /path/to/agent/skills --bundle
 ```
 
 Then, in any agent: **"use spec-driven-development to \<do X\>"**. It picks the
@@ -273,7 +312,7 @@ sdd-pipeline/
 
 ## Status
 
-**v0.5.4** — usable end to end; 22 self-sufficient skills; a worked example with a
+**v0.5.5** — usable end to end; 22 self-sufficient skills; a worked example with a
 runnable, tested backend (54 tests); a self-sufficiency audit and a token-usage
 pass behind it. Pre-1.0, so things may still move. See [CHANGELOG.md](CHANGELOG.md).
 Contributions/adjustments welcome — the skills are plain Markdown, so fork and

@@ -89,8 +89,17 @@ Clone the repo, run `./install/install.sh generic --dest ~/.config/opencode/skil
 See the README's Install section for why the `plugin:` config array doesn't
 apply here (it's for npm-style JS plugins, not plain markdown skills).
 
-**Other agents (Codex / Cursor / …):** point them at `AGENTS.md`, or run
-`install/install.sh <target>` — see the README's Install section.
+**Codex CLI:** auto-discovers `SKILL.md` under `.agents/skills`. Run
+`./install/install.sh codex` (project) or
+`./install/install.sh generic --dest ~/.agents/skills` (global — also covers
+OpenCode, which scans the same path).
+
+**Cursor:** has no per-skill discovery (it ignores plain `.md` under
+`.cursor/rules`, only reading its own `.mdc` format there) — this pack targets
+Cursor's documented `AGENTS.md` fallback instead: `./install/install.sh cursor`.
+
+**Other agents:** point them at `AGENTS.md`, or run `install/install.sh <target>`
+— see the README's Install section.
 
 ---
 
