@@ -3,6 +3,34 @@
 All notable changes to SDD Pipeline. Versioning is [SemVer](https://semver.org/);
 pre-1.0, so minors may still move fast. Plain-language where possible.
 
+## [0.5.3] — 2026-08-10
+### Corrected (transparency note)
+- **v0.5.2's OpenCode install instructions were wrong.** They recommended
+  `{ "plugin": ["sdd-pipeline@git+https://..."] }` in `opencode.json`, reasoning
+  "superpowers uses this same pattern and it's a comparable markdown-only pack."
+  That reasoning was based on reading one superpowers doc page, not its actual
+  repo — a user's own OpenCode session pushed back, and checking properly (the
+  real `superpowers/package.json`, then OpenCode's own official docs at
+  opencode.ai) confirmed the pushback was right: OpenCode's `plugin` array
+  installs npm-style packages with real JS/TS code — superpowers ships an actual
+  `.opencode/plugins/superpowers.js` runtime that registers its skills; this
+  pack has no such code, only `SKILL.md` files, so that config would very
+  likely register nothing.
+- **The actually-correct, verified mechanism**: OpenCode natively auto-discovers
+  plain `SKILL.md` folders with no config needed — `~/.config/opencode/skills/`
+  (global) or `.opencode/skills/`/`.claude/skills/`/`.agents/skills/`
+  (project-local). This is exactly what `install.sh` already did — the fix is
+  documentation-only; `install.sh` was correct the whole time, just not
+  confidently/correctly *described* as the primary path. README/GUIDE corrected
+  accordingly, with an inline note explaining the mistake rather than silently
+  swapping the text.
+- Also documented plainly (previously unstated): OpenCode scans `~/.claude/skills/`
+  too, so a Claude Code install of this pack is auto-picked-up by OpenCode with
+  no extra step; and the real, still-open risk that OpenCode resolves skills by
+  bare folder name with no documented namespacing, so this pack's more generic
+  skill names (e.g. `code-review`) can collide with another installed pack's
+  skill of the same name.
+
 ## [0.5.2] — 2026-08-10
 ### Fixed
 - **Wrong recommended install path for OpenCode.** The README/GUIDE only
@@ -135,6 +163,7 @@ Initial release.
 - Portable SKILL.md skills + templates + multi-agent installer + Claude Code plugin/marketplace manifests.
 - Worked example (`examples/wishlist/`): full spec set + a runnable, tested backend (zero-dep TypeScript on Node type-stripping, HTTP delivery, SSR shared page, infra-as-code; 50 tests, ~99%/96% coverage).
 
+[0.5.3]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.5.3
 [0.5.2]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.5.2
 [0.5.1]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.5.1
 [0.5.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.5.0

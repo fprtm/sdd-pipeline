@@ -83,8 +83,11 @@ use threat-model on the payment flow
 use map-codebase to understand this repo
 ```
 
-**OpenCode:** add `{ "plugin": ["sdd-pipeline@git+https://github.com/fprtm/sdd-pipeline.git"] }`
-to `opencode.json` and restart — no clone needed, installs from GitHub directly.
+**OpenCode:** it auto-discovers plain `SKILL.md` folders — no config file needed.
+Clone the repo, run `./install/install.sh generic --dest ~/.config/opencode/skills`
+(global) or `./install/install.sh opencode` (this project only), then restart.
+See the README's Install section for why the `plugin:` config array doesn't
+apply here (it's for npm-style JS plugins, not plain markdown skills).
 
 **Other agents (Codex / Cursor / …):** point them at `AGENTS.md`, or run
 `install/install.sh <target>` — see the README's Install section.

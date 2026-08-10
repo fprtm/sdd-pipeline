@@ -181,39 +181,51 @@ Or copy skills into your project/user scope with the installer:
 ./install/install.sh claude        # -> ~/.claude/skills (all projects)
 ```
 
-### OpenCode (native plugin)
+### OpenCode
 
-OpenCode has its own plugin manager that installs directly from a git URL — no
-clone needed. Add this to `opencode.json` (global `~/.config/opencode/opencode.json`,
-or project-level):
+> A previous version of this doc recommended `{ "plugin": ["sdd-pipeline@git+..."] }`
+> in `opencode.json`. That's wrong for this pack and has been corrected — see
+> [CHANGELOG.md](CHANGELOG.md) for why. OpenCode's `plugin` array installs
+> npm-style packages with real JS/TS code (that's how
+> [superpowers](https://github.com/obra/superpowers) works — it ships an actual
+> `.opencode/plugins/superpowers.js` runtime). This pack has no such code — it's
+> plain `SKILL.md` files — so that mechanism doesn't apply here.
 
-```json
-{ "plugin": ["sdd-pipeline@git+https://github.com/fprtm/sdd-pipeline.git"] }
+What OpenCode natively supports for a markdown-only pack like this one is its
+**skills folder scan**: any `<name>/SKILL.md` under `~/.config/opencode/skills/`
+(global) or `.opencode/skills/`, `.claude/skills/`, `.agents/skills/`
+(project-local, walking up to the git worktree root) is auto-discovered — no
+config file needed. Clone the repo, then:
+
+```bash
+git clone https://github.com/fprtm/sdd-pipeline.git
+cd sdd-pipeline
+./install/install.sh generic --dest ~/.config/opencode/skills   # global, all projects
+# or: ./install/install.sh opencode                             # -> ./.opencode/skills, this project only
 ```
 
-Then **restart OpenCode** (plugins load at startup, not hot-reloaded) — it
-fetches from GitHub and registers all 22 skills. This is the same pattern
-[superpowers uses](https://github.com/obra/superpowers/blob/main/docs/README.opencode.md);
-if you previously used `install.sh opencode` (a clone-and-copy fallback, kept
-below for environments without this mechanism), prefer this instead — it stays
-in sync with `git`-level updates without a manual re-copy.
+Then **restart OpenCode** (skills load at startup). Bonus: OpenCode also scans
+`~/.claude/skills/`, so if you already installed this pack for Claude Code
+(`install.sh claude`), OpenCode picks it up automatically with no extra step.
 
-### Other agents (multi-agent, generic clone-and-copy fallback)
+One real caveat, not yet resolved: OpenCode resolves skills by folder name with
+no documented namespacing, so a name this pack shares with another installed
+pack (e.g. `code-review`) can collide — whichever is scanned last wins,
+non-deterministically. Renaming this pack's more generic skill names is on the
+table if this turns out to bite in practice.
 
-For agents without a native git-URL plugin mechanism (or if OpenCode's isn't
-available to you), clone the repo, then:
+### Other agents (multi-agent, generic clone-and-copy)
 
 ```bash
 ./install/install.sh cursor        # -> ./.cursor/rules/sdd-pipeline
-./install/install.sh opencode      # -> ./.opencode/skills (project-scoped fallback)
+./install/install.sh opencode      # -> ./.opencode/skills (project scope; use --dest for global)
 ./install/install.sh codex         # points ./AGENTS.md at the pack
 ./install/install.sh generic --dest /path/to/agent/skills
 ```
 
 Every target also copies `templates/` and `tools/` alongside the skills (several
 skills reference them). Because this is a **copy, not a symlink**, re-run the
-installer after every `git pull` to pick up updates — the native OpenCode
-plugin method above doesn't have this limitation.
+installer after every `git pull` to pick up updates.
 
 For agents that read a single rules file, add `--bundle` to also emit
 `sdd-pipeline.bundle.md` (all skills concatenated in order):
@@ -256,7 +268,7 @@ sdd-pipeline/
 
 ## Status
 
-**v0.5.2** — usable end to end; 22 self-sufficient skills; a worked example with a
+**v0.5.3** — usable end to end; 22 self-sufficient skills; a worked example with a
 runnable, tested backend (54 tests); a self-sufficiency audit and a token-usage
 pass behind it. Pre-1.0, so things may still move. See [CHANGELOG.md](CHANGELOG.md).
 Contributions/adjustments welcome — the skills are plain Markdown, so fork and
