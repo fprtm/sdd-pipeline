@@ -1,12 +1,17 @@
 ---
 name: spec-driven-development
 description: >-
-  Orchestrator/spine for building a feature (or whole product) spec-first, with
-  hard gates. Use when the user wants to go from a rough idea to shipped code in
-  a disciplined, traceable way — or says "spec-driven", "SDD", "build this
-  properly", "from idea to production". Routes through PRD → diagrams → FSD →
-  architecture → security → backlog → test plan → implement → verify → ship, and
-  delegates each phase to the right skill.
+  Orchestrator/spine for building or changing software, right-sized to the work.
+  Use for ANY "add a feature", "build X", "fix this bug" request — including
+  ordinary ones with no special phrasing — not only when the user explicitly asks
+  for rigor. It self-sizes internally (a typo gets zero ceremony, a feature gets
+  one file, a new product gets the full spec trail), so invoking it for a plain
+  feature/bugfix request is correct, not presumptuous. Also triggers on "spec-
+  driven", "SDD", "build this properly", "from idea to production", or on an
+  EXISTING codebase (it maps the repo first, then works as a change, not a
+  rewrite). Routes through discovery → PRD → diagrams → FSD → architecture →
+  security → backlog → test plan → implement → verify → ship, or a small slice of
+  that for small work, and delegates each phase to the right skill.
 ---
 
 # Spec-Driven Development (the spine)
