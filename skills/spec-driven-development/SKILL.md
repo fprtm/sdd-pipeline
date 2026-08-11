@@ -58,6 +58,23 @@ asks to stop.
   the pipeline is over — briefly note you're still in `<mode>`/`<phase>` and
   check whether the user wants to continue there or step away from it.
 
+## Read state, then ask — don't guess
+
+Before acting: **read the existing state** (this project's `docs/sdd/` if any,
+the actual code via `map-codebase` on brownfield, the conversation so far) —
+guessing what's already true wastes the user's time correcting you. Then, for
+anything **consequential that isn't already answered by that state**, **ask
+rather than assume** — this holds in `copilot` always, and in `autopilot` for
+anything blocking/irreversible (autopilot batches routine unknowns into a
+recorded default, per Modes below, but a genuinely consequential unclear point
+still gets asked, not guessed).
+
+**When you ask, prefer your platform's native structured question tool** (e.g.
+a multiple-choice/quick-select UI), if one is available, over a plain-text
+question buried in prose — it's faster for the user to answer, and batches
+cleanly for autopilot's "ask once, batched" requirement. Fall back to a plain
+question only when no such tool exists.
+
 For the full team/role narrative, extended topology-placement rules, and the
 rationale behind doc-currency enforcement, see [`reference.md`](reference.md) next
 to this file — read it only when you need that specific detail (e.g. announcing
@@ -110,10 +127,15 @@ by `implement`, `code-review`, and `infra`.
 
 ## The phases and their gates
 
-First, create `docs/sdd/00-overview.md` from `overview.template.md` (bundled with this skill):
-the feature brief, the **gate board**, and the **ID registry**. Update the gate
-board's state (⬜→🟨→✅, or ⛔ with a reason) as you enter/exit each phase, and
-bump the ID registry's "next free" counters whenever you allocate an ID.
+**Before anything else, check whether `docs/sdd/` already exists.** If it does,
+**read** `00-overview.md` (gate board), `traceability.md`, and `DECISIONS.md`
+first — that's the real state of the project. Resume from there; don't restart,
+re-ask what's already answered, or assume phase 0 just because a new session
+started. If nothing exists yet, **then** create `docs/sdd/00-overview.md` from
+`overview.template.md` (bundled with this skill): the feature brief, the **gate
+board**, and the **ID registry**. Update the gate board's state (⬜→🟨→✅, or ⛔
+with a reason) as you enter/exit each phase, and bump the ID registry's
+"next free" counters whenever you allocate an ID.
 
 Run phases in order. **A gate that fails blocks the next phase** — say so
 plainly, mark it ⛔, and stop; do not sneak forward.

@@ -37,7 +37,9 @@ surfaces (web/mobile/CLI/API-only); deployment target; data shape
 
 Present 2–3 viable options per major decision (architecture style, language,
 framework, datastore, API style, deployment model, testing stack) with honest
-trade-offs and a recommendation.
+trade-offs and a recommendation. Use your platform's native structured
+question tool for this if one exists — a short list of named options is
+exactly what it's for, and it's faster for the user than picking through prose.
 
 **Neutral but not passive:**
 - If the user has a preference or constraint, follow it.

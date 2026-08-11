@@ -47,6 +47,11 @@ Interview until you can answer all of these. If you can't, you're not done.
 
 ## How to ask well
 
+- **Use your platform's native structured question tool if one exists** (e.g. a
+  multiple-choice/quick-select UI) rather than burying questions in a wall of
+  prose — faster to answer, and it's what makes autopilot's "batch everything"
+  actually pleasant instead of a text dump. Fall back to plain questions only
+  if no such tool is available.
 - **Talk to the human you have.** For a non-developer, ask about goals, people, and
   outcomes — never about frameworks or schemas. For a developer, you can go
   technical, but still confirm the *why*, not just the *how*.

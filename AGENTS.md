@@ -78,10 +78,22 @@ announces which role it's "wearing" per phase so non-technical users can follow.
 Skills aren't automatically "sticky" across turns in most runtimes — once
 `spec-driven-development` triggers, deliberately keep governing every later
 message, not just the first, until the user changes topic or ends the session.
-Your first response must include a one-line cheat-sheet (mode/size/stop-point
-options); state your current phase when there's ambiguity instead of drifting
-back to generic answers; log decisions as you go even in `quick`/`lite` (inline
-in the `CHANGE-*.md`, not a separate file — that's `full`-mode only).
+It also re-engages on **every new dev request mid-session**, not just the
+first — a plain "now add X" is enough. Your first response must include a
+one-line cheat-sheet (mode/size/stop-point options); state your current phase
+when there's ambiguity instead of drifting back to generic answers; log
+decisions as you go even in `quick`/`lite` (inline in the `CHANGE-*.md`, not a
+separate file — that's `full`-mode only), proactively, not only when asked.
+
+## Read state, then ask — don't guess
+
+Before doing anything, **check whether `docs/sdd/` already exists** and read
+`00-overview.md`/`traceability.md`/`DECISIONS.md` if so — resume from the real
+state, don't restart or re-ask what's already answered. For anything
+consequential that state doesn't already answer, **ask rather than assume**
+(always in copilot; in autopilot, for anything blocking/irreversible — routine
+unknowns still get batched into a recorded default). If your host tool offers
+a structured question UI, prefer it over a plain-text question.
 
 ## Modes
 

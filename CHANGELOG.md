@@ -3,6 +3,35 @@
 All notable changes to SDD Pipeline. Versioning is [SemVer](https://semver.org/);
 pre-1.0, so minors may still move fast. Plain-language where possible.
 
+## [0.11.0] — 2026-08-11
+User asked for three related behaviors: always collect info from the user
+before acting, always read existing state first to be clear before doing
+anything, and always use the agent platform's native question tool when
+asking.
+### Added
+- **"Read state, then ask — don't guess"** — a new cross-cutting principle in
+  the orchestrator (and mirrored in `AGENTS.md`): before acting, read the
+  existing state (`docs/sdd/` if this project already has a run in progress,
+  the actual code via `map-codebase` on brownfield); for anything
+  consequential that state doesn't already answer, ask rather than assume
+  (always in copilot, and for anything blocking/irreversible in autopilot —
+  routine unknowns still batch into a recorded default, unchanged).
+- **Resume from real state, don't restart.** Real gap: the phase-0 instruction
+  said "create `docs/sdd/00-overview.md`" with no check for whether one
+  already exists. Now checks first — if `docs/sdd/` is already there, read
+  `00-overview.md`/`traceability.md`/`DECISIONS.md` and resume from that,
+  instead of risking a re-ask of already-answered questions or a silent
+  restart.
+- **Prefer the platform's native structured question tool over plain-text
+  questions**, when one is available (e.g. Claude Code's multiple-choice ask
+  tool) — added to the orchestrator, `discovery` (the 9-question interview),
+  and `arch-decision` (the 2–3-option architecture choices). Faster for the
+  user to answer, and it's what makes autopilot's "batch everything"
+  requirement pleasant instead of a wall of text. Falls back to plain
+  questions when no such tool exists (e.g. most non-Claude-Code agents).
+- `spec-driven-development` grew 2310 → 2504 words for this — deliberate,
+  same principle as every prior reliability-focused release this project.
+
 ## [0.10.0] — 2026-08-11
 User reported two related reliability problems: `decision-log` doesn't
 consistently fire ("kalo lepas dari pengawasan dia ga ngasih tau"), and the
@@ -446,6 +475,7 @@ Initial release.
 - Portable SKILL.md skills + templates + multi-agent installer + Claude Code plugin/marketplace manifests.
 - Worked example (`examples/wishlist/`): full spec set + a runnable, tested backend (zero-dep TypeScript on Node type-stripping, HTTP delivery, SSR shared page, infra-as-code; 50 tests, ~99%/96% coverage).
 
+[0.11.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.11.0
 [0.10.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.10.0
 [0.9.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.9.0
 [0.8.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.8.0
