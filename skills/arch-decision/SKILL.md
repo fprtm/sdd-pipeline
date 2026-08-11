@@ -16,129 +16,62 @@ This gate exists because the most expensive mistakes are structural and get
 locked in on day one. Do **not** let implementation start until architecture is
 decided and written down.
 
-Write to `docs/sdd/04-architecture.md` using `adr.template.md` (bundled with this skill) for
-each decision.
+For frontend-specific rigor, repo/deployment topology (fullstack/separate/
+monorepo), and a full worked ADR example, see [`reference.md`](reference.md) —
+read it once there's a UI to decide, or when the FE/BE relationship needs an
+explicit call. The steps below are enough for a backend-only or a lite change.
+
+Write to `docs/sdd/04-architecture.md` using `adr.template.md` (bundled with
+this skill) for each decision.
 
 ## Step 1 — gather the forces (ask, don't assume)
 
 Read the PRD non-functional requirements first, then ask the user only what's
-still unknown:
-
-- **Scale & load** — users/requests now vs. 12 months out; read-heavy or
-  write-heavy; data volume.
-- **Team** — who maintains it, how many, how senior; solo/junior/mixed? Are
-  frontend and backend the same people or different teams?
-- **Surfaces** — what clients exist? Web, mobile (native/cross-platform),
-  desktop, CLI, public API for third parties, or a backend with no UI at all?
-- **Deployment target** — serverless, container, VM, edge, on-prem, mobile,
-  desktop? Any existing platform to fit into?
-- **Data** — relational, document, time-series, graph? Transactions? Analytics?
-- **Latency & availability** — p95 target, uptime expectation, offline needs.
-- **Constraints** — existing stack the org standardizes on, compliance
-  (PCI/HIPAA/GDPR), budget, hard deadlines.
-- **Change profile** — how often will requirements churn? (drives how much
-  decoupling is worth paying for.)
+still unknown: scale/load now vs. 12 months out; team size & seniority; client
+surfaces (web/mobile/CLI/API-only); deployment target; data shape
+(relational/document/time-series); latency & availability targets; constraints
+(existing stack, compliance, budget, deadlines); how often requirements churn
+(drives how much decoupling is worth paying for).
 
 ## Step 2 — decide, with the user in the loop
 
-Present 2–3 viable options per major decision with honest trade-offs, and a
-recommendation. Major decisions usually include: **architecture style**,
-**language/runtime**, **framework**, **datastore**, **API style**, **deployment
-model**, **testing stack**.
+Present 2–3 viable options per major decision (architecture style, language,
+framework, datastore, API style, deployment model, testing stack) with honest
+trade-offs and a recommendation.
 
-### The neutral-but-not-passive rule
-
+**Neutral but not passive:**
 - If the user has a preference or constraint, follow it.
-- **If the user says "I don't know / you decide": pick the option that is the
-  most robust, scalable, and maintainable *for their actual answers above* — and
-  explicitly justify it.** Default toward *boring, proven, well-documented*
-  technology with a large hiring/skill pool and a strong testing story. Novelty
-  is a cost you only pay when a requirement demands it.
-- Right-size it. A CRUD app for 50 users does **not** get event sourcing and
-  microservices. A payments platform does not get a single 5000-line file.
-  Match ceremony to the forces you gathered — over-engineering is as much a
-  failure as under-engineering.
+- **If they say "I don't know / you decide": pick the option that is the most
+  robust, scalable, and maintainable *for their actual answers above* — and
+  explicitly justify it.** Default toward boring, proven, well-documented
+  technology with a large hiring/skill pool. Novelty is a cost you only pay
+  when a requirement demands it.
+- **Right-size it.** A CRUD app for 50 users doesn't get event sourcing and
+  microservices. A payments platform doesn't get one 5000-line file. Match
+  ceremony to the forces gathered — over-engineering is as much a failure as
+  under-engineering.
 
 ## Step 3 — architecture style & boundaries
 
-Decide the internal shape and *write down the dependency rule*. Typical ladder,
-pick the lightest that fits:
+Pick the lightest that fits: **modular monolith, layered** (default for most
+products); **clean/hexagonal** (ports & adapters — when business rules are
+complex, long-lived, or must be testable in isolation); **service-oriented /
+microservices** (only when independent scaling/deploy/team-autonomy genuinely
+demand it — justify the operational tax).
 
-1. **Modular monolith, layered** — default for most products. Clear layers
-   (domain / application / infrastructure / interface), one deployable.
-2. **Clean / Hexagonal (ports & adapters)** — when business rules are complex,
-   long-lived, or must be testable in isolation from frameworks/DB. Core domain
-   depends on nothing; adapters depend inward.
-3. **Service-oriented / microservices** — only when independent scaling,
-   independent deploy, or team autonomy genuinely demand it. Justify the
-   operational tax.
+Whatever you pick, state the **dependency rule** (what may import what), name
+the **module boundaries** (map to the FSD groupings), and note where the
+**seams for testing** are. If a deep-module design skill (`codebase-design`) is
+available, use it to shape the key interfaces.
 
-Whatever you pick, state the **dependency rule** (what may import what),
-name the **module boundaries** (map them to the FSD groupings), and note where
-the **seams for testing** are. If a deep-module design skill (`codebase-design`)
-is available, use it to shape the key interfaces.
-
-## Step 3b — frontend / client architecture (don't forget the UI)
-
-Architecture is **not backend-only**. If there is any UI, decide it with the
-same rigor:
-
-- **Rendering & framework** — SPA, SSR, SSG, or hybrid; which framework; when
-  each is appropriate (SEO/first-paint needs → SSR/SSG; rich app-like
-  interactivity → SPA/hybrid).
-- **State & data** — server-state (fetch/cache layer) vs. client-state; how the
-  UI talks to the backend (REST/GraphQL/RPC — keep in sync with the API-style
-  decision).
-- **Component structure & design system** — layering (design system → features
-  → pages), and where business rules must NOT leak (keep domain logic out of
-  components; the clean/hexagonal dependency rule applies to the frontend too).
-- **Cross-cutting** — auth on the client, routing, accessibility (from REQ-NF),
-  i18n, error/loading states. These become FSD behaviors and e2e tests.
-
-Record these as their own ADRs (`ADR-FE-xxx`) so frontend decisions are as
-traceable as backend ones.
-
-## Step 3c — repository & deployment topology (decide explicitly)
-
-The FE/BE relationship is its own decision — ask and record it, because it
-shapes tooling, CI, and how tickets are sliced:
-
-| Topology | When it fits | Notes |
-|----------|--------------|-------|
-| **Fullstack, unified** (FE+BE one app, e.g. Next.js/Rails/Django+templates) | small team, tight FE↔BE coupling, one deploy | simplest ops; API is internal |
-| **FE + BE separate repos** | independent teams/release cadence, public API, multiple clients | clear contract needed (OpenAPI/GraphQL schema) as the seam |
-| **BE-only** | headless service / API product / no UI | contract-first; consumers are external |
-| **FE-only** | static site, or client against an existing/third-party API | the API is a fixed external dependency |
-| **Monorepo (FE + BE + shared packages)** | separate deployables but shared types/utilities, one team or coordinated teams | shared contract/type packages; needs a monorepo tool (workspaces/turbo/nx) and clear package boundaries |
-
-Whatever the topology: name the **contract/seam between FE and BE** (schema,
-types, API version) explicitly — it is where most integration bugs and most
-integration/e2e tests live. If separate deployables, note **independent
-deploy/versioning** in an ADR.
-
-The topology you pick here also sets **where docs live** (see the orchestrator's
-placement rules): a modular monolith with clean architecture gets a co-located
-`README.md` per module (documenting its public ports); a feature-sliced frontend
-gets a README + user doc per slice; separate repos / monorepo each keep their own
-`docs/dev/`. Record the chosen shape so `documentation` and `implement` follow it.
+If there's any UI, or the FE/BE topology isn't obvious, go read `reference.md`
+now before continuing — those decisions belong in this same gate.
 
 ## Step 4 — record ADRs
 
-One ADR per significant, hard-to-reverse decision:
-
-```
-### ADR-003 — Datastore: PostgreSQL
-Status: accepted
-Context: relational data, transactional wishlist + orders, team knows SQL,
-         p95 < 200ms at ~10k DAU (REQ-NF-002).
-Decision: PostgreSQL (managed).
-Consequences: strong consistency & transactions; vertical-scale first, add read
-              replicas later; not ideal for future full-text search (revisit
-              with a search index if REQ-014 lands).
-Alternatives considered: MongoDB (rejected: relational integrity matters),
-                         SQLite (rejected: concurrent write ceiling).
-Constrains: FSD-012, FSD-020
-```
+One ADR per significant, hard-to-reverse decision, using `adr.template.md`
+(status, context, decision, consequences, alternatives considered, what it
+constrains). See `reference.md` for a full worked example.
 
 ## Exit gate
 

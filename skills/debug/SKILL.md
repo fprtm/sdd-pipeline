@@ -4,19 +4,16 @@ description: >-
   Find the root cause of a bug or failure systematically — reproduce, isolate,
   hypothesize, prove, fix, and lock it with a regression test. Use when a test
   fails, something throws/misbehaves/is slow, or the user says "debug / diagnose /
-  why is this broken / it's not working". Self-sufficient; defers to an installed
-  debugging skill (mattpocock diagnosing-bugs, superpowers systematic-debugging).
+  why is this broken / it's not working".
 ---
 
 # debug — evidence over guessing
 
 Bugs are solved by evidence, not by changing things until they seem to work. The
 goal is the **root cause**, not a symptom that quiets down. Resist the urge to
-shotgun edits.
-
-> **Defer if a better tool exists.** If a dedicated debugging skill is installed
-> (mattpocock `diagnosing-bugs`, superpowers `systematic-debugging`), use it and
-> treat this as the checklist. Otherwise, run the loop below.
+shotgun edits. Fully self-sufficient on its own; if a specialized debugging skill
+is also installed (e.g. mattpocock `diagnosing-bugs`, superpowers
+`systematic-debugging`), prefer it and treat this as the checklist to hold it to.
 
 ## The loop
 

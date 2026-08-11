@@ -34,13 +34,13 @@ gates** and keeps a **traceability matrix** linking every requirement to a test:
 | 5 Security gate (SSDLC) | `threat-model` | `docs/sdd/05-threat-model.md` (SEC-xxx) |
 | 6 Backlog | `backlog-leveling` | `06-backlog.md` (tiered TICKET-xxx) + `ESTIMATE.md` (effort/cost) |
 | 7 Test plan | `test-plan` | `docs/sdd/07-test-plan.md` (TEST-xxx, ≥80% target) |
-| 8 Implement | `implement` + `code-standards` (+ `debug`) | tested code clearing the SSOT/DRY/YAGNI bar |
+| 8 Implement | `implement` + `code-standards` (+ `debug`) + `git-workflow` per commit | tested code clearing the SSOT/DRY/YAGNI bar |
 | 9 Infra & delivery | `infra` | CI/CD, IaC, envs, secrets, observability, deploy |
 | 10 Verify gate | `coverage-check` + `code-review` + `threat-model` re-check (+ `debug`) | proof |
-| 11 Ship | `documentation` + finish/`handoff` | deployed, docs written, matrix green |
+| 11 Ship | `documentation` + `git-workflow` (PR/changelog) + finish/`handoff` | deployed, docs written, matrix green |
 | any | `traceability` · `decision-log` · `stakeholder-brief` · `handoff` | matrix, decision "why", non-IT brief, snapshot |
 
-This pack is **self-sufficient** (22 skills; runs end to end alone). For planning,
+This pack is **self-sufficient** (23 skills; runs end to end alone). For planning,
 git worktrees, and grilling, **defer to skills you already have** (mattpocock/
 skills, superpowers); prefer an installed TDD / code-review / debugging skill over
 `implement` / `code-review` / `debug` if present.
@@ -72,6 +72,16 @@ contract, not a nicety.
 Each phase = a role (PM, analyst, architect, security, delivery lead, QA,
 engineer, DevOps/SRE, reviewer, tech writer). One agent covers the whole org; it
 announces which role it's "wearing" per phase so non-technical users can follow.
+
+## Stay in this mode for the whole conversation
+
+Skills aren't automatically "sticky" across turns in most runtimes — once
+`spec-driven-development` triggers, deliberately keep governing every later
+message, not just the first, until the user changes topic or ends the session.
+Your first response must include a one-line cheat-sheet (mode/size/stop-point
+options); state your current phase when there's ambiguity instead of drifting
+back to generic answers; log decisions as you go even in `quick`/`lite` (inline
+in the `CHANGE-*.md`, not a separate file — that's `full`-mode only).
 
 ## Modes
 

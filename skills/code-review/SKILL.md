@@ -4,21 +4,18 @@ description: >-
   Review changed code along two axes — Standards (does it clear the code-quality
   bar and repo conventions?) and Spec (does it do what the FSD/ticket asked?). Use
   at the verify gate of spec-driven-development, or when the user says "review this
-  / review the branch / review my changes". Self-sufficient; defers to an installed
-  code-review skill (e.g. mattpocock's) if present.
+  / review the branch / review my changes".
 ---
 
 # code-review — two axes, evidence-based
 
-Review the change, not the whole repo. Two independent questions, reported
-separately so neither hides the other:
+Review the change, not the whole repo. Fully self-sufficient on its own — if a
+specialized code-review skill is also installed (e.g. mattpocock's
+`code-review`), prefer it and treat this as the checklist to hold it to. Two
+independent questions, reported separately so neither hides the other:
 
 1. **Standards** — is the code good?
 2. **Spec** — does it do what was asked?
-
-> **Defer if a better tool exists.** If a dedicated code-review skill is installed
-> (e.g. mattpocock/skills `code-review`), run it and use this as the checklist.
-> Otherwise, do the review yourself as below.
 
 ## Scope the diff
 Review the changes since the branch point (or the ticket's diff). State what you

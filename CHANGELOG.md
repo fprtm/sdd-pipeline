@@ -3,6 +3,56 @@
 All notable changes to SDD Pipeline. Versioning is [SemVer](https://semver.org/);
 pre-1.0, so minors may still move fast. Plain-language where possible.
 
+## [0.7.0] — 2026-08-11
+Prompted by real, live feedback after the user ran the pack for actual work in a
+production project (reviewed two real `CHANGE-*.md` outputs — a groomer/driver
+idle-detection hardening fix and a point-duplication guard investigation with
+real SQL diagnostics). The generated documents themselves were genuinely
+solid — plain-language summaries, sequence diagrams, tiered backlogs, inline
+decisions, honest de-scope notes — confirming the core pipeline works. The
+feedback was about everything *around* that: skill files feeling long and less
+independent than they claimed, losing track of the pipeline's mode across a
+multi-turn conversation, confusion about how to invoke the dials in the moment,
+and a missing git/commit skill.
+### Added
+- **`git-workflow`** (23rd skill) — commit granularity (one per ticket), a
+  commit-message shape that references `TICKET-xxx`/`FSD-xxx`/`SEC-xxx` and
+  explains *why*, branch naming, and a PR description generated from actual
+  gate results instead of a template guess. Wired into phase 8 (commit as you
+  go) and phase 11 (PR/changelog).
+- **Explicit session-persistence instructions** in the orchestrator (and
+  mirrored in `AGENTS.md`) — the deepest fix here. Skills aren't automatically
+  "sticky" across conversation turns in most agent runtimes; a user reported
+  the pipeline "forgetting" to stay in mode after a few follow-up questions.
+  The orchestrator now explicitly instructs itself to keep governing every
+  later message (not just the first), to always open with a one-line
+  dial cheat-sheet so the controls are in front of the user without needing
+  the docs, to restate its current phase/mode when there's ambiguity, and to
+  log decisions **inline** even in `quick`/`lite` mode rather than skipping it
+  because there's no separate `DECISIONS.md` in those modes (that file is a
+  `full`-mode artifact — this was a real documentation gap, not a functional
+  one: both real examples reviewed already had a "Decisions" section inline,
+  the pack just never said plainly that's correct and sufficient for lite work).
+### Changed
+- **Softened "defers to mattpocock/superpowers" mentions** in `implement`,
+  `debug`, and `code-review` — each said it twice (frontmatter + a body
+  blockquote) and read as less self-sufficient than it actually is. Now one
+  mention each, reframed to lead with "fully self-sufficient on its own" before
+  the "prefer a specialized skill if also installed" note. The underlying
+  behavior is unchanged — only the framing, which was the actual complaint
+  (nothing was found that made this pack functionally non-independent).
+- **Split `arch-decision`** the same way the orchestrator was split earlier
+  (v0.5.0): a lean core (Step 1–4, the exit gate) plus a new `reference.md`
+  holding the frontend-specific rigor, the FE/BE topology table, and the full
+  worked ADR example — read only when there's a UI or a topology call to make.
+  1134 → 597 mandatory words.
+### Note
+- The traceability-checker "not found" apology visible in the pre-0.6.0
+  artifact reviewed here is exactly the bug **already fixed in 0.6.0**
+  (co-located `check-traceability.mjs`) — it will not reproduce once the
+  installed copy is updated (`git pull` + re-run the installer, or
+  `/plugin update` if installed via Claude Code's marketplace).
+
 ## [0.6.0] — 2026-08-11
 Root-cause fix for a bug a user hit live, running the pack for real via
 OpenCode: the agent reported `docs/sdd/traceability.md` and
@@ -293,6 +343,7 @@ Initial release.
 - Portable SKILL.md skills + templates + multi-agent installer + Claude Code plugin/marketplace manifests.
 - Worked example (`examples/wishlist/`): full spec set + a runnable, tested backend (zero-dep TypeScript on Node type-stripping, HTTP delivery, SSR shared page, infra-as-code; 50 tests, ~99%/96% coverage).
 
+[0.7.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.7.0
 [0.6.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.6.0
 [0.5.6]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.5.6
 [0.5.5]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.5.5

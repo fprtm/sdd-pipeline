@@ -18,8 +18,33 @@ description: >-
 
 You are running a **gated, traceable pipeline**: by the time code is written,
 *what* to build, *how* it's shaped, *how* it's secured, and *how* it's proven are
-all decided and linked. This pack is **self-sufficient end to end** — 22 skills,
+all decided and linked. This pack is **self-sufficient end to end** — 23 skills,
 nothing external required (see "How to route" below).
+
+## Stay in this mode for the whole conversation
+
+Skills are not automatically "sticky" across turns — once triggered, you have to
+**deliberately keep governing every later message** in this conversation, not
+just the first one, until the user clearly changes topic, ends the session, or
+asks to stop.
+
+- **Your first response after this skill triggers must include a one-line
+  cheat-sheet**, so the user has the controls in front of them without needing
+  to look anything up:
+  > *Dials: **autopilot**/**copilot** (who drives) · **quick**/**lite**/**full**
+  > (how much ceremony) · **docs-only**/**spec+review**/**full-build** (how far)
+  > — say any of these anytime to change course.*
+- **State your current phase/mode briefly whenever there's ambiguity** (e.g.
+  "still in lite mode, phase 3 (FSD)…") instead of silently drifting back to
+  generic, unstructured answers after a few follow-up questions.
+- **Log decisions as you go, even in `quick`/`lite` mode.** That doesn't need a
+  separate `DECISIONS.md` — that file is a `full`-mode artifact via
+  `decision-log`. In `quick`/`lite`, a short "Decisions" section inside the
+  `CHANGE-*.md` file itself (see the worked examples) is correct and sufficient.
+  Don't skip logging just because there's no separate file for it in this mode.
+- If a follow-up question seems unrelated to the work in progress, don't assume
+  the pipeline is over — briefly note you're still in `<mode>`/`<phase>` and
+  check whether the user wants to continue there or step away from it.
 
 For the full team/role narrative, extended topology-placement rules, and the
 rationale behind doc-currency enforcement, see [`reference.md`](reference.md) next
@@ -95,10 +120,10 @@ plainly, mark it ⛔, and stop; do not sneak forward.
 | 6 | Backlog | `backlog-leveling` | Tickets tiered (T1/T2/T3), each traces to an FSD, each self-contained; effort/cost estimate produced |
 | 7 | Test plan | `test-plan` | Happy + regression + edge + e2e cases defined; coverage target set (default ≥80%) |
 | — | **`docs-only` stops here** — phases 0–7 alone are a complete, code-free deliverable (see Modes) |
-| 8 | Implement | `implement` (or installed `tdd`/`executing-plans`) | Work one ticket at a time, red→green→refactor; each ticket's tests pass |
+| 8 | Implement | `implement` (or installed `tdd`/`executing-plans`) + `git-workflow` per commit | Work one ticket at a time, red→green→refactor; each ticket's tests pass |
 | 9 | Infra & delivery | `infra` | CI + coverage/security gates set up (early); IaC, envs, secrets, observability, deploy+rollback ready |
 | 10 | **Verify gate** | `coverage-check` + `code-review` + re-check `threat-model` | Tests pass, coverage ≥ target, review clean, no unmitigated High/Critical threat |
-| 11 | Ship | `documentation` + `handoff` (this pack's own) — plus `finishing-a-development-branch` if present for branch cleanup | Traceability matrix green; user + developer docs written; changelog written; deployed + smoke-checked |
+| 11 | Ship | `documentation` + `git-workflow` (PR/changelog) + `handoff` (this pack's own) — plus `finishing-a-development-branch` if present for branch cleanup | Traceability matrix green; user + developer docs written; changelog written; deployed + smoke-checked |
 
 > Phase 9 (`infra`) is partly *early*: stand up CI + the coverage/security gates
 > at the **start** of implementation so every ticket lands green; provision and
@@ -107,7 +132,8 @@ plainly, mark it ⛔, and stop; do not sneak forward.
 Cross-cutting, any time: `traceability` (after every ID-changing phase),
 `decision-log` (any non-trivial decision, especially autopilot defaults),
 `stakeholder-brief` (non-technical status/sign-off), `handoff` (long runs or a
-model/tool switch), `debug` (whenever something fails, phases 8/10).
+model/tool switch), `debug` (whenever something fails, phases 8/10),
+`git-workflow` (committing during phase 8, PR/changelog at phase 11).
 
 ## How to route
 
@@ -115,9 +141,10 @@ model/tool switch), `debug` (whenever something fails, phases 8/10).
   `to-prd`, `to-diagrams`, `to-fsd`, `arch-decision`, `stack-conventions`,
   `threat-model`, `backlog-leveling`, `test-plan`, `code-standards`, `implement`,
   `code-review`, `debug`, `infra`, `coverage-check`, `documentation`,
-  `traceability`, `decision-log`, `handoff`, `stakeholder-brief`. Every phase's
-  exit gate above is satisfiable with this pack alone — external skills below are
-  **enhancements you prefer when present, never requirements**.
+  `traceability`, `decision-log`, `handoff`, `stakeholder-brief`,
+  `git-workflow`. Every phase's exit gate above is satisfiable with this pack
+  alone — external skills below are **enhancements you prefer when present,
+  never requirements**.
 - For planning, worktrees, and grilling — areas this pack doesn't cover —
   **defer to the user's installed skills** (e.g. mattpocock/skills, superpowers)
   when present. Also **prefer** an installed TDD / code-review / debugging skill

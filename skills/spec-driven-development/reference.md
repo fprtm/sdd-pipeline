@@ -19,7 +19,7 @@ role, so one agent (or a human + agent) covers the whole org:
 | Security engineer (AppSec) | 5, re-check at 10 | `threat-model` |
 | Delivery lead | 6 | `backlog-leveling` (tickets + estimate) |
 | QA / test lead | 7, 10 | `test-plan`, `coverage-check` |
-| Engineer | 8, + when bugs arise | `implement` (+ `code-standards`), `debug` |
+| Engineer | 8, + when bugs arise | `implement` (+ `code-standards`), `debug`, `git-workflow` |
 | DevOps / SRE / platform | 9 | `infra` |
 | Reviewer / staff engineer | 10 | `code-review` |
 | Tech writer | 11, any | `documentation` |

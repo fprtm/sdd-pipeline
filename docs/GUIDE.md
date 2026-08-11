@@ -9,7 +9,7 @@ read a recipe when you have a specific job.
 - [How the agent picks defaults](#how-the-agent-picks-defaults)
 - [Recipes](#recipes-copy-a-phrasing) — copy a phrasing for your situation
 - [The phases (0–11)](#the-phases-0-11)
-- [All 22 skills](#all-22-skills-reference)
+- [All 23 skills](#all-23-skills-reference)
 - [Where files go](#where-files-go)
 - [What it guarantees](#what-it-guarantees)
 - [FAQ](#faq)
@@ -152,6 +152,9 @@ no full spec tree"), so you catch a wrong guess before it runs.
 **"Understand this repo I just inherited."**
 > use map-codebase
 
+**"Commit this / write me a commit message / open a PR."**
+> use git-workflow
+
 ---
 
 ## The phases (0–11)
@@ -182,7 +185,7 @@ nothing upstream, the same id accidentally defined twice, and dead doc links.
 
 ---
 
-## All 22 skills (reference)
+## All 23 skills (reference)
 
 You rarely call these directly — the orchestrator routes to them — but here's what
 each one is, so nothing is a mystery.
@@ -212,6 +215,7 @@ each one is, so nothing is a mystery.
 - `code-standards` — the code-quality bar: SSOT, DRY, YAGNI, deep modules.
 - `implement` — write the code, test-first, one ticket at a time.
 - `debug` — systematic root-cause fixing with a regression test.
+- `git-workflow` — commit/branch/PR conventions tied to the ticket and traceability.
 
 **Verify & ship**
 - `infra` — CI/CD, infra-as-code, secrets, observability, deploy.

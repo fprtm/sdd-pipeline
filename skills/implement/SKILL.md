@@ -4,22 +4,20 @@ description: >-
   Build the code for a backlog ticket, test-first, one ticket at a time, honoring
   the architecture's dependency rule and the security controls. Use at phase 8 of
   spec-driven-development, or when the user says "implement TICKET-xxx / build
-  this / start coding". Self-sufficient, but defers to a stronger TDD/impl skill
-  (e.g. mattpocock's implement/tdd, superpowers' executing-plans) if one is
-  installed.
+  this / start coding".
 ---
 
 # implement — turn tickets into tested code
 
-This is the coding phase. It is deliberately disciplined: the specs, architecture,
-threat model, and test plan already exist, so implementation is about *faithfully
-realizing* them, not re-deciding them. If you find yourself wanting to change a
-decision, that's a signal to loop back to the owning phase — not to freelance.
+This is the coding phase, fully self-sufficient on its own. It is deliberately
+disciplined: the specs, architecture, threat model, and test plan already exist,
+so implementation is about *faithfully realizing* them, not re-deciding them. If
+you find yourself wanting to change a decision, that's a signal to loop back to
+the owning phase — not to freelance.
 
-> **Defer if a better tool exists.** If the environment has a dedicated TDD or
-> implementation skill (mattpocock `implement`/`tdd`, superpowers
-> `executing-plans`/`test-driven-development`), use it and let this skill's rules
-> act as the checklist. Otherwise, do it yourself as below.
+If a specialized TDD/implementation skill is also installed (e.g. mattpocock's
+`implement`/`tdd`, superpowers' `executing-plans`), prefer it and treat this
+skill's rules as the checklist to hold it to. Otherwise, do it yourself as below.
 
 ## Work one ticket at a time
 

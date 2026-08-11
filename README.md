@@ -64,6 +64,7 @@ dial below.
 | `code-standards` | the SSOT/DRY/YAGNI/deep-module code bar | 8·10 |
 | `implement` | the coding phase, test-first, ticket-by-ticket | 8 |
 | `debug` | systematic root-cause debugging + regression test | 8·10 |
+| `git-workflow` | commit/branch/PR conventions tied to the backlog + traceability | 8·11 |
 | `infra` | CI/CD, IaC, envs, secrets, observability, deploy | 9 |
 | `code-review` | Standards + Spec review | 10 |
 | `coverage-check` | verify-gate coverage enforcement | 10 |
@@ -73,7 +74,7 @@ dial below.
 | `stakeholder-brief` | plain-language brief + sign-off for non-IT | any |
 | `handoff` | resumable snapshot for another agent / cheaper model | any |
 
-22 self-sufficient skills — every phase's gate is satisfiable with this pack
+23 self-sufficient skills — every phase's gate is satisfiable with this pack
 alone, nothing else required. If you also have other skills installed for
 planning, worktrees, grilling, TDD, review, or debugging, this pack prefers
 those when present; otherwise its own versions run the phase completely.
@@ -314,7 +315,7 @@ sdd-pipeline/
 ├─ CHANGELOG.md             # version history
 ├─ .claude-plugin/          # Claude Code plugin + marketplace manifests
 ├─ docs/GUIDE.md            # the usage manual
-├─ skills/                  # 22 SKILL.md files, each bundling its own template
+├─ skills/                  # 23 SKILL.md files, each bundling its own template
 │                            #   or script (e.g. skills/traceability/check-traceability.mjs)
 ├─ templates/               # a few reference-only templates (no skill hard-codes these paths)
 ├─ examples/wishlist/       # a complete worked run (+ runnable, tested impl)
@@ -323,7 +324,7 @@ sdd-pipeline/
 
 ## Status
 
-**v0.6.0** — usable end to end; 22 self-sufficient skills; a worked example with a
+**v0.7.0** — usable end to end; 23 self-sufficient skills; a worked example with a
 runnable, tested backend (54 tests); a self-sufficiency audit and a token-usage
 pass behind it. Pre-1.0, so things may still move. See [CHANGELOG.md](CHANGELOG.md).
 Contributions/adjustments welcome — the skills are plain Markdown, so fork and
