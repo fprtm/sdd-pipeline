@@ -1,6 +1,6 @@
 {
   "name": "sdd-pipeline",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "description": "Spec-Driven Development pipeline: a full delivery team as gated, traceable skills — discovery→PRD→diagrams→FSD→architecture→security→backlog→test-plan→implement→infra→verify→ship. Autopilot & copilot modes; SSOT/DRY/YAGNI code bar. Multi-agent, stack-neutral, dev + non-dev friendly.",
   "author": {
     "name": "ferryaguspratama"

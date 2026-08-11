@@ -187,47 +187,165 @@ nothing upstream, the same id accidentally defined twice, and dead doc links.
 
 ## All 23 skills (reference)
 
-You rarely call these directly — the orchestrator routes to them — but here's what
-each one is, so nothing is a mystery.
+You rarely call these directly — the orchestrator routes to them — but here's
+**when each one fits, what it produces, and a tip** so nothing is a mystery.
+Skip straight to the group you need.
 
-**Orchestration**
-- `spec-driven-development` — the conductor: runs the phases, enforces gates, picks
-  size/mode/stop-point, keeps the docs tidy.
+### Orchestration
 
-**Understand (brownfield + discovery)**
-- `map-codebase` — learn an existing codebase before changing it.
-- `discovery` — collect the real need deeply (works for non-devs too).
+**`spec-driven-development`** — the conductor.
+*When:* any build/change/fix request, even an ordinary one with no special
+phrasing. *Produces:* routes every phase, keeps the gate board + traceability
+current. *Tip:* state the dials up front (e.g. "…copilot, lite") if you already
+know them — saves a round-trip of the agent asking.
 
-**Spec & design**
-- `to-prd` — product requirements (what & why).
-- `to-diagrams` — context/DFD/sequence/ERD diagrams (Mermaid).
-- `to-fsd` — functional spec (exact behaviour, incl. error paths).
-- `arch-decision` — choose (or respect) architecture, stack, topology; write ADRs.
-- `stack-conventions` — read the stack's **official docs** and turn them into rules
-  (TS strict, Laravel conventions, …).
-- `threat-model` — security-by-design (STRIDE), one control per real threat.
+### Understand (brownfield + discovery)
 
-**Plan**
-- `backlog-leveling` — tiered tickets (T1/T2/T3) + a rough effort/cost estimate.
-- `test-plan` — happy/regression/edge/e2e cases + the coverage target.
+**`map-codebase`** — learn an existing codebase before touching it.
+*When:* the project already has code (brownfield), always **before** anything
+else. *Produces:* `00-codebase-map.md` — stack, structure, conventions
+actually used, tests, risk areas. *Tip:* don't skip this even for a tiny
+change — it's what stops the agent fighting your existing architecture.
 
-**Build**
-- `code-standards` — the code-quality bar: SSOT, DRY, YAGNI, deep modules.
-- `implement` — write the code, test-first, one ticket at a time.
-- `debug` — systematic root-cause fixing with a regression test.
-- `git-workflow` — commit/branch/PR conventions tied to the ticket and traceability.
+**`discovery`** — collect the real need deeply.
+*When:* a genuinely new feature/product, or a vague "I want an app that…".
+*Produces:* a discovery brief + the glossary (`00-context.md`). *Tip:* the
+friendliest phase for non-developers — plain-language questions about goals,
+users, outcomes, no jargon required.
 
-**Verify & ship**
-- `infra` — CI/CD, infra-as-code, secrets, observability, deploy.
-- `coverage-check` — enforce the coverage gate honestly.
-- `code-review` — two-axis review: Standards (quality) + Spec (does what was asked).
-- `documentation` — user guide + developer docs (JSDoc/API/README).
+### Spec & design
 
-**Keep it honest (any time)**
-- `traceability` — the matrix linking requirements → tests; run the checker.
-- `decision-log` — record every significant decision and the "why".
-- `stakeholder-brief` — plain-language status + sign-off for non-technical people.
-- `handoff` — a resumable snapshot so another agent/cheaper model continues cold.
+**`to-prd`** — product requirements (what & why).
+*When:* the need is understood, now formalize it. *Produces:* `01-prd.md`,
+REQ-ids with MoSCoW priority + Given/When/Then acceptance criteria.
+
+**`to-diagrams`** — context/DFD/sequence/ERD diagrams (Mermaid).
+*When:* after the PRD, before the functional spec. *Produces:* `02-diagrams.md`.
+*Tip:* the DFD's trust boundaries feed the threat model directly — don't
+skip them even in a hurry.
+
+**`to-fsd`** — functional spec (exact behaviour, including error paths).
+*When:* diagrams exist; now spell out precisely how it behaves. *Produces:*
+`03-fsd.md`, FSD-ids covering main **and** error/alternate flows.
+
+**`arch-decision`** — choose (or respect) architecture, stack, topology; ADRs.
+*When:* before any code, on a new project or a topology-affecting change.
+*Produces:* `04-architecture.md`. *Tip:* if you don't know your stack, say
+so — it picks the most robust option and justifies it, it never guesses silently.
+
+**`stack-conventions`** — reads the stack's **official docs**, turns them into
+enforceable rules (TS strict, Laravel conventions, …).
+*When:* right after the stack is picked. *Produces:* `04-stack-guide.md`,
+version-pinned and source-cited. *Tip:* this is what makes generated code
+idiomatic instead of generic — worth doing even on a small project.
+
+**`threat-model`** — security-by-design (STRIDE), one control per real threat.
+*When:* architecture is set, before implementation starts. *Produces:*
+`05-threat-model.md`, SEC-ids for every High/Critical threat. *Tip:* even a
+`lite` change gets a quick threat check — "it's just a small feature" is
+exactly how gaps get in.
+
+### Plan
+
+**`backlog-leveling`** — tiered tickets (T1/T2/T3) + effort/cost estimate.
+*When:* FSD + architecture exist, ready to plan work. *Produces:*
+`06-backlog.md` + optional `ESTIMATE.md`. *Tip:* ask for the estimate
+explicitly ("how long/how much") — it isn't produced automatically.
+
+**`test-plan`** — happy/regression/edge/e2e cases + the coverage target.
+*When:* the backlog is tiered, before implementation. *Produces:*
+`07-test-plan.md`, TEST-ids by class, default coverage target ≥80%.
+
+### Build
+
+**`code-standards`** — the code-quality bar: SSOT, DRY, YAGNI, deep modules.
+*When:* continuously — this is a bar `implement`/`code-review` hold code to,
+not a phase you invoke on its own. *Tip:* read it once to understand *why*
+code gets flagged in review.
+
+**`implement`** — write the code, test-first, one ticket at a time.
+*When:* a ticket is ready to build. *Produces:* tested code (red→green→refactor).
+*Tip:* T3 tickets deserve extra care — don't let autopilot speed through a
+security-sensitive ticket unattended.
+
+**`debug`** — systematic root-cause fixing with a regression test.
+*When:* something's broken, throwing, or slow. *Produces:* a fix plus a test
+that proves the bug can't silently come back. *Tip:* prefers a specialized
+debugging skill if you have one installed, but works standalone either way.
+
+**`git-workflow`** — commit/branch/PR conventions tied to the ticket and
+traceability.
+*When:* something's ready to commit, or you want a PR description. *Produces:*
+a commit message referencing `TICKET-xxx`/`FSD-xxx`, or a PR description built
+from real gate results. *Tip:* ask for this **per ticket**, not once at the
+end — smaller commits are easier to review and revert.
+
+### Verify & ship
+
+**`infra`** — CI/CD, infra-as-code, secrets, observability, deploy.
+*When:* setting up CI, or getting ready to deploy. *Produces:* pipelines, IaC,
+env parity, alerting, rollback. *Tip:* it will always stop and ask before
+actually provisioning cloud resources or deploying — never ask it to skip that.
+
+**`coverage-check`** — enforce the coverage gate honestly.
+*When:* the verify gate, phase 10. *Produces:* a plain pass/fail, no gray area.
+*Tip:* if it flags a skipped/`.only`/stubbed test as not-really-passing, fix
+the test — don't argue with the gate.
+
+**`code-review`** — two-axis review: Standards (quality) + Spec (does what was
+asked).
+*When:* a change is ready to merge. *Produces:* two separate verdicts, ranked
+findings, an approve/changes-required call. *Tip:* ask for this on your own
+diffs any time, not only at the pipeline's built-in verify gate.
+
+**`documentation`** — user guide + developer docs (JSDoc/API/README).
+*When:* shipping, or whenever you want docs for something specific.
+*Produces:* `docs/user/<feature>.md` (plain language) + `docs/dev/` +
+inline JSDoc. *Tip:* it derives from the specs — if the specs are stale, fix
+those first rather than letting docs and specs drift apart.
+
+### Keep it honest (any time)
+
+**`traceability`** — the matrix linking requirements → tests; run the checker.
+*When:* after any phase that creates/changes an ID. *Produces:* the matrix +
+a one-line coverage summary (verified mechanically by `check-traceability.mjs`,
+not eyeballed). *Tip:* a red row is the pipeline being honest — don't ask it
+to hide the gap, ask it to close the gap.
+
+**`decision-log`** — record every significant decision and the "why".
+*When:* any non-trivial call, especially an autopilot default made on your
+behalf. *Produces:* `DECISIONS.md` in `full` mode, or an inline "Decisions"
+section in `lite`/`quick`. *Tip:* this is where "why did we decide X" gets
+answered months later — worth it even when it feels like overhead in the moment.
+
+**`stakeholder-brief`** — plain-language status + sign-off for non-technical
+people.
+*When:* a non-technical person needs to understand status or approve something.
+*Produces:* a brief + a sign-off loop that writes their answers back into the
+specs (not just into the brief).
+
+**`handoff`** — a resumable snapshot so another agent/cheaper model continues
+cold.
+*When:* a session is getting long, or you're switching tools/models.
+*Produces:* `HANDOFF.md` — self-contained, no memory of this conversation
+required to pick it up.
+
+### General recommendations
+
+- **Right-size by default, don't reflexively go `full`.** A typo is `quick`, a
+  feature is `lite`, a new product is `full`. Over-ceremony wastes as much
+  trust as under-rigor.
+- **On existing code, always start with `map-codebase`.** Skipping it is the
+  single most common way the agent ends up fighting your own architecture.
+- **Ask for `git-workflow` per ticket, not once at the end** — smaller commits,
+  easier reviews, easier reverts.
+- **Trust a red traceability row.** It's the pipeline surfacing a real gap, not
+  a bug to work around.
+- **In `autopilot`, skim the decision log before shipping.** Every default the
+  agent picked on your behalf is recorded there, specifically so you can
+  audit and correct it before it's too late to matter.
+- **For a non-technical stakeholder, use `stakeholder-brief` before a big
+  decision, not after.** It's built to write their answer back into the specs.
 
 ---
 

@@ -31,17 +31,14 @@ baseline:
 - **Static checks** — lint, type-check, format.
 - **Secret scanning** — block commits/PRs that contain credentials.
 - **SAST** (where available) for the languages in use.
-- **Docs-drift check** — flag changes where a public interface / exported API
-  changed but no doc (inline JSDoc, the module/feature README, or `docs/`) changed
-  in the same diff. This keeps docs honest for changes made *outside* the pipeline
-  (hand-edited code) — the pipeline itself keeps them current via `implement` +
-  `code-review`, but CI is the backstop. A pre-commit hook can run the same check
-  earlier.
+- **Docs-drift check** — flag a public-interface change with no matching doc
+  change in the same diff. `implement`/`code-review` keep docs current inside the
+  pipeline; this is the backstop for changes made outside it (a pre-commit hook
+  can run the same check earlier).
 - **Traceability check** — copy `check-traceability.mjs` (bundled with the
-  `traceability` skill) into the project as `tools/check-traceability.mjs` and
-  run `node tools/check-traceability.mjs docs/sdd` in CI so a drifting matrix
-  (untracked spine id, broken ref, freelance ticket/test, dead link) fails the
-  build. This is what stops the traceability matrix from becoming decoration.
+  `traceability` skill) into the project as `tools/check-traceability.mjs`, run
+  it in CI so a drifting matrix fails the build — the backstop against the
+  matrix becoming decoration.
 
 The pipeline is the enforcement point for the verify gate; a merge is not allowed
 if any of these fail.

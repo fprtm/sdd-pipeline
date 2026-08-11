@@ -45,30 +45,13 @@ Cover the **error/alternate flows** from the FSD, not just the happy path — th
 where defects and the interesting tests live. Every bug found gets a failing
 regression test before the fix.
 
-## Write to the code-quality bar (`code-standards`)
+## Write to the code-quality bar
 
-Every line you write must clear the bar in `code-standards` — this is the
-non-negotiable output quality of this pipeline:
-
-- **SSOT** — state each fact once; infer types from a single schema; use named
-  constants; use the ubiquitous language from `00-context.md`.
-- **DRY** — unify duplicated *knowledge*, but don't abstract merely-similar code
-  (rule of three). A wrong abstraction is worse than duplication.
-- **YAGNI** — build only what the ticket's REQ/FSD needs. No speculative options,
-  no dead code, no "might need later". Delete on sight.
-- **Deep modules** — a simple interface hiding real complexity; push complexity
-  down, keep callers' lives easy; logic in the domain/app layer, not controllers/UI.
-- **Clarity** — explicit over clever (a cheaper model must be able to extend it),
-  make illegal states unrepresentable, typed errors over silent nulls.
-
-Run the "check before done" from `code-standards` on your diff before you consider
-a ticket finished.
-
-**Also follow `docs/sdd/04-stack-guide.md`** — the stack-specific conventions
-captured by `stack-conventions` (e.g. TypeScript strict flags, Laravel/Eloquent
-conventions, the framework's validation/DI/testing idioms). `code-standards` is
-the stack-neutral bar; the stack guide is how it's realized in *this* stack. Write
-idiomatic code for the framework, not generic code that ignores it.
+Every line must clear `code-standards` (SSOT/DRY/YAGNI/deep modules/clarity —
+read that skill for the definitions; run its "check before done" on your diff)
+**and** `docs/sdd/04-stack-guide.md` (the stack-specific idioms from
+`stack-conventions` — write idiomatic code for the framework, not generic code
+that ignores it). Non-negotiable output quality, not a suggestion.
 
 ## Honor the architecture and security
 
@@ -85,19 +68,10 @@ idiomatic code for the framework, not generic code that ignores it.
 
 ## Document as you go (same change, not later)
 
-A ticket isn't done until its docs match its code — don't defer this to the ship
-phase. As part of each ticket:
-
-- Update the **inline JSDoc/docstrings** for any public interface you add or change
-  (per the stack guide's doc idiom).
-- Update the **co-located doc** for the module/feature you touched — the module's
-  `README.md` (its public interface, in a modular monolith / clean architecture)
-  or the feature slice's README (feature-sliced FE). See `documentation` for the
-  placement rules for the chosen topology.
-- If you changed user-visible behavior, note it for the user doc (`docs/user/…`).
-
-`code-review` will block a public-interface or behavior change that ships without a
-matching doc update — so do it now, while the context is fresh.
+A ticket isn't done until its docs match its code. Update inline JSDoc/docstrings
+for any public interface you touch, and the co-located module/feature doc (see
+`documentation` for placement rules) — while the context is fresh, not deferred
+to ship. `code-review` blocks a public-interface change with no matching doc update.
 
 ## Keep the trail honest as you go
 

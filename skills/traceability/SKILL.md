@@ -49,11 +49,9 @@ node tools/check-traceability.mjs docs/sdd
 It flags: spine IDs (REQ/REQ-NF/FSD/SEC) defined but missing from the matrix,
 broken references (a matrix id that isn't defined anywhere — usually a typo or a
 rename), tickets/tests that trace to nothing upstream, **duplicate id
-definitions** (the same id defined twice — a renumbering/copy-paste bug), and
-dead markdown links.
-Copy the script into the target project (the `infra` phase does this) so it runs
-in that repo's CI. Treat a non-zero exit as a real defect in the matrix, not a
-nuisance — that is the whole point of anti-drift.
+definitions** (a renumbering/copy-paste bug), and dead markdown links. `infra`
+wires it into CI. Treat a non-zero exit as a real defect, not a nuisance — that
+is the whole point of anti-drift.
 
 ## Checks to run each time (the checker automates most of these)
 

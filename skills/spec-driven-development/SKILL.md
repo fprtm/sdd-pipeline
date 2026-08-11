@@ -18,8 +18,7 @@ description: >-
 
 You are running a **gated, traceable pipeline**: by the time code is written,
 *what* to build, *how* it's shaped, *how* it's secured, and *how* it's proven are
-all decided and linked. This pack is **self-sufficient end to end** — 23 skills,
-nothing external required (see "How to route" below).
+all decided and linked. (Self-sufficiency detail: "How to route" below.)
 
 ## Stay in this mode for the whole conversation
 
@@ -93,10 +92,8 @@ frontend) while keeping two invariants: the spec trail stays together, and
 code-level docs co-locate with the code they describe. Full per-topology rules:
 `reference.md`.
 
-Docs are updated **in the same change as the code** (`implement` writes them per
-ticket; `code-review` blocks stale public-interface docs; `infra` adds a CI
-drift check) — not batched at the end. Detail: see `documentation`, `implement`,
-`code-review`, `infra`.
+Docs update in the same change as the code, not batched at the end — enforced
+by `implement`, `code-review`, and `infra`.
 
 ## The phases and their gates
 
@@ -125,9 +122,8 @@ plainly, mark it ⛔, and stop; do not sneak forward.
 | 10 | **Verify gate** | `coverage-check` + `code-review` + re-check `threat-model` | Tests pass, coverage ≥ target, review clean, no unmitigated High/Critical threat |
 | 11 | Ship | `documentation` + `git-workflow` (PR/changelog) + `handoff` (this pack's own) — plus `finishing-a-development-branch` if present for branch cleanup | Traceability matrix green; user + developer docs written; changelog written; deployed + smoke-checked |
 
-> Phase 9 (`infra`) is partly *early*: stand up CI + the coverage/security gates
-> at the **start** of implementation so every ticket lands green; provision and
-> deploy near the end.
+> Phase 9 (`infra`) runs partly *early* — CI + coverage/security gates stand up
+> at the start of implementation, not just before ship.
 
 Cross-cutting, any time: `traceability` (after every ID-changing phase),
 `decision-log` (any non-trivial decision, especially autopilot defaults),

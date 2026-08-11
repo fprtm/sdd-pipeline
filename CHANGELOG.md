@@ -3,6 +3,49 @@
 All notable changes to SDD Pipeline. Versioning is [SemVer](https://semver.org/);
 pre-1.0, so minors may still move fast. Plain-language where possible.
 
+## [0.8.0] — 2026-08-11
+Two asks: audit every skill for genuine token savings, and add richer docs on
+when each skill fits / what it produces / recommendations.
+### Changed — token audit across all 23 skills
+Measured every skill; trimmed real redundancy (duplication with another
+skill's own content, or verbose restating), applied the `reference.md` split
+(core instructions vs. read-on-demand detail) where a skill had clearly
+separable "always need this" vs "only need this sometimes" content. Did
+**not** force cuts where content was already dense and non-redundant (that was
+checked, not assumed) — most notably `spec-driven-development`'s Modes section
+and the session-persistence instructions added in 0.7.0 were deliberately left
+alone: cutting them to save tokens would undo the fix the user asked for last.
+- `implement`: 1016 → 794 words (removed duplication with `code-standards` and
+  `documentation` — those skills already own that content in full).
+- `backlog-leveling`: 837 → 552 + new `reference.md` (301) — the worked ticket
+  example and the estimate formula moved out, tiers/rules/exit gate stayed.
+- `documentation`: 799 → 676 — the topology-placement and doc-currency
+  sections were near-verbatim duplicates of the orchestrator's own
+  `reference.md`; now point there instead of restating.
+- `arch-decision`: 1134 → 597 + `reference.md` (520) — carried over from the
+  0.7.0 pass, included here for the full picture.
+- `stack-conventions`: 686 → 543 + new `reference.md` (193) — the TypeScript/
+  Laravel worked examples moved out; the method stayed in the core.
+- `infra`, `traceability`: light tightening (727, 590) — genuinely dense
+  already, small wins only.
+- `spec-driven-development`: 2065 (was 2102 right after 0.7.0's persistence
+  addition) — deduplicated a repeated self-sufficiency claim and tightened two
+  asides; the Modes/persistence sections were kept in full, deliberately.
+- Total across the 7 skills actually touched: ~15% fewer mandatory words,
+  with the cut content either genuinely gone (duplication) or moved to
+  `reference.md` (read only when actually needed) — nothing lost.
+### Added
+- **Expanded the "All 23 skills" reference in `docs/GUIDE.md`** from one-line
+  descriptions into a real catalog: for every skill, *when* it fits, *what* it
+  produces, and a practical *tip* — plus a new "General recommendations"
+  section (6 cross-cutting rules of thumb: right-size by default, always
+  `map-codebase` on existing code, commit per ticket, trust a red traceability
+  row, skim the decision log before shipping in autopilot, brief stakeholders
+  before big decisions not after). Deliberately extended the existing GUIDE
+  rather than adding a fourth overlapping doc (README already has an overview
+  table) — same reasoning this pack asks of its own users: one source of
+  truth, not a new file for everything.
+
 ## [0.7.0] — 2026-08-11
 Prompted by real, live feedback after the user ran the pack for actual work in a
 production project (reviewed two real `CHANGE-*.md` outputs — a groomer/driver
@@ -343,6 +386,7 @@ Initial release.
 - Portable SKILL.md skills + templates + multi-agent installer + Claude Code plugin/marketplace manifests.
 - Worked example (`examples/wishlist/`): full spec set + a runnable, tested backend (zero-dep TypeScript on Node type-stripping, HTTP delivery, SSR shared page, infra-as-code; 50 tests, ~99%/96% coverage).
 
+[0.8.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.8.0
 [0.7.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.7.0
 [0.6.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.6.0
 [0.5.6]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.5.6
