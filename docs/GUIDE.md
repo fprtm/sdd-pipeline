@@ -111,6 +111,31 @@ Cursor's documented `AGENTS.md` fallback instead: `./install/install.sh cursor`.
 **Other agents:** point them at `AGENTS.md`, or run `install/install.sh <target>`
 — see the README's Install section.
 
+### Make it govern reliably (recommended for real projects)
+
+Skill triggering is **pattern-matching against a description** — it's good,
+not guaranteed. Two things get missed sometimes: the agent doesn't invoke it
+for a request that should trigger it, or it drifts off after a few unrelated
+messages and starts editing code without it. This pack's own instructions push
+back on both (an explicit persistence rule, and "every new dev request
+re-engages this skill"), but the single most reliable lever is outside this
+pack entirely: **your project's own `CLAUDE.md`/`AGENTS.md`**, which most
+agents load unconditionally every session — not probabilistically, the way a
+skill description is matched. Add a short pointer there:
+
+```markdown
+## Development process
+For any feature, bugfix, or development work in this repo, use the
+`spec-driven-development` skill — it right-sizes itself automatically (a typo
+needs no ceremony, a feature gets one file, a new product gets the full spec
+trail), so invoke it even for requests that don't sound like they need rigor.
+```
+
+This isn't a hard guarantee either — it's still an instruction the agent
+follows, not enforced code — but it's meaningfully stronger than relying on
+skill-trigger matching alone, because it's read every time, not matched
+probabilistically against a request's phrasing.
+
 ---
 
 ## How the agent picks defaults

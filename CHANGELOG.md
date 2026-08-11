@@ -3,6 +3,45 @@
 All notable changes to SDD Pipeline. Versioning is [SemVer](https://semver.org/);
 pre-1.0, so minors may still move fast. Plain-language where possible.
 
+## [0.10.0] — 2026-08-11
+User reported two related reliability problems: `decision-log` doesn't
+consistently fire ("kalo lepas dari pengawasan dia ga ngasih tau"), and the
+agent doesn't always invoke `spec-driven-development` at all for work that
+should trigger it. Honest framing up front: skill triggering is pattern-
+matching against a description, not enforced code — this cannot be made
+100% reliable from markdown alone (established the hard way earlier this
+project, testing against OpenCode). What follows are the concrete levers
+actually available, applied.
+### Changed
+- **Broadened `spec-driven-development`'s trigger description further** —
+  explicit casual phrasings ("can you code this", "let's work on Z", "help me
+  add..."), and explicit instruction that it triggers on **every new
+  development request within an already-active session**, not just the first
+  one in a conversation.
+- **`decision-log` now fires proactively, not just on request** — rewrote its
+  description to say plainly: the moment a default is picked, scope is cut, a
+  risk is accepted, or a spec changes, log it immediately, don't wait to be
+  asked. Added a concrete self-check ("did I just decide something?") to both
+  `decision-log` and the orchestrator's persistence section, called out
+  explicitly as mattering most in autopilot / an unattended stretch — exactly
+  when a missed decision does the most damage.
+- **Orchestrator now explicitly re-engages on every new dev request mid-session**
+  — a plain "now add X" is enough, the user shouldn't have to re-invoke the
+  skill by name; if the agent notices it's been editing code without having
+  engaged this skill, the instruction is to stop and engage it retroactively
+  rather than continue unsupervised.
+### Added
+- **"Make it govern reliably" section in GUIDE.md** — the single most
+  reliable lever available, and it's outside this pack: point your **own**
+  project's `CLAUDE.md`/`AGENTS.md` at `spec-driven-development` (most agents
+  load that file unconditionally every session, not probabilistically the way
+  a skill description is matched). Includes a ready-to-paste snippet. Framed
+  honestly as a strong mitigation, not a hard guarantee — it's still an
+  instruction the agent follows, not enforced code.
+- Net effect: `spec-driven-development` grew 2065 → 2310 words for this —
+  deliberate, same principle as 0.7.0/0.8.0: a reliability fix doesn't get cut
+  to save tokens.
+
 ## [0.9.0] — 2026-08-11
 ### Added
 - **`database-design`** (24th skill) — schema design principles: model around
@@ -407,6 +446,7 @@ Initial release.
 - Portable SKILL.md skills + templates + multi-agent installer + Claude Code plugin/marketplace manifests.
 - Worked example (`examples/wishlist/`): full spec set + a runnable, tested backend (zero-dep TypeScript on Node type-stripping, HTTP delivery, SSR shared page, infra-as-code; 50 tests, ~99%/96% coverage).
 
+[0.10.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.10.0
 [0.9.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.9.0
 [0.8.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.8.0
 [0.7.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.7.0

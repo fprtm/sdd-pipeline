@@ -2,16 +2,20 @@
 name: spec-driven-development
 description: >-
   Orchestrator/spine for building or changing software, right-sized to the work.
-  Use for ANY "add a feature", "build X", "fix this bug" request — including
-  ordinary ones with no special phrasing — not only when the user explicitly asks
-  for rigor. It self-sizes internally (a typo gets zero ceremony, a feature gets
-  one file, a new product gets the full spec trail), so invoking it for a plain
-  feature/bugfix request is correct, not presumptuous. Also triggers on "spec-
-  driven", "SDD", "build this properly", "from idea to production", or on an
-  EXISTING codebase (it maps the repo first, then works as a change, not a
-  rewrite). Routes through discovery → PRD → diagrams → FSD → architecture →
-  security → backlog → test plan → implement → verify → ship, or a small slice of
-  that for small work, and delegates each phase to the right skill.
+  Use for ANY software development request in this repo — "add a feature",
+  "build X", "fix this bug", "implement Y", "can you code this", "let's work on
+  Z", "help me add...", even casual/ordinary phrasing with no special vocabulary
+  — not only when the user explicitly asks for rigor or says "properly". It
+  self-sizes internally (a typo gets zero ceremony, a feature gets one file, a
+  new product gets the full spec trail), so invoking it for a plain
+  feature/bugfix request is correct, not presumptuous — err toward invoking it.
+  Also triggers on "spec-driven", "SDD", "build this properly", "from idea to
+  production", on an EXISTING codebase (it maps the repo first, then works as a
+  change, not a rewrite), and on EVERY new development request within an
+  already-active session, not just the first one. Routes through discovery →
+  PRD → diagrams → FSD → architecture → security → backlog → test plan →
+  implement → verify → ship, or a small slice of that for small work, and
+  delegates each phase to the right skill.
 ---
 
 # Spec-Driven Development (the spine)
@@ -36,11 +40,20 @@ asks to stop.
 - **State your current phase/mode briefly whenever there's ambiguity** (e.g.
   "still in lite mode, phase 3 (FSD)…") instead of silently drifting back to
   generic, unstructured answers after a few follow-up questions.
-- **Log decisions as you go, even in `quick`/`lite` mode.** That doesn't need a
-  separate `DECISIONS.md` — that file is a `full`-mode artifact via
-  `decision-log`. In `quick`/`lite`, a short "Decisions" section inside the
-  `CHANGE-*.md` file itself (see the worked examples) is correct and sufficient.
-  Don't skip logging just because there's no separate file for it in this mode.
+- **Every new development request in this session re-engages this skill**, even
+  if several unrelated messages came between it and when this skill last
+  triggered. Don't require the user to re-say "use spec-driven-development" —
+  a plain "now add X" or "also fix Y" is enough. If you notice you've been
+  editing code without having engaged this skill for it, stop and engage it
+  retroactively rather than continuing unsupervised.
+- **Log decisions as you go — self-check every response, don't wait to be
+  asked.** Before moving on, ask: did I just pick a default, cut scope, choose
+  between two approaches, or accept a risk? If yes, log it **now** (`decision-log`
+  — see that skill's own self-check). In `quick`/`lite` this is a short
+  "Decisions" section inside the `CHANGE-*.md` itself, not a separate file —
+  still log it, don't skip it for lack of a dedicated file. This matters most
+  in autopilot or an unattended stretch — exactly when no one's watching for
+  a missed decision.
 - If a follow-up question seems unrelated to the work in progress, don't assume
   the pipeline is over — briefly note you're still in `<mode>`/`<phase>` and
   check whether the user wants to continue there or step away from it.

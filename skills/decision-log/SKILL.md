@@ -1,12 +1,15 @@
 ---
 name: decision-log
 description: >-
-  Keep a running log of every significant decision made across the project —
-  scope cuts, assumptions, trade-offs, accepted risks, spec refinements, tool
-  choices — so the "why" is never lost. Use whenever a non-trivial decision is
-  made (especially autopilot defaults chosen for the user), or when the user says
-  "record this decision / decision log / why did we do X". Appends to
-  docs/sdd/DECISIONS.md.
+  Keep a running log of every significant decision — scope cuts, assumptions,
+  trade-offs, accepted risks, spec refinements, tool/library choices — so the
+  "why" is never lost. Fires PROACTIVELY, not only on request: the moment you
+  (the agent) pick a default the user didn't specify, choose between two
+  reasonable approaches, cut scope, accept a risk, or change a spec because
+  reality demanded it — log it immediately, before moving on, even if the user
+  didn't ask. Also triggers explicitly on "record this decision / decision log
+  / why did we do X / what did we decide about Y". Appends to
+  docs/sdd/DECISIONS.md (or inline in a `CHANGE-*.md` in lite/quick mode).
 ---
 
 # decision-log — never lose the "why"
@@ -60,8 +63,17 @@ Links: FSD-008, SEC-002.  Supersedes: —
 ## When to write
 
 Append the moment a decision is made — don't batch at the end (you'll forget the
-why). The orchestrator prompts for it at each gate; `stakeholder-brief` writes
-stakeholder decisions here; autopilot records every default it chose.
+why). Don't wait to be asked. The orchestrator prompts for it at each gate;
+`stakeholder-brief` writes stakeholder decisions here; autopilot records every
+default it chose.
+
+**Self-check, every response where you built or decided something:** before
+moving to the next thing, ask "did I just pick a default, cut scope, choose
+between two viable approaches, or accept a risk?" If yes, log it **now**, in
+the same turn — not as a follow-up, not only if the user notices and asks.
+This matters most exactly when no one is watching closely (autopilot, or a
+long unattended stretch) — that is precisely when an unrecorded decision does
+the most damage later.
 
 ## Exit
 `docs/sdd/DECISIONS.md` reflects the real decision history: every non-trivial
