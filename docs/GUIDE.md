@@ -274,6 +274,12 @@ stop-and-confirm, even in autopilot.
 **How do I install it / run it in another tool?** See the README's Install section
 (GitHub plugin for Claude Code; `install/install.sh` for Cursor/Codex/OpenCode/etc.).
 
+**How do I get updates once installed?** Depends on how you installed — see the
+README's Updating section. Short version: Claude Code plugin installs use
+`/plugin marketplace update` + `/plugin update`; everything installed via
+`install.sh` is a copy, so `git pull` + re-run the installer; OpenCode's
+Option B and Cursor's `AGENTS.md` pointer just need `git pull`.
+
 **Is trigger accuracy (does it fire from natural phrasing) proven?** Not
 independently yet — that requires the pack to be genuinely installed in a real
 agent session, which can only really be tested in your own environment, not

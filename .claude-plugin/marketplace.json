@@ -4,7 +4,7 @@
     "name": "ferryaguspratama"
   },
   "description": "Spec-Driven Development pipeline for AI coding agents.",
-  "version": "0.5.5",
+  "version": "0.5.6",
   "plugins": [
     {
       "name": "sdd-pipeline",

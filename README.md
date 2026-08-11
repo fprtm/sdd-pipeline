@@ -283,6 +283,17 @@ three dials (mode / size / stop-point) and tells you, or you can say them up fro
 e.g. *"…copilot, lite"* or *"…docs-only, just a plan"*. See the
 [Usage Guide](docs/GUIDE.md) for recipes.
 
+## Updating
+
+How you installed determines how you update:
+
+| Install method | Update |
+|---|---|
+| Claude Code `/plugin install` | `/plugin marketplace update` then `/plugin update sdd-pipeline@sdd-pipeline`. **This only works if `plugin.json`'s `version` was bumped** — Claude Code pins to that field and reports "already at the latest version" otherwise (verified against `code.claude.com/docs/en/plugins-reference`). This repo bumps it every release; see [CHANGELOG.md](CHANGELOG.md). |
+| `install.sh claude` / `claude-proj` / `opencode` / `codex` / `generic` | These copy files — there's no live link. `git pull` in your clone, then re-run the same `install.sh` command. |
+| OpenCode Option B (`skills` array pointing at your clone) | `git pull` is enough — OpenCode reads live from the clone, no re-run needed. |
+| Cursor (`AGENTS.md` pointer) | `git pull` in your clone — Cursor reads the pointed-at content fresh each session. |
+
 ## See it in action
 
 A full worked run lives in [`examples/wishlist/`](examples/wishlist/) — the
@@ -312,7 +323,7 @@ sdd-pipeline/
 
 ## Status
 
-**v0.5.5** — usable end to end; 22 self-sufficient skills; a worked example with a
+**v0.5.6** — usable end to end; 22 self-sufficient skills; a worked example with a
 runnable, tested backend (54 tests); a self-sufficiency audit and a token-usage
 pass behind it. Pre-1.0, so things may still move. See [CHANGELOG.md](CHANGELOG.md).
 Contributions/adjustments welcome — the skills are plain Markdown, so fork and

@@ -3,6 +3,26 @@
 All notable changes to SDD Pipeline. Versioning is [SemVer](https://semver.org/);
 pre-1.0, so minors may still move fast. Plain-language where possible.
 
+## [0.5.6] — 2026-08-11
+### Added
+- **"Updating" section in README** (and a matching FAQ entry in GUIDE.md) —
+  closes a real gap: nowhere previously explained how an already-installed
+  user gets updates. Verified per method, not assumed:
+  - Claude Code `/plugin install`: `/plugin marketplace update` then
+    `/plugin update sdd-pipeline@sdd-pipeline`. Confirmed against
+    `code.claude.com/docs/en/plugins-reference`: this **only works if
+    `plugin.json`'s `version` field is bumped** — Claude Code pins to that
+    field and reports "already at the latest version" otherwise if it's
+    unchanged, even with new commits pushed. This repo already bumps it every
+    release (see this very file), so plugin-installed users do get updates —
+    but it's worth stating plainly that the version-bump discipline isn't
+    cosmetic, it's functionally required for `/plugin update` to do anything.
+  - Every `install.sh`-based target (`claude`, `claude-proj`, `opencode`,
+    `codex`, `generic`): these copy files, no live link — `git pull` +
+    re-run the same installer command.
+  - OpenCode Option B and the Cursor `AGENTS.md` pointer: `git pull` alone is
+    enough, since both read live from the clone.
+
 ## [0.5.5] — 2026-08-11
 Prompted by the user asking whether we should match superpowers' zero-clone
 OpenCode install (a real `.opencode/plugins/superpowers.js` npm-style plugin —
@@ -228,6 +248,7 @@ Initial release.
 - Portable SKILL.md skills + templates + multi-agent installer + Claude Code plugin/marketplace manifests.
 - Worked example (`examples/wishlist/`): full spec set + a runnable, tested backend (zero-dep TypeScript on Node type-stripping, HTTP delivery, SSR shared page, infra-as-code; 50 tests, ~99%/96% coverage).
 
+[0.5.6]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.5.6
 [0.5.5]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.5.5
 [0.5.4]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.5.4
 [0.5.3]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.5.3
