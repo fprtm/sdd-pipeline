@@ -112,7 +112,7 @@ plainly, mark it ⛔, and stop; do not sneak forward.
 | 1 | Product spec | `to-prd` | Every REQ has a user, a why, and acceptance criteria |
 | 2 | Model & visualize | `to-diagrams` (glossary from phase 0 stands; sharpen with `domain-modeling` if present) | Glossary agreed; context + DFD + key sequence diagrams exist |
 | 3 | Functional spec | `to-fsd` | Every REQ maps to ≥1 FSD; no FSD is orphaned |
-| 4 | **Architecture gate** | `arch-decision` → `stack-conventions` | Arch style + stack + topology chosen with ADRs (user signed off, or agent chose the most robust default and said so); stack's official best practices captured in `04-stack-guide.md` |
+| 4 | **Architecture gate** | `arch-decision` → `stack-conventions` (+ `database-design` if a datastore is chosen) | Arch style + stack + topology chosen with ADRs (user signed off, or agent chose the most robust default and said so); stack's official best practices captured in `04-stack-guide.md` |
 | 5 | **Security gate (SSDLC)** | `threat-model` | Each data flow threat-modeled; every High/Critical threat has a control (SEC-xxx) |
 | 6 | Backlog | `backlog-leveling` | Tickets tiered (T1/T2/T3), each traces to an FSD, each self-contained; effort/cost estimate produced |
 | 7 | Test plan | `test-plan` | Happy + regression + edge + e2e cases defined; coverage target set (default ≥80%) |
@@ -135,11 +135,12 @@ model/tool switch), `debug` (whenever something fails, phases 8/10),
 
 - This pack is **self-sufficient** — it ships `map-codebase`, `discovery`,
   `to-prd`, `to-diagrams`, `to-fsd`, `arch-decision`, `stack-conventions`,
-  `threat-model`, `backlog-leveling`, `test-plan`, `code-standards`, `implement`,
-  `code-review`, `debug`, `infra`, `coverage-check`, `documentation`,
-  `traceability`, `decision-log`, `handoff`, `stakeholder-brief`,
-  `git-workflow`. Every phase's exit gate above is satisfiable with this pack
-  alone — external skills below are **enhancements you prefer when present,
+  `database-design`, `threat-model`, `backlog-leveling`, `test-plan`,
+  `code-standards`, `implement`, `code-review`, `debug`, `infra`,
+  `coverage-check`, `documentation`, `traceability`, `decision-log`, `handoff`,
+  `stakeholder-brief`, `git-workflow`. Every phase's exit gate above is
+  satisfiable with this pack alone — external skills below are **enhancements
+  you prefer when present,
   never requirements**.
 - For planning, worktrees, and grilling — areas this pack doesn't cover —
   **defer to the user's installed skills** (e.g. mattpocock/skills, superpowers)
@@ -224,9 +225,19 @@ Don't run the greenfield "choose a stack" flow on a repo that already has one.
 
 ### Modular use
 
-Any skill here works standalone (`to-prd`, `threat-model`, `map-codebase`, …) —
-you lose automatic gating/traceability wiring; prefer `docs-only` if you want the
-chain enforced but no code.
+Any skill here works standalone (`to-prd`, `threat-model`, `map-codebase`,
+`database-design`, …) — you lose automatic gating/traceability wiring; prefer
+`docs-only` if you want the chain enforced but no code.
+
+**Pure conversation, no files at all** — if the user just wants to think out
+loud, brainstorm, or pressure-test an idea with zero commitment (no docs, no
+`docs-only` tree either), any skill can run **conversationally**: use its
+rigor (`discovery`'s nine questions, `code-review`'s two axes, `arch-decision`'s
+forces) without writing the artifact. This complements, not replaces, an
+installed grilling skill — use that for pure adversarial pressure-testing,
+use this pack's skills conversationally when you want their specific
+structure (a requirements interview, a two-axis review, an architecture
+trade-off) without the file it would normally produce.
 
 ### Defaults if the user doesn't say
 

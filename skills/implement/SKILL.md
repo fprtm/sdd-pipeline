@@ -65,6 +65,9 @@ that ignores it). Non-negotiable output quality, not a suggestion.
   that control's test passes.
 - **Match the surrounding code** — read neighboring files first; mirror their
   naming, structure, and idioms. New code should look like it belongs.
+- **Migration or schema change?** — hold it to `database-design` (normalization,
+  table boundaries, indexing tied to real queries, additive migrations) before
+  writing it.
 
 ## Document as you go (same change, not later)
 

@@ -17,8 +17,12 @@ list — you are reconstructing the user's real problem well enough that every l
 phase can proceed without re-guessing.
 
 Output: `docs/sdd/00-context.md` (glossary seed) + a filled discovery brief that
-feeds `to-prd`. Never skip this because the request "seems clear" — clear-sounding
-requests hide the most assumptions.
+feeds `to-prd` — **when this is actually feeding a build**. If the user says
+they just want to think out loud, brainstorm, or pressure-test an idea with no
+commitment to write anything, run the same interview **conversationally, with
+no files written** — the rigor is what's valuable, not the artifact. Never skip
+the questions because the request "seems clear" — clear-sounding requests hide
+the most assumptions.
 
 ## What you must be able to answer before leaving
 

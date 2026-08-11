@@ -9,7 +9,7 @@ read a recipe when you have a specific job.
 - [How the agent picks defaults](#how-the-agent-picks-defaults)
 - [Recipes](#recipes-copy-a-phrasing) — copy a phrasing for your situation
 - [The phases (0–11)](#the-phases-0-11)
-- [All 23 skills](#all-23-skills-reference)
+- [All 24 skills](#all-24-skills-reference)
 - [Where files go](#where-files-go)
 - [What it guarantees](#what-it-guarantees)
 - [FAQ](#faq)
@@ -81,6 +81,16 @@ use spec-driven-development, docs-only, to spec out a subscription feature
 use to-prd for this idea
 use threat-model on the payment flow
 use map-codebase to understand this repo
+use database-design to sanity-check this table
+```
+
+**Pure conversation, zero files** — like a grilling-style pressure-test, but
+with a specific skill's structure (a requirements interview, an architecture
+trade-off, a two-axis review). Say so explicitly and nothing gets written:
+```
+use discovery to think through this idea with me, don't write anything yet
+use arch-decision, just talk through the trade-offs, no ADR file
+use code-review on my diff — just tell me, no file needed (this is the default)
 ```
 
 **OpenCode:** it auto-discovers plain `SKILL.md` folders — no config file needed.
@@ -155,6 +165,9 @@ no full spec tree"), so you catch a wrong guess before it runs.
 **"Commit this / write me a commit message / open a PR."**
 > use git-workflow
 
+**"Design the database schema / I need a new table / this table's getting messy."**
+> use database-design
+
 ---
 
 ## The phases (0–11)
@@ -185,7 +198,7 @@ nothing upstream, the same id accidentally defined twice, and dead doc links.
 
 ---
 
-## All 23 skills (reference)
+## All 24 skills (reference)
 
 You rarely call these directly — the orchestrator routes to them — but here's
 **when each one fits, what it produces, and a tip** so nothing is a mystery.
@@ -238,6 +251,14 @@ enforceable rules (TS strict, Laravel conventions, …).
 *When:* right after the stack is picked. *Produces:* `04-stack-guide.md`,
 version-pinned and source-cited. *Tip:* this is what makes generated code
 idiomatic instead of generic — worth doing even on a small project.
+
+**`database-design`** — schema principles: normalization, no crowded/god
+tables, indexing tied to real queries, safe additive migrations.
+*When:* a datastore is chosen (phase 4), or any time a migration/schema
+change is about to be written. *Produces:* the schema shape behind
+`04-architecture.md`, and holds every migration to the same bar. *Tip:*
+denormalizing is fine — but it needs a written reason tied to a real
+performance need, not "it was easier."
 
 **`threat-model`** — security-by-design (STRIDE), one control per real threat.
 *When:* architecture is set, before implementation starts. *Produces:*
@@ -383,6 +404,14 @@ the code** (a README per module/slice), with a top-level index in `docs/dev/`.
 
 **Do I have to use the whole thing?** No. `quick` skips almost all of it; any skill
 runs standalone; `docs-only` stops before code.
+
+**Can I use one skill for a quick brainstorm/gut-check, like a grilling skill?**
+Yes — say "just talk it through, don't write anything" and any skill runs
+conversationally with no file written (see "Pure conversation, zero files"
+above). This complements an installed grilling skill rather than replacing
+it: use grilling for pure adversarial pressure-testing, use this pack's skills
+conversationally when you want their specific structure (a requirements
+interview, an architecture trade-off, a two-axis code review).
 
 **Will it touch my existing code recklessly?** No — brownfield runs `map-codebase`
 first, respects your stack, and adds characterization tests before changing legacy.

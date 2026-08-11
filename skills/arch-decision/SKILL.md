@@ -67,6 +67,11 @@ available, use it to shape the key interfaces.
 If there's any UI, or the FE/BE topology isn't obvious, go read `reference.md`
 now before continuing — those decisions belong in this same gate.
 
+If a datastore was chosen, hand off the actual **schema shape** to
+`database-design` (normalization, table boundaries, indexing, migrations) — this
+skill decides *which* datastore, that one decides how the data inside it is
+modeled so it doesn't turn into crowded, undifferentiated tables.
+
 ## Step 4 — record ADRs
 
 One ADR per significant, hard-to-reverse decision, using `adr.template.md`

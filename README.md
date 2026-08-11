@@ -58,6 +58,7 @@ dial below.
 | `to-fsd` | Functional Spec (FSD-xxx) | 3 |
 | `arch-decision` | architecture + stack + topology gate (ADR) | 4 |
 | `stack-conventions` | official best practices of the chosen stack, as rules | 4 |
+| `database-design` | schema principles — normalization, no crowded tables, indexing, safe migrations | 4·8 |
 | `threat-model` | SSDLC security gate (SEC-xxx, STRIDE) | 5 |
 | `backlog-leveling` | tiered, executor-friendly backlog + effort/cost estimate | 6 |
 | `test-plan` | happy/regression/edge/e2e + coverage target | 7 |
@@ -74,7 +75,7 @@ dial below.
 | `stakeholder-brief` | plain-language brief + sign-off for non-IT | any |
 | `handoff` | resumable snapshot for another agent / cheaper model | any |
 
-23 self-sufficient skills — every phase's gate is satisfiable with this pack
+24 self-sufficient skills — every phase's gate is satisfiable with this pack
 alone, nothing else required. If you also have other skills installed for
 planning, worktrees, grilling, TDD, review, or debugging, this pack prefers
 those when present; otherwise its own versions run the phase completely.
@@ -315,7 +316,7 @@ sdd-pipeline/
 ├─ CHANGELOG.md             # version history
 ├─ .claude-plugin/          # Claude Code plugin + marketplace manifests
 ├─ docs/GUIDE.md            # the usage manual
-├─ skills/                  # 23 SKILL.md files, each bundling its own template
+├─ skills/                  # 24 SKILL.md files, each bundling its own template
 │                            #   or script (e.g. skills/traceability/check-traceability.mjs)
 ├─ templates/               # a few reference-only templates (no skill hard-codes these paths)
 ├─ examples/wishlist/       # a complete worked run (+ runnable, tested impl)
@@ -324,7 +325,7 @@ sdd-pipeline/
 
 ## Status
 
-**v0.8.0** — usable end to end; 23 self-sufficient skills; a worked example with a
+**v0.9.0** — usable end to end; 24 self-sufficient skills; a worked example with a
 runnable, tested backend (54 tests); a self-sufficiency audit and a token-usage
 pass behind it. Pre-1.0, so things may still move. See [CHANGELOG.md](CHANGELOG.md).
 Contributions/adjustments welcome — the skills are plain Markdown, so fork and

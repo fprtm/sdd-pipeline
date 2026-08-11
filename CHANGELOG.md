@@ -3,6 +3,27 @@
 All notable changes to SDD Pipeline. Versioning is [SemVer](https://semver.org/);
 pre-1.0, so minors may still move fast. Plain-language where possible.
 
+## [0.9.0] — 2026-08-11
+### Added
+- **`database-design`** (24th skill) — schema design principles: model around
+  bounded contexts to avoid crowded/god tables (one entity, one responsibility);
+  normalize by default, denormalize only with a written reason tied to a real
+  NFR; narrowest correct types (not `text`/`json` as an escape hatch from
+  modeling); explicit foreign keys and cascade behavior; index for real query
+  patterns, not speculatively; additive-first migrations. Wired into phase 4
+  (right after a datastore is chosen) and referenced by `implement` whenever a
+  ticket touches a migration.
+- **"Pure conversation, zero files" mode** — a real gap: `discovery` (and by
+  extension every skill) assumed it was always writing an artifact, even for a
+  user who just wants to think out loud or pressure-test an idea, the way
+  mattpocock's `grilling` skill runs as a pure conversation. Any skill can now
+  run conversationally with nothing written, when the user says so explicitly
+  — documented as complementary to an installed grilling skill (grilling for
+  pure adversarial pressure-testing; this pack's skills conversationally when
+  their specific structure — a requirements interview, an architecture
+  trade-off, a two-axis review — is what's wanted without the file it'd
+  normally produce). New GUIDE.md recipes + FAQ entry make this discoverable.
+
 ## [0.8.0] — 2026-08-11
 Two asks: audit every skill for genuine token savings, and add richer docs on
 when each skill fits / what it produces / recommendations.
@@ -386,6 +407,7 @@ Initial release.
 - Portable SKILL.md skills + templates + multi-agent installer + Claude Code plugin/marketplace manifests.
 - Worked example (`examples/wishlist/`): full spec set + a runnable, tested backend (zero-dep TypeScript on Node type-stripping, HTTP delivery, SSR shared page, infra-as-code; 50 tests, ~99%/96% coverage).
 
+[0.9.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.9.0
 [0.8.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.8.0
 [0.7.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.7.0
 [0.6.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.6.0
