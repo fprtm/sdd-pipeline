@@ -46,18 +46,16 @@ if [ -z "$TARGET" ]; then
 fi
 
 copy_skills() {
-  # Copies skills/ PLUS templates/ and tools/ as siblings at the same
-  # destination — several skills reference templates/*.template.md and
-  # tools/check-traceability.mjs by a path relative to the pack root, and a
-  # skills-only copy leaves those references dangling. Harmless for tools that
-  # scan for SKILL.md files (a stray templates/ or tools/ folder with no
-  # SKILL.md is just skipped by the scanner).
+  # Every file a skill needs (its template, its bundled script) lives inside
+  # that skill's own folder — the documented Claude Code convention (SKILL.md
+  # + optional reference.md/scripts/ co-located). So a plain copy of skills/
+  # carries everything correctly for any install method, including ones that
+  # only ever see the skills/ subtree (e.g. an agent config pointed straight
+  # at the clone's skills/ folder, bypassing this script entirely).
   local out="$1"
   mkdir -p "$out"
   cp -R "$SKILLS_DIR/." "$out/"
-  [ -d "$ROOT/templates" ] && cp -R "$ROOT/templates" "$out/templates"
-  [ -d "$ROOT/tools" ] && cp -R "$ROOT/tools" "$out/tools"
-  echo "Installed skills (+ templates/, tools/) → $out"
+  echo "Installed skills → $out"
 }
 
 emit_bundle() {

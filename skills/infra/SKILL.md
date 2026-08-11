@@ -37,8 +37,9 @@ baseline:
   (hand-edited code) — the pipeline itself keeps them current via `implement` +
   `code-review`, but CI is the backstop. A pre-commit hook can run the same check
   earlier.
-- **Traceability check** — copy `tools/check-traceability.mjs` into the project
-  and run `node tools/check-traceability.mjs docs/sdd` in CI so a drifting matrix
+- **Traceability check** — copy `check-traceability.mjs` (bundled with the
+  `traceability` skill) into the project as `tools/check-traceability.mjs` and
+  run `node tools/check-traceability.mjs docs/sdd` in CI so a drifting matrix
   (untracked spine id, broken ref, freelance ticket/test, dead link) fails the
   build. This is what stops the traceability matrix from becoming decoration.
 

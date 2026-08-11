@@ -15,7 +15,7 @@ data-flow diagram with trust boundaries (`to-diagrams`); every flow that crosses
 a boundary is an attack surface. Reason about it before code exists, when fixes
 are cheap.
 
-Write to `docs/sdd/05-threat-model.md` using `templates/threat-model.template.md`.
+Write to `docs/sdd/05-threat-model.md` using `threat-model.template.md` (bundled with this skill).
 
 ## Step 1 — enumerate threats with STRIDE (lightweight)
 

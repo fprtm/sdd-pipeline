@@ -314,16 +314,16 @@ sdd-pipeline/
 ├─ CHANGELOG.md             # version history
 ├─ .claude-plugin/          # Claude Code plugin + marketplace manifests
 ├─ docs/GUIDE.md            # the usage manual
-├─ skills/                  # 22 SKILL.md files (portable Markdown)
-├─ templates/               # doc templates the skills fill in
-├─ tools/                   # check-traceability.mjs (anti-drift checker)
+├─ skills/                  # 22 SKILL.md files, each bundling its own template
+│                            #   or script (e.g. skills/traceability/check-traceability.mjs)
+├─ templates/               # a few reference-only templates (no skill hard-codes these paths)
 ├─ examples/wishlist/       # a complete worked run (+ runnable, tested impl)
 └─ install/install.sh       # multi-agent installer
 ```
 
 ## Status
 
-**v0.5.6** — usable end to end; 22 self-sufficient skills; a worked example with a
+**v0.6.0** — usable end to end; 22 self-sufficient skills; a worked example with a
 runnable, tested backend (54 tests); a self-sufficiency audit and a token-usage
 pass behind it. Pre-1.0, so things may still move. See [CHANGELOG.md](CHANGELOG.md).
 Contributions/adjustments welcome — the skills are plain Markdown, so fork and

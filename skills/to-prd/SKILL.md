@@ -30,7 +30,7 @@ If you can't answer these, use a grilling/discovery skill (`grill-me`,
 
 ## Structure (write to `docs/sdd/01-prd.md`)
 
-Use the template in `templates/prd.template.md`. It has two layers:
+Use the template in `prd.template.md` (bundled with this skill). It has two layers:
 
 - **Plain-language summary** at the very top: 3–6 sentences. A PM or client can
   read only this and understand the release.

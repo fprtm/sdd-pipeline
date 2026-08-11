@@ -16,7 +16,7 @@ junior developer or a cheap model can pick it up, understand it from the ticket
 alone, and finish it without reverse-engineering the whole spec. Cost and skill
 are allocated deliberately.
 
-Write to `docs/sdd/06-backlog.md` using `templates/backlog.template.md`.
+Write to `docs/sdd/06-backlog.md` using `backlog.template.md` (bundled with this skill).
 
 ## Anatomy of a ticket
 
@@ -79,8 +79,8 @@ Put the tier in the ticket **and** summarize the split at the top of the backlog
 
 When someone asks "how long / how much / can a cheap model do most of this?", the
 tiered backlog gives a transparent estimate — derived from it, not guessed. Write
-`docs/sdd/ESTIMATE.md` (template: `estimate.template.md`). Ranges with shown
-assumptions, never false precision.
+`docs/sdd/ESTIMATE.md` using `estimate.template.md` (bundled with this skill).
+Ranges with shown assumptions, never false precision.
 
 - **Count by tier**, apply a size band (state it, let the user override): T1
   ~0.5–1 unit, T2 ~1–3, T3 ~3–8 (1 unit ≈ a focused half-day of a competent dev).

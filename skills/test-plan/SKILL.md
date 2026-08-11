@@ -14,7 +14,7 @@ A test plan turns acceptance criteria into an executable definition of "done and
 proven". It is written **before or alongside** implementation so TDD has targets
 to go red against, and so the verify gate has a checklist.
 
-Write to `docs/sdd/07-test-plan.md` using `templates/test-plan.template.md`.
+Write to `docs/sdd/07-test-plan.md` using `test-plan.template.md` (bundled with this skill).
 
 ## Test classes (label every case with one)
 

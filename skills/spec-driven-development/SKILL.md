@@ -34,9 +34,10 @@ Every artifact carries stable IDs, linked upward:
 REQ-xxx → FSD-xxx → ADR-xxx/SEC-xxx → TICKET-xxx → TEST-xxx
 ```
 SSOT: `docs/sdd/traceability.md` — must never lie. An untested requirement is a
-visible gap, not a hidden one. Run `node tools/check-traceability.mjs docs/sdd`
-after updating it to catch drift (untracked ids, broken refs, freelance
-tickets/tests, dead links).
+visible gap, not a hidden one. Run the checker bundled with the `traceability`
+skill (`check-traceability.mjs`, copy to `tools/check-traceability.mjs` in the
+project) after updating it to catch drift (untracked ids, broken refs,
+freelance tickets/tests, dead links).
 
 ## Two-layer rule (dev + non-dev)
 
@@ -74,7 +75,7 @@ drift check) — not batched at the end. Detail: see `documentation`, `implement
 
 ## The phases and their gates
 
-First, create `docs/sdd/00-overview.md` from `templates/overview.template.md`:
+First, create `docs/sdd/00-overview.md` from `overview.template.md` (bundled with this skill):
 the feature brief, the **gate board**, and the **ID registry**. Update the gate
 board's state (⬜→🟨→✅, or ⛔ with a reason) as you enter/exit each phase, and
 bump the ID registry's "next free" counters whenever you allocate an ID.

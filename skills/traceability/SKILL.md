@@ -36,9 +36,11 @@ Status legend:
 
 ## Run the checker — don't eyeball it
 
-A matrix maintained by hand drifts. This pack ships a zero-dependency validator,
-`tools/check-traceability.mjs` — run it after updating the matrix (and wire it
-into CI via `infra`) so drift fails loudly instead of hiding:
+A matrix maintained by hand drifts. This skill bundles a zero-dependency
+validator, `check-traceability.mjs` (in this skill's own folder) — copy it into
+the target project (e.g. to `tools/check-traceability.mjs` there) and run it
+after updating the matrix (and wire it into CI via `infra`) so drift fails
+loudly instead of hiding:
 
 ```bash
 node tools/check-traceability.mjs docs/sdd

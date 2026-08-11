@@ -15,7 +15,7 @@ that a developer (or a cheap model) can implement without re-guessing product
 intent — but it still stops short of naming the internal code design (that's
 architecture + implementation).
 
-Write to `docs/sdd/03-fsd.md` using `templates/fsd.template.md`.
+Write to `docs/sdd/03-fsd.md` using `fsd.template.md` (bundled with this skill).
 
 ## The core move: decompose each REQ into behaviors
 

@@ -46,4 +46,4 @@ jobs:
         with:
           node-version: "24"
       - name: Check the example's traceability matrix
-        run: node tools/check-traceability.mjs examples/wishlist/docs/sdd
+        run: node skills/traceability/check-traceability.mjs examples/wishlist/docs/sdd

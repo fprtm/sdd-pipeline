@@ -16,7 +16,7 @@ This gate exists because the most expensive mistakes are structural and get
 locked in on day one. Do **not** let implementation start until architecture is
 decided and written down.
 
-Write to `docs/sdd/04-architecture.md` using `templates/adr.template.md` for
+Write to `docs/sdd/04-architecture.md` using `adr.template.md` (bundled with this skill) for
 each decision.
 
 ## Step 1 — gather the forces (ask, don't assume)

@@ -3,6 +3,51 @@
 All notable changes to SDD Pipeline. Versioning is [SemVer](https://semver.org/);
 pre-1.0, so minors may still move fast. Plain-language where possible.
 
+## [0.6.0] — 2026-08-11
+Root-cause fix for a bug a user hit live, running the pack for real via
+OpenCode: the agent reported `docs/sdd/traceability.md` and
+`tools/check-traceability.mjs` were "not present in this skill install" and
+improvised an inline "lite" traceability note instead of running the real
+checker. Traced to the exact unverified caveat flagged in 0.5.5 — the user was
+using OpenCode's `skills` array pointed directly at the clone's `skills/`
+folder (Option B), which doesn't carry sibling `templates/`/`tools/`
+directories one level up.
+### Changed (breaking for anyone scripting against the old layout)
+- **Moved every skill-specific template and the traceability checker script
+  INTO the skill folder that uses them**, matching Claude Code's own
+  documented skill-authoring convention (`skills/<name>/SKILL.md` +
+  co-located `reference.md`/`scripts/` — confirmed via
+  `code.claude.com/docs/en/plugins-reference`, "Skill structure" section):
+  - `templates/adr.template.md` → `skills/arch-decision/adr.template.md`
+  - `templates/backlog.template.md`, `templates/estimate.template.md` →
+    `skills/backlog-leveling/`
+  - `templates/prd.template.md` → `skills/to-prd/prd.template.md`
+  - `templates/threat-model.template.md` → `skills/threat-model/threat-model.template.md`
+  - `templates/fsd.template.md` → `skills/to-fsd/fsd.template.md`
+  - `templates/overview.template.md` → `skills/spec-driven-development/overview.template.md`
+  - `templates/test-plan.template.md` → `skills/test-plan/test-plan.template.md`
+  - `tools/check-traceability.mjs` → `skills/traceability/check-traceability.mjs`
+    (its canonical home now; `infra` and `spec-driven-development` reference it
+    as "bundled with the `traceability` skill" rather than a bare top-level path)
+  - `templates/` at the repo root now holds only reference material no skill
+    hard-codes a path to (`changelog`, `context`, `decisions`, `diagrams`,
+    `stack-guide`, `traceability` templates); `tools/` is gone entirely.
+- **This closes the bug for every install method at once**, not just the one
+  that surfaced it — a bare `skills/` copy (or a config pointed straight at
+  it, like OpenCode Option B) now carries everything each skill needs, with
+  no separate templates/tools co-location step required.
+- Simplified `install/install.sh`'s `copy_skills()` back to a plain `skills/`
+  copy — the v0.5.1 special-casing for templates/tools is no longer needed,
+  the root cause is fixed instead.
+- Updated the repo's own CI (`.github/workflows/ci.yml`) to run the checker
+  from its new path.
+- Verified, not assumed: ran the checker from its new location against the
+  wishlist example (clean), ran `install.sh generic` and confirmed every
+  bundled file resolves at its new co-located path, and **directly simulated
+  the user's exact failure** (copy only `skills/`, nothing else) — confirmed
+  the checker is now found where it wasn't before. Full regression: wishlist
+  suite green.
+
 ## [0.5.6] — 2026-08-11
 ### Added
 - **"Updating" section in README** (and a matching FAQ entry in GUIDE.md) —
@@ -248,6 +293,7 @@ Initial release.
 - Portable SKILL.md skills + templates + multi-agent installer + Claude Code plugin/marketplace manifests.
 - Worked example (`examples/wishlist/`): full spec set + a runnable, tested backend (zero-dep TypeScript on Node type-stripping, HTTP delivery, SSR shared page, infra-as-code; 50 tests, ~99%/96% coverage).
 
+[0.6.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.6.0
 [0.5.6]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.5.6
 [0.5.5]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.5.5
 [0.5.4]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.5.4
