@@ -63,8 +63,10 @@ that ignores it). Non-negotiable output quality, not a suggestion.
   (authz on every server action, validated input, output encoding, no secrets in
   code, parameterized queries…). A ticket that touches a control is not done until
   that control's test passes.
-- **Match the surrounding code** — read neighboring files first; mirror their
-  naming, structure, and idioms. New code should look like it belongs.
+- **Read the actual current code before touching it** — not just to match
+  naming/structure/idioms, but to verify what it *actually does right now*.
+  The FSD/ticket describes intent; the code is the ground truth for current
+  behavior, and the two can have drifted.
 - **Migration or schema change?** — hold it to `database-design` (normalization,
   table boundaries, indexing tied to real queries, additive migrations) before
   writing it.

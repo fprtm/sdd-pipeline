@@ -60,14 +60,21 @@ asks to stop.
 
 ## Read state, then ask — don't guess
 
-Before acting: **read the existing state** (this project's `docs/sdd/` if any,
-the actual code via `map-codebase` on brownfield, the conversation so far) —
-guessing what's already true wastes the user's time correcting you. Then, for
-anything **consequential that isn't already answered by that state**, **ask
-rather than assume** — this holds in `copilot` always, and in `autopilot` for
-anything blocking/irreversible (autopilot batches routine unknowns into a
-recorded default, per Modes below, but a genuinely consequential unclear point
-still gets asked, not guessed).
+Before acting: **read the existing state** — this project's `docs/sdd/` if any,
+**and the actual code for whatever specific area is under discussion right
+now**. `map-codebase`'s initial pass is deliberately shallow outside the
+immediate touch area (see that skill's "what wasn't explored" note) — that's
+not an excuse to stay shallow forever. **Every time a new topic/file/feature
+comes up mid-conversation, read the real code for it before discussing,
+deciding, or changing anything about it** — docs and your own earlier
+summary of a file can both drift from what the code actually does; the code
+is the ground truth. Guessing what's already true, or trusting a stale mental
+model from earlier in the conversation, wastes the user's time correcting you.
+Then, for anything **consequential that isn't already answered by that
+state**, **ask rather than assume** — this holds in `copilot` always, and in
+`autopilot` for anything blocking/irreversible (autopilot batches routine
+unknowns into a recorded default, per Modes below, but a genuinely
+consequential unclear point still gets asked, not guessed).
 
 **When you ask, prefer your platform's native structured question tool** (e.g.
 a multiple-choice/quick-select UI), if one is available, over a plain-text

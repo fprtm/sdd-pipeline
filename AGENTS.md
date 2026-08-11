@@ -89,11 +89,15 @@ separate file — that's `full`-mode only), proactively, not only when asked.
 
 Before doing anything, **check whether `docs/sdd/` already exists** and read
 `00-overview.md`/`traceability.md`/`DECISIONS.md` if so — resume from the real
-state, don't restart or re-ask what's already answered. For anything
-consequential that state doesn't already answer, **ask rather than assume**
-(always in copilot; in autopilot, for anything blocking/irreversible — routine
-unknowns still get batched into a recorded default). If your host tool offers
-a structured question UI, prefer it over a plain-text question.
+state, don't restart or re-ask what's already answered. **Also read the actual
+code for whatever specific area is under discussion right now** — not just
+`map-codebase`'s initial (deliberately shallow) pass; go deeper every time a
+new topic/file/feature comes up. Docs and your own earlier summary can both
+drift from what the code actually does — the code is the ground truth. For
+anything consequential that state doesn't already answer, **ask rather than
+assume** (always in copilot; in autopilot, for anything blocking/irreversible —
+routine unknowns still get batched into a recorded default). If your host tool
+offers a structured question UI, prefer it over a plain-text question.
 
 ## Modes
 

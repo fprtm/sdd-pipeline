@@ -3,6 +3,23 @@
 All notable changes to SDD Pipeline. Versioning is [SemVer](https://semver.org/);
 pre-1.0, so minors may still move fast. Plain-language where possible.
 
+## [0.11.1] — 2026-08-11
+### Changed
+- **Extended "Read state, then ask" to explicitly cover the actual code**, not
+  just `docs/sdd/` state. Real distinction the previous wording blurred:
+  `map-codebase`'s initial pass is deliberately shallow outside the immediate
+  touch area, and docs/an earlier summary in the conversation can both drift
+  from what the code actually does — the code is the ground truth. Now states
+  plainly: every time a new topic/file/feature comes up mid-conversation, read
+  the real code for it before discussing, deciding, or changing anything —
+  don't rely on a stale mental model from earlier or on documentation alone.
+  Mirrored in `AGENTS.md`.
+- `implement`'s "match the surrounding code" line reframed: reading
+  neighboring files isn't only about matching style, it's to verify what the
+  code *actually does right now* before touching it (the FSD/ticket describes
+  intent; the two can have drifted). `debug` already covered this well
+  ("Observe, don't assume") — no change needed there.
+
 ## [0.11.0] — 2026-08-11
 User asked for three related behaviors: always collect info from the user
 before acting, always read existing state first to be clear before doing
@@ -475,6 +492,7 @@ Initial release.
 - Portable SKILL.md skills + templates + multi-agent installer + Claude Code plugin/marketplace manifests.
 - Worked example (`examples/wishlist/`): full spec set + a runnable, tested backend (zero-dep TypeScript on Node type-stripping, HTTP delivery, SSR shared page, infra-as-code; 50 tests, ~99%/96% coverage).
 
+[0.11.1]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.11.1
 [0.11.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.11.0
 [0.10.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.10.0
 [0.9.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.9.0
