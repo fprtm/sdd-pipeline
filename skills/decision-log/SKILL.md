@@ -67,7 +67,7 @@ What this constrains or costs downstream. Supersedes: <file> (if any).
 ## Lite/quick mode
 
 In `lite`/`quick` (no full `docs/sdd/` tree), a decision is still recorded —
-inline in a "Decisions" section of the `CHANGE-*.md`, with the same fields.
+inline in a "Decisions" section of the `changes/<topic>.md`, with the same fields.
 Don't skip it for lack of a folder.
 
 ## Architecture decisions (no duplication)

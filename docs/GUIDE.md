@@ -37,7 +37,7 @@ These are **independent**. You (or the agent) set all three. Mixing them is norm
 | Size | For | Docs produced | Example |
 |------|-----|---------------|---------|
 | **quick** | tiny, low-risk change | **0 docs** — just code + a test | fix a typo, change a label, an obvious one-liner |
-| **lite** | one feature or bugfix | **1 file** (`CHANGE-<slug>.md`) | add "share wishlist", fix a real bug |
+| **lite** | one feature or bugfix | **1 file** (`changes/<topic>.md`) | add "share wishlist", fix a real bug |
 | **full** | new product / subsystem | the whole `docs/sdd/` trail (~11 files) | build a new app from scratch |
 
 Quality never drops with size — a test is always written and working code is never
@@ -47,7 +47,12 @@ broken. Only the paperwork shrinks.
 | Mode | Behaviour | Good for |
 |------|-----------|----------|
 | **autopilot** | Agent runs the whole thing itself; collects everything up front; picks robust defaults where you don't decide; stops only for blockers or risky/irreversible actions (deploy, spend, delete). | non-devs, or when you trust it to just do it |
-| **copilot** | Same rigor, but **pauses at each gate** for you to review/approve, and defers technical calls to you. | developers who want control |
+| **copilot** | Produces **one phase (or one decision) at a time, then STOPS and waits for you** — offering options to pick, not announcing a done deal. It should *feel* like a pair, turn by turn, not a monologue. | developers who want control at each step |
+
+> **If copilot feels the same as autopilot** (it asked at the start, then ran
+> the whole thing), that's the skill not being followed — say "one phase at a
+> time, wait for me" to re-anchor it. Weaker/cheaper models hold this behavioral
+> nuance less reliably (see the model note in the FAQ).
 
 ### 3. Stop-point — *how far it goes*
 | Stop-point | Runs | Result |
@@ -429,13 +434,20 @@ required to pick it up.
 One home per thing — nothing scattered:
 ```
 docs/
-  sdd/     the spec trail (00-… through 08-…, ESTIMATE, DECISIONS, traceability, CHANGE-*)
+  sdd/
+    00-… through 08-…    the numbered spec trail (FULL build of one product only)
+    changes/<topic>.md   one file per feature/fix (LITE mode — never appended to the trail)
+    decisions/<ts-topic>.md   one timestamped file per decision (what's locked + why)
+    memory/INDEX.md + notes   Obsidian-style codebase knowledge graph
+    analytics.md ESTIMATE.md STAKEHOLDER-BRIEF.md HANDOFF.md traceability.md
   user/    documentation for end users
   dev/     documentation for developers (API, architecture, README)
-tools/     check-traceability.mjs (drift checker)
 ```
-For an existing repo with feature slices / modules, code-level docs live **next to
-the code** (a README per module/slice), with a top-level index in `docs/dev/`.
+**Anything that recurs — features, fixes, decisions, memory — is one file per
+topic in a folder**, so those never balloon into a giant shared file. The
+numbered trail is reserved for a single cohesive product build. For an existing
+repo with feature slices / modules, code-level docs live **next to the code** (a
+README per module/slice), with a top-level index in `docs/dev/`.
 
 ---
 
@@ -491,3 +503,16 @@ agent session, which can only really be tested in your own environment, not
 faked in advance. If a request doesn't invoke the skill you expected, that's
 useful signal — it usually means a trigger description needs sharpening, not
 that something is fundamentally broken.
+
+**Does the model I use matter?** Yes, a lot — more than most of this pack.
+Everything here is *instructions the model chooses to follow*, not enforced
+code. A strong model holds behavioral nuance (staying in copilot, pausing turn
+by turn, right-sizing, surgical diffs) reliably; a fast/cheap model (e.g. a
+"flash"-tier model) tends to absorb the top-level intent and then default to
+"just execute" — so copilot can collapse into autopilot, and it may over-change.
+Two mitigations: (1) for behavior-sensitive work (a careful copilot session,
+delicate refactor), use a stronger model; (2) **lean on modular use** — pointing
+a weak model at *one* small skill ("use `to-fsd` for this", "use `debug` on
+this") is far more reliable than asking it to hold the whole orchestrator in
+mind. This is also why simpler, atomic invocations feel more dependable on
+cheaper models.

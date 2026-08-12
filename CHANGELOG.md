@@ -3,6 +3,51 @@
 All notable changes to SDD Pipeline. Versioning is [SemVer](https://semver.org/);
 pre-1.0, so minors may still move fast. Plain-language where possible.
 
+## [0.14.0] — 2026-08-12
+The behavioral/UX pass, plus real fixes grounded in the user's internal-dsg
+BTER branch (`feature/bter-reminder#2890`). Inspecting it showed: the scary
+"46k-line diff" was 45k of an auto-generated Drizzle `snapshot.json` (normal,
+not bloat), BUT (a) adding "BTER reminder" also modified the OTD and petty-cash
+reminders to extract a shared service — real scope creep beyond the ticket —
+and (b) the feature's spec was *appended to the global* `01-prd.md`/`03-fsd.md`/
+etc., which is exactly how those files balloon.
+### Changed — copilot is now a real behavioral contract, not a label
+- Rewrote `copilot` in the orchestrator (mirrored in `AGENTS.md`, README, GUIDE):
+  it must produce **one phase (or one decision) at a time, then STOP and wait**,
+  offering options to pick rather than announcing a done deal. Generating several
+  phases in one turn is explicitly called out as autopilot behavior / a bug in
+  copilot. This targets the #1 recurring complaint ("copilot feels the same as
+  autopilot — it asks once then runs the whole thing").
+### Changed — topic-scoped output (stop the doc bloat)
+- **Lite mode now writes `docs/sdd/changes/<topic>.md`** — one file per
+  feature/fix — and **must NOT append to the global numbered trail**. Added a
+  "topic-scoping" principle: anything that recurs (features, fixes, decisions,
+  memory) is one-file-per-topic in a folder; the numbered trail is reserved for
+  a single cohesive product build. Migrated the wishlist example's
+  `CHANGE-clear-wishlist.md` → `changes/clear-wishlist.md` to demonstrate it.
+### Added — surgical "lazy-senior" coding
+- New rule in `implement`: **the smallest change that satisfies the ticket**,
+  touch nothing else. Adding feature A is not license to refactor B and C; a
+  refactor of existing working code is its own decision (surface it, log it, get
+  buy-in or split a ticket) — don't let it silently balloon the diff. Don't
+  rewrite what works. Grounded directly in the BTER finding. Matches the
+  "lazy senior developer" style the user likes.
+### Added — clear modular map + honest model guidance
+- A **"which skill for which job" table** in the orchestrator's Modular-use
+  section: brainstorm→`discovery`/grilling, spec→`to-prd`/`to-fsd`,
+  design→`arch-decision`/`database-design`/`ux-design`, build→`implement`,
+  fix→`debug`, etc. — the mattpocock-style "reach for one tool" clarity the user
+  found missing.
+- An honest **FAQ note on model choice**: this is all instructions the model
+  chooses to follow, not enforced code — a fast/cheap "flash"-tier model holds
+  behavioral nuance (staying in copilot, pausing, surgical diffs) less reliably
+  and can collapse copilot into autopilot. Mitigations: a stronger model for
+  behavior-sensitive work, and leaning on **modular single-skill invocation**
+  (far more reliable on weak models than holding the whole orchestrator).
+### Note
+- Orchestrator grew to ~3450 words (the copilot contract + modular table). The
+  behavioral fixes were the point; not cut for tokens, same principle as before.
+
 ## [0.13.0] — 2026-08-12
 A big cohesion pass toward the user's stated goal — this shouldn't feel like "a
 bunch of skills" but a **framework** for building/maintaining apps that's tidy,
@@ -588,6 +633,7 @@ Initial release.
 - Portable SKILL.md skills + templates + multi-agent installer + Claude Code plugin/marketplace manifests.
 - Worked example (`examples/wishlist/`): full spec set + a runnable, tested backend (zero-dep TypeScript on Node type-stripping, HTTP delivery, SSR shared page, infra-as-code; 50 tests, ~99%/96% coverage).
 
+[0.14.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.14.0
 [0.13.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.13.0
 [0.12.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.12.0
 [0.11.1]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.11.1

@@ -19,6 +19,29 @@ If a specialized TDD/implementation skill is also installed (e.g. mattpocock's
 `implement`/`tdd`, superpowers' `executing-plans`), prefer it and treat this
 skill's rules as the checklist to hold it to. Otherwise, do it yourself as below.
 
+## The smallest change that satisfies the ticket (the "lazy senior" rule)
+
+A good senior dev is *lazy* in the best sense: they make the **smallest, most
+surgical change** that meets the ticket, and touch nothing else. Follow that:
+
+- **Scope discipline.** Change only what the current ticket requires. Adding
+  feature A is not license to refactor B and C because you noticed them. If you
+  came to add "BTER reminder", don't also rewrite the OTD and petty-cash
+  reminders — even to extract a shared abstraction — unless *that* is the ticket.
+- **A refactor is its own decision.** If the clean way genuinely needs a
+  refactor of existing working code, **stop and surface it**: name it, log it
+  (`decision-log`), and either get the user's go-ahead or split it into its own
+  ticket. Don't let it balloon the diff silently — a huge diff for a small
+  feature is a red flag the user has to untangle in review.
+- **Don't rewrite what works.** Prefer the minimal edit over a rewrite; keep the
+  diff reviewable. Reuse existing patterns/utilities instead of inventing
+  parallel ones (that's also the DRY/SSOT bar from `code-standards`).
+- **Trace, then fix precisely.** For a bug, find the actual root cause
+  (`debug`) and fix *that* — not a broad "clean-up while I'm here" pass around it.
+
+The test of a good implementation diff: a reviewer can see it maps to the ticket
+line-for-line, with no "why did this file change?" surprises.
+
 ## Work one ticket at a time
 
 Pick the next ticket whose dependencies are met (respect the backlog's waves).

@@ -50,7 +50,7 @@ asks to stop.
   asked.** Before moving on, ask: did I just pick a default, cut scope, choose
   between two approaches, or accept a risk? If yes, log it **now** (`decision-log`
   — see that skill's own self-check). In `quick`/`lite` this is a short
-  "Decisions" section inside the `CHANGE-*.md` itself, not a separate file —
+  "Decisions" section inside the `changes/<topic>.md` itself, not a separate file —
   still log it, don't skip it for lack of a dedicated file. This matters most
   in autopilot or an unattended stretch — exactly when no one's watching for
   a missed decision.
@@ -149,7 +149,7 @@ docs/
     decisions/              # decision-log — one timestamped file per decision
     memory/                 # project-memory — INDEX.md + linked notes (Obsidian-style graph)
     ESTIMATE.md STAKEHOLDER-BRIEF.md HANDOFF.md
-    CHANGE-<slug>.md        # lite mode: the collapsed one-file spec for a change
+    changes/                # lite mode: one <topic>.md per feature/fix (NOT appended to the numbered trail)
     traceability.md         # the matrix — always current
   user/<feature>.md         # documentation FOR USERS
   dev/README.md dev/api.md dev/architecture.md   # documentation FOR DEVELOPERS
@@ -254,25 +254,53 @@ combine freely. None ever removes a gate for the phases that *do* run.
   as an explicit assumption** (`decision-log`), and proceed. **Stop only** for
   truly blocking unknowns or irreversible/outward actions (provisioning, deploy,
   spend, delete, send) — those always need explicit human confirmation.
-- **Copilot** — same full sequence and rigor, but **pauses at each gate** for
-  review/approval and defers technical calls to the developer. Use a grilling
-  skill if installed to pressure-test decisions.
 
-Both cover all phases 0–11 that run; the difference is autonomy and pacing.
+- **Copilot — this is a real behavioral contract, not a label you announce
+  once.** It means: do **one phase (or one gate's worth of decisions) at a time,
+  then STOP and hand control back.** Concretely, every turn in copilot:
+  1. Produce **only the current phase's** output (or, at an architecture/design
+     decision, present the 2–3 options with a recommendation).
+  2. **Then stop.** End your turn by naming the decision the user needs to make
+     or approve, and **wait for their reply.** Do **not** roll on into the next
+     phase, do not start implementing, do not produce the rest of the trail "to
+     save a round-trip." Producing several phases in one turn is autopilot
+     behavior — it is a bug in copilot.
+  3. Offer choices to *pick from*, don't announce a choice already made. "Here
+     are the options / here's my recommendation — which do you want?" not "I've
+     decided X, moving on."
+
+  If you catch yourself having generated more than the current phase without the
+  user replying in between, you've slipped into autopilot — stop and correct.
+
+Both cover all phases 0–11 that run; the difference is **who is driving each
+step** — autopilot drives itself and reports; copilot produces one step and
+waits. That difference must be *felt* every turn, not just stated at the start.
 
 ### 2. Size
 
 Match ceremony to the work. **Default gravity is heavy — resist it for small
 tasks.** A one-line fix does not need a 15-file doc tree.
 
-- **Full** — new product/subsystem: every phase, full doc tree.
-- **Lite** — a feature/non-trivial bugfix: collapse to one file,
-  `docs/sdd/CHANGE-<slug>.md` (one-paragraph PRD, one sequence diagram, an FSD
-  bullet list, confirm existing architecture, a quick threat check, 1–3 tickets,
-  test plan, implement, verify). Gates apply in spirit, lighter weight.
+- **Full** — a new product/subsystem, built as one coherent whole: the numbered
+  `docs/sdd/` trail (`01-prd.md`, `03-fsd.md`, `04-schema.md`, …). Fixed
+  filenames are right here because it's *one* product.
+- **Lite** — a feature or non-trivial change to an existing app: **its own
+  topic-scoped file**, `docs/sdd/changes/<topic-slug>.md` (e.g.
+  `changes/bter-reminder.md`) — a self-contained mini-trail (one-paragraph PRD,
+  one sequence diagram, an FSD bullet list, confirm existing architecture, a
+  quick threat check, 1–3 tickets, test plan). **Do NOT append to the global
+  numbered trail for per-feature work** — appending each feature's spec into a
+  shared `03-fsd.md` is exactly how those files balloon. One topic = one file in
+  `changes/`. Update `traceability.md` only if the project keeps one.
 - **Quick** — a tiny, low-risk change: **skip the doc tree entirely.** Understand
   the immediate area, change test-first, run the tests, note the change in one
-  sentence. Non-negotiable even here: a test, and not breaking what works.
+  sentence (a commit message, or a decision file if something was locked).
+  Non-negotiable even here: a test, and not breaking what works.
+
+**Topic-scoping (why `changes/` and `decisions/` are folders):** anything that
+recurs — features, fixes, decisions, memory notes — lives as **one file per
+topic in a folder**, not appended to an ever-growing shared file. The numbered
+trail is the exception, reserved for a single cohesive product build.
 
 If unsure, infer from the request and **state your choice** ("this looks quick —
 test-first, no doc tree; say the word for the full treatment").
@@ -301,11 +329,36 @@ Check first: **is there a codebase?**
 
 Don't run the greenfield "choose a stack" flow on a repo that already has one.
 
-### Modular use
+### Modular use — which skill for which job (invoke it directly)
 
-Any skill here works standalone (`to-prd`, `threat-model`, `map-codebase`,
-`database-design`, …) — you lose automatic gating/traceability wiring; prefer
-`docs-only` if you want the chain enforced but no code.
+You don't have to run the whole pipeline. Each skill works **standalone**, and
+for a focused job that's often the nicest way — point the agent at exactly the
+one you want, like reaching for a single tool. Clear map:
+
+| You want to… | Use (standalone) |
+|--------------|------------------|
+| **Brainstorm / pressure-test an idea** | `discovery` conversationally, or an installed grilling skill |
+| **Understand an unfamiliar repo** | `map-codebase` |
+| **Write just the requirements** | `to-prd` |
+| **Draw the flows/diagrams** | `to-diagrams` |
+| **Write just the functional spec** | `to-fsd` |
+| **Decide architecture / stack / structure** | `arch-decision` |
+| **Design the DB schema** | `database-design` |
+| **Design the UI / design system** | `ux-design` |
+| **Threat-model a flow** | `threat-model` |
+| **Break work into tickets / estimate** | `backlog-leveling` |
+| **Write the test plan** | `test-plan` |
+| **Implement a ticket, test-first** | `implement` (or an installed TDD skill) |
+| **Fix a bug** | `debug` |
+| **Review a diff** | `code-review` |
+| **Commit / open a PR** | `git-workflow` |
+| **Record a decision** | `decision-log` |
+| **Remember something about the codebase** | `project-memory` |
+
+Invoking one directly loses the automatic gating/traceability wiring — that's
+the trade for speed. If you want the chain enforced but no code, use `docs-only`
+instead. For a small feature/fix, `lite` (one `changes/<topic>.md`) is usually
+the sweet spot between "one raw skill" and "the full trail."
 
 **Pure conversation, no files at all** — if the user just wants to think out
 loud, brainstorm, or pressure-test an idea with zero commitment (no docs, no

@@ -135,7 +135,8 @@ detail + copy-paste recipes are in the **[Usage Guide](docs/GUIDE.md)**.
 
 **Dial 2 · Size — how much ceremony/documentation**
 - **quick** — tiny change → understand, fix test-first, done. **No docs.**
-- **lite** — a feature/bugfix → one collapsed `CHANGE-<slug>.md`.
+- **lite** — a feature/bugfix → one topic-scoped `docs/sdd/changes/<topic>.md`
+  (never appended to the shared numbered trail — that's how those files balloon).
 - **full** — new product/subsystem → the whole `docs/sdd/` trail (~11 files).
 - Quality never drops with size — a test is always written; only the paperwork
   shrinks. Over-ceremony (15 docs for a one-liner) is treated as a failure mode.
@@ -307,7 +308,7 @@ fully-traceable plan (PRD, diagrams, FSD, ADRs, threat model, tiered backlog,
 test plan, honest traceability matrix) **plus a runnable, tested backend** in
 [`examples/wishlist/impl/`](examples/wishlist/impl/) (zero-dependency TypeScript,
 54 tests, ~99% coverage, HTTP + SSR + infra-as-code). It also includes a
-brownfield change ([`CHANGE-clear-wishlist.md`](examples/wishlist/docs/sdd/CHANGE-clear-wishlist.md))
+brownfield change ([`changes/clear-wishlist.md`](examples/wishlist/docs/sdd/changes/clear-wishlist.md))
 showing lite mode on existing code.
 
 ## Repo layout
@@ -328,7 +329,7 @@ sdd-pipeline/
 
 ## Status
 
-**v0.13.0** — usable end to end; 27 self-sufficient skills; a worked example with a
+**v0.14.0** — usable end to end; 27 self-sufficient skills; a worked example with a
 runnable, tested backend (54 tests); a self-sufficiency audit and a token-usage
 pass behind it. Pre-1.0, so things may still move. See [CHANGELOG.md](CHANGELOG.md).
 Contributions/adjustments welcome — the skills are plain Markdown, so fork and

@@ -95,7 +95,7 @@ It also re-engages on **every new dev request mid-session**, not just the
 first — a plain "now add X" is enough. Your first response must include a
 one-line cheat-sheet (mode/size/stop-point options); state your current phase
 when there's ambiguity instead of drifting back to generic answers; log
-decisions as you go even in `quick`/`lite` (inline in the `CHANGE-*.md`, not a
+decisions as you go even in `quick`/`lite` (inline in the `changes/<topic>.md`, not a
 separate file — that's `full`-mode only), proactively, not only when asked.
 
 ## Read state, then ask — don't guess
@@ -120,13 +120,17 @@ offers a structured question UI, prefer it over a plain-text question.
   where the user doesn't decide (recording assumptions), and stops only for
   blockers or irreversible/outward actions (deploy, spend, delete, send). Works
   for non-developers and developers.
-- **Copilot** — same full sequence and rigor, but pauses at each gate for a
-  developer to review/approve and defers technical calls to them.
-- **Modular** — invoke any single skill directly, without the orchestrator.
+- **Copilot** — a real behavioral contract: produce **one phase (or one
+  decision) at a time, then STOP and wait** for the developer's reply; offer
+  options to pick, don't announce a done deal. Generating several phases in one
+  turn is autopilot behavior — a bug in copilot. The difference must be *felt*
+  each turn, not just stated once.
+- **Modular** — invoke any single skill directly, without the orchestrator (the
+  nicest way for a focused job; the most reliable way on a weaker/cheaper model).
 
 Size is orthogonal — match ceremony to the work, don't reflexively go full:
 **quick** (tiny change → fix test-first, no doc tree), **lite** (a feature → one
-collapsed `CHANGE-*.md`), **full** (new product/subsystem → the whole trail).
+collapsed `changes/<topic>.md`), **full** (new product/subsystem → the whole trail).
 
 **Brownfield:** if code already exists, run `map-codebase` first, then
 `arch-decision` in respect-existing mode, frame work as changes, and add
