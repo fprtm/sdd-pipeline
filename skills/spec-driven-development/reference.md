@@ -14,8 +14,11 @@ role, so one agent (or a human + agent) covers the whole org:
 |------|----------|-------|
 | Onboarding engineer (brownfield) | before 0, on existing code | `map-codebase` |
 | Product manager | 0–1 | `discovery`, `to-prd` |
+| Data analyst | 1, cross-cutting | `analytics-design` |
 | Business analyst / systems analyst | 2–3 | `to-diagrams`, `to-fsd` |
-| Architect / tech lead | 4 | `arch-decision`, `stack-conventions`, `database-design` |
+| Architect / tech lead | 4 | `arch-decision`, `stack-conventions` |
+| Data engineer / DBA | 4 | `database-design` |
+| UI/UX designer | 4 | `ux-design` |
 | Security engineer (AppSec) | 5, re-check at 10 | `threat-model` |
 | Delivery lead | 6 | `backlog-leveling` (tickets + estimate) |
 | QA / test lead | 7, 10 | `test-plan`, `coverage-check` |

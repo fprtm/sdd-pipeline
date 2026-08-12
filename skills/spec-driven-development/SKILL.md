@@ -113,8 +113,10 @@ docs/
     00-codebase-map.md     # map-codebase (BROWNFIELD only)
     00-overview.md         # gate board + ID registry (this skill)
     00-context.md          # glossary — seeded by discovery, sharpened by domain-modeling if present
-    01-prd.md 02-diagrams.md 03-fsd.md 04-architecture.md 04-stack-guide.md
+    01-prd.md 02-diagrams.md 03-fsd.md
+    04-architecture.md 04-stack-guide.md 04-schema.md 04-ux-design.md   # design phase
     05-threat-model.md 06-backlog.md 07-test-plan.md 08-delivery.md
+    analytics.md            # analytics-design (metrics/events)
     ESTIMATE.md DECISIONS.md STAKEHOLDER-BRIEF.md HANDOFF.md
     CHANGE-<slug>.md        # lite mode: the collapsed one-file spec for a change
     traceability.md         # the matrix — always current
@@ -151,10 +153,10 @@ plainly, mark it ⛔, and stop; do not sneak forward.
 |---|-------|-----------------|-------------------------------------|
 | pre‑0 | Map existing code (brownfield only) | `map-codebase` | Stack, structure, conventions, tests, and seams understood before anything is touched |
 | 0 | Discover | `discovery` (+ `grill-me`/`brainstorming` if present) | Problem stated in one sentence the user agrees with; the 9 discovery questions answered (gaps recorded as assumptions) |
-| 1 | Product spec | `to-prd` | Every REQ has a user, a why, and acceptance criteria |
+| 1 | Product spec | `to-prd` (+ `analytics-design` for success metrics) | Every REQ has a user, a why, and acceptance criteria |
 | 2 | Model & visualize | `to-diagrams` (glossary from phase 0 stands; sharpen with `domain-modeling` if present) | Glossary agreed; context + DFD + key sequence diagrams exist |
 | 3 | Functional spec | `to-fsd` | Every REQ maps to ≥1 FSD; no FSD is orphaned |
-| 4 | **Architecture gate** | `arch-decision` → `stack-conventions` (+ `database-design` if a datastore is chosen) | Arch style + stack + topology chosen with ADRs (user signed off, or agent chose the most robust default and said so); stack's official best practices captured in `04-stack-guide.md` |
+| 4 | **Architecture & Design gate** | `arch-decision` → `stack-conventions` → `database-design` (whenever data is persisted — mandatory, not optional) → `ux-design` (whenever there's a UI) | Arch/stack/topology chosen with ADRs; **data model** written to `04-schema.md` if the app stores data; **UI/UX design** (tokens, key screens, states, a11y) in `04-ux-design.md` if there's a UI. A data app with no schema, or a UI product with no design, does NOT pass this gate. |
 | 5 | **Security gate (SSDLC)** | `threat-model` | Each data flow threat-modeled; every High/Critical threat has a control (SEC-xxx) |
 | 6 | Backlog | `backlog-leveling` | Tickets tiered (T1/T2/T3), each traces to an FSD, each self-contained; effort/cost estimate produced |
 | 7 | Test plan | `test-plan` | Happy + regression + edge + e2e cases defined; coverage target set (default ≥80%) |
@@ -176,14 +178,13 @@ model/tool switch), `debug` (whenever something fails, phases 8/10),
 ## How to route
 
 - This pack is **self-sufficient** — it ships `map-codebase`, `discovery`,
-  `to-prd`, `to-diagrams`, `to-fsd`, `arch-decision`, `stack-conventions`,
-  `database-design`, `threat-model`, `backlog-leveling`, `test-plan`,
-  `code-standards`, `implement`, `code-review`, `debug`, `infra`,
-  `coverage-check`, `documentation`, `traceability`, `decision-log`, `handoff`,
-  `stakeholder-brief`, `git-workflow`. Every phase's exit gate above is
-  satisfiable with this pack alone — external skills below are **enhancements
-  you prefer when present,
-  never requirements**.
+  `to-prd`, `analytics-design`, `to-diagrams`, `to-fsd`, `arch-decision`,
+  `stack-conventions`, `database-design`, `ux-design`, `threat-model`,
+  `backlog-leveling`, `test-plan`, `code-standards`, `implement`, `code-review`,
+  `debug`, `infra`, `coverage-check`, `documentation`, `traceability`,
+  `decision-log`, `handoff`, `stakeholder-brief`, `git-workflow`. Every phase's
+  exit gate above is satisfiable with this pack alone — external skills below
+  are **enhancements you prefer when present, never requirements**.
 - For planning, worktrees, and grilling — areas this pack doesn't cover —
   **defer to the user's installed skills** (e.g. mattpocock/skills, superpowers)
   when present. Also **prefer** an installed TDD / code-review / debugging skill

@@ -27,10 +27,10 @@ gates** and keeps a **traceability matrix** linking every requirement to a test:
 |-------|-------|--------|
 | pre-0 (brownfield) | `map-codebase` | `docs/sdd/00-codebase-map.md` — run first when code already exists |
 | 0 Discover | `discovery` | `docs/sdd/00-context.md` + discovery brief (deep needs) |
-| 1 Product spec | `to-prd` | `docs/sdd/01-prd.md` (REQ-xxx) |
+| 1 Product spec | `to-prd` (+ `analytics-design` for success metrics) | `docs/sdd/01-prd.md` (REQ-xxx) + `analytics.md` (KPIs/events) |
 | 2 Visual models | `to-diagrams` | `docs/sdd/02-diagrams.md` (context, DFD, sequence) |
 | 3 Functional spec | `to-fsd` | `docs/sdd/03-fsd.md` (FSD-xxx) |
-| 4 Architecture gate | `arch-decision` → `stack-conventions` (+ `database-design` if a datastore is chosen) | `docs/sdd/04-architecture.md` (ADRs) + `04-stack-guide.md` (stack best practices as rules) |
+| 4 Architecture & Design gate | `arch-decision` → `stack-conventions` → `database-design` (mandatory if data persisted) → `ux-design` (if there's a UI) | `04-architecture.md` (ADRs) + `04-stack-guide.md` + `04-schema.md` (data model) + `04-ux-design.md` (design system/screens) |
 | 5 Security gate (SSDLC) | `threat-model` | `docs/sdd/05-threat-model.md` (SEC-xxx) |
 | 6 Backlog | `backlog-leveling` | `06-backlog.md` (tiered TICKET-xxx) + `ESTIMATE.md` (effort/cost) |
 | 7 Test plan | `test-plan` | `docs/sdd/07-test-plan.md` (TEST-xxx, ≥80% target) |
@@ -40,7 +40,7 @@ gates** and keeps a **traceability matrix** linking every requirement to a test:
 | 11 Ship | `documentation` + `git-workflow` (PR/changelog) + finish/`handoff` | deployed, docs written, matrix green |
 | any | `traceability` · `decision-log` · `stakeholder-brief` · `handoff` | matrix, decision "why", non-IT brief, snapshot |
 
-This pack is **self-sufficient** (24 skills; runs end to end alone). For planning,
+This pack is **self-sufficient** (26 skills; runs end to end alone). For planning,
 git worktrees, and grilling, **defer to skills you already have** (mattpocock/
 skills, superpowers); prefer an installed TDD / code-review / debugging skill over
 `implement` / `code-review` / `debug` if present.
@@ -69,9 +69,10 @@ contract, not a nicety.
 
 ## It represents a full team
 
-Each phase = a role (PM, analyst, architect, security, delivery lead, QA,
-engineer, DevOps/SRE, reviewer, tech writer). One agent covers the whole org; it
-announces which role it's "wearing" per phase so non-technical users can follow.
+Each phase = a role (PM, data analyst, business analyst, architect, DBA, UI/UX
+designer, security, delivery lead, QA, engineer, DevOps/SRE, reviewer, tech
+writer). One agent covers the whole org; it announces which role it's "wearing"
+per phase so non-technical users can follow.
 
 ## Stay in this mode for the whole conversation
 

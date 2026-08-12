@@ -3,6 +3,51 @@
 All notable changes to SDD Pipeline. Versioning is [SemVer](https://semver.org/);
 pre-1.0, so minors may still move fast. Plain-language where possible.
 
+## [0.12.0] — 2026-08-12
+Prompted by real use on a production project (xplorenusa — reviewed the actual
+`docs/sdd/` output: a copilot+full+docs-only run producing 49 REQ, 44 FSD, 33
+SEC, 48 TICKET, 59 TEST, with genuinely senior-level ADRs and a clean decision
+log). Output quality confirmed high. The user's key insight: the schema
+(`04-schema.md`) only got produced **because they explicitly asked** — meaning
+the data model, a canonical/basic software-engineering artifact, was treated as
+optional. And UI/UX design was missing entirely. Fixed both as the design phase
+being genuinely complete, and named the two missing team roles.
+### Changed
+- **`database-design` is now MANDATORY, not optional.** Its description and body
+  reworded: the data model is produced automatically whenever the app persists
+  data, without waiting to be asked. Standardized its output filename to
+  `04-schema.md` (which is what the agent already named it in the real run).
+- **Phase 4 is now the "Architecture & Design gate"**, not just "Architecture" —
+  its exit gate explicitly requires a data model (`04-schema.md`) if the app
+  stores data, and a UI/UX design (`04-ux-design.md`) if there's a UI. A data
+  app with no schema, or a UI product with no design, does not pass. This
+  closes the "only appeared because I asked" gap at the wiring level.
+### Added
+- **`ux-design`** (25th skill, UI/UX designer role) — the interface designed
+  before it's built: design tokens (semantic color palette with light/dark +
+  WCAG-AA contrast, type scale, spacing), key screen wireframes per user
+  journey, component patterns, every screen's four states
+  (empty/loading/error/success — which become FSD error flows and e2e tests),
+  and accessibility + responsive as deliberate decisions. Runs at phase 4
+  whenever there's a UI. Produces `04-ux-design.md`.
+- **`analytics-design`** (26th skill, data-analyst role) — turns the PRD's
+  success criteria into measurable metrics: a north-star + input + guardrail
+  KPI tree (each tied to a REQ), a consistent event taxonomy (typed
+  properties, SSOT for tracking), an instrumentation plan that lands in the
+  backlog and reuses `infra` observability, and privacy (no PII in events
+  without a lawful basis — ties to `threat-model`). Runs after the PRD.
+  Produces `analytics.md`.
+- Role map (reference.md) gains **Data analyst**, **Data engineer / DBA**, and
+  **UI/UX designer** seats — the team the user noted was incomplete.
+### Note (honest scoping)
+- The user also asked whether the FSD/backlog were too long. They're not, per
+  item (~7 lines/FSD, ~10/ticket) — the total was large because the run specced
+  the **whole product, not an MVP** (their own decision, D-3 in that project's
+  DECISIONS.md). That's a scoping choice, not tool bloat. The separate "it
+  dumps everything at once / modes don't feel active / modular isn't pleasant"
+  feedback is a real UX/pacing issue tracked for a following release — this
+  release is the concrete content gap (missing basic artifacts + roles).
+
 ## [0.11.1] — 2026-08-11
 ### Changed
 - **Extended "Read state, then ask" to explicitly cover the actual code**, not
@@ -492,6 +537,7 @@ Initial release.
 - Portable SKILL.md skills + templates + multi-agent installer + Claude Code plugin/marketplace manifests.
 - Worked example (`examples/wishlist/`): full spec set + a runnable, tested backend (zero-dep TypeScript on Node type-stripping, HTTP delivery, SSR shared page, infra-as-code; 50 tests, ~99%/96% coverage).
 
+[0.12.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.12.0
 [0.11.1]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.11.1
 [0.11.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.11.0
 [0.10.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.10.0

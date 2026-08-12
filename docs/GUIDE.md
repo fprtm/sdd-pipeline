@@ -9,7 +9,7 @@ read a recipe when you have a specific job.
 - [How the agent picks defaults](#how-the-agent-picks-defaults)
 - [Recipes](#recipes-copy-a-phrasing) — copy a phrasing for your situation
 - [The phases (0–11)](#the-phases-0-11)
-- [All 24 skills](#all-24-skills-reference)
+- [All 26 skills](#all-26-skills-reference)
 - [Where files go](#where-files-go)
 - [What it guarantees](#what-it-guarantees)
 - [FAQ](#faq)
@@ -223,7 +223,7 @@ nothing upstream, the same id accidentally defined twice, and dead doc links.
 
 ---
 
-## All 24 skills (reference)
+## All 26 skills (reference)
 
 You rarely call these directly — the orchestrator routes to them — but here's
 **when each one fits, what it produces, and a tip** so nothing is a mystery.
@@ -257,6 +257,14 @@ users, outcomes, no jargon required.
 *When:* the need is understood, now formalize it. *Produces:* `01-prd.md`,
 REQ-ids with MoSCoW priority + Given/When/Then acceptance criteria.
 
+**`analytics-design`** — turn success criteria into measurable metrics + events
+(the data-analyst seat).
+*When:* after the PRD, or "what metrics/KPIs/analytics should we track".
+*Produces:* `analytics.md` — north-star + guardrail KPIs tied to REQ outcomes,
+a consistent event taxonomy, an instrumentation plan. *Tip:* a feature with no
+way to tell if it worked is a guess you can't correct — worth it for anything
+whose success actually matters.
+
 **`to-diagrams`** — context/DFD/sequence/ERD diagrams (Mermaid).
 *When:* after the PRD, before the functional spec. *Produces:* `02-diagrams.md`.
 *Tip:* the DFD's trust boundaries feed the threat model directly — don't
@@ -277,13 +285,22 @@ enforceable rules (TS strict, Laravel conventions, …).
 version-pinned and source-cited. *Tip:* this is what makes generated code
 idiomatic instead of generic — worth doing even on a small project.
 
-**`database-design`** — schema principles: normalization, no crowded/god
-tables, indexing tied to real queries, safe additive migrations.
-*When:* a datastore is chosen (phase 4), or any time a migration/schema
-change is about to be written. *Produces:* the schema shape behind
-`04-architecture.md`, and holds every migration to the same bar. *Tip:*
+**`database-design`** — the data model / schema (a canonical, **mandatory**
+deliverable when the app stores data, not optional).
+*When:* automatically once a datastore is chosen (phase 4) — the agent produces
+it without being asked — and any time a migration is about to be written.
+*Produces:* `04-schema.md`, held to the same bar every migration. *Tip:*
 denormalizing is fine — but it needs a written reason tied to a real
 performance need, not "it was easier."
+
+**`ux-design`** — the interface, designed before it's built (UI/UX designer).
+*When:* the design phase (4) whenever there's a UI — not optional for a product
+with screens — or "design the UI / design system / color palette / wireframe".
+*Produces:* `04-ux-design.md` — design tokens (color palette, type, spacing),
+key screen wireframes, component patterns, every screen's states
+(empty/loading/error/success), a11y + responsive. *Tip:* the four states per
+screen become FSD error flows and e2e tests — designing them isn't extra, it's
+where most of the real work hides.
 
 **`threat-model`** — security-by-design (STRIDE), one control per real threat.
 *When:* architecture is set, before implementation starts. *Produces:*

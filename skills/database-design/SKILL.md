@@ -1,15 +1,23 @@
 ---
 name: database-design
 description: >-
-  Schema design principles — normalize to avoid crowded/god tables, one entity
-  one responsibility, naming conventions, indexing tied to real query patterns
-  (not speculative), explicit referential integrity, and safe additive
-  migrations. Use when arch-decision picks a datastore (phase 4), whenever
-  implement is about to add or change a migration, or when the user says
-  "design the schema / database design / add a table / migration".
+  Design the data model / database schema — a canonical, MANDATORY deliverable
+  for any app that persists data, not an optional extra. Normalize to avoid
+  crowded/god tables (one entity, one responsibility), naming conventions,
+  indexing tied to real query patterns, explicit referential integrity, safe
+  additive migrations. Runs as a standard part of the design phase (4) the
+  moment a datastore is chosen — the agent produces this WITHOUT waiting to be
+  asked — and again whenever implement adds/changes a migration. Also on
+  "design the schema / data model / ERD / add a table / migration". Produces
+  docs/sdd/04-schema.md.
 ---
 
-# database-design — schemas that stay clean as they grow
+# database-design — the data model, designed before it's built
+
+The schema is one of the most basic software-engineering artifacts — every
+lifecycle has a data-modeling step. **Produce it automatically whenever the app
+stores data; never wait for the user to ask for it.** Write it to
+`docs/sdd/04-schema.md`.
 
 Bad schemas don't start bad — they get **crowded**: one table absorbing every
 new field because adding a column feels cheaper than modeling a new entity.
