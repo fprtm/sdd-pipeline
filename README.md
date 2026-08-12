@@ -73,11 +73,12 @@ dial below.
 | `coverage-check` | verify-gate coverage enforcement | 10 |
 | `documentation` | user guide + developer docs (JSDoc/API/README) | 11 |
 | `traceability` | the single-source-of-truth matrix | all |
-| `decision-log` | running record of every significant decision + "why" | any |
+| `decision-log` | timestamped record of every decision + what's locked (folder) | any |
+| `project-memory` | Obsidian-style codebase knowledge graph — cheap to re-read next session | any |
 | `stakeholder-brief` | plain-language brief + sign-off for non-IT | any |
 | `handoff` | resumable snapshot for another agent / cheaper model | any |
 
-26 self-sufficient skills — every phase's gate is satisfiable with this pack
+27 self-sufficient skills — every phase's gate is satisfiable with this pack
 alone, nothing else required. If you also have other skills installed for
 planning, worktrees, grilling, TDD, review, or debugging, this pack prefers
 those when present; otherwise its own versions run the phase completely.
@@ -318,7 +319,7 @@ sdd-pipeline/
 ├─ CHANGELOG.md             # version history
 ├─ .claude-plugin/          # Claude Code plugin + marketplace manifests
 ├─ docs/GUIDE.md            # the usage manual
-├─ skills/                  # 26 SKILL.md files, each bundling its own template
+├─ skills/                  # 27 SKILL.md files, each bundling its own template
 │                            #   or script (e.g. skills/traceability/check-traceability.mjs)
 ├─ templates/               # a few reference-only templates (no skill hard-codes these paths)
 ├─ examples/wishlist/       # a complete worked run (+ runnable, tested impl)
@@ -327,7 +328,7 @@ sdd-pipeline/
 
 ## Status
 
-**v0.12.0** — usable end to end; 26 self-sufficient skills; a worked example with a
+**v0.13.0** — usable end to end; 27 self-sufficient skills; a worked example with a
 runnable, tested backend (54 tests); a self-sufficiency audit and a token-usage
 pass behind it. Pre-1.0, so things may still move. See [CHANGELOG.md](CHANGELOG.md).
 Contributions/adjustments welcome — the skills are plain Markdown, so fork and

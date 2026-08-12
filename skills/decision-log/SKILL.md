@@ -1,81 +1,89 @@
 ---
 name: decision-log
 description: >-
-  Keep a running log of every significant decision — scope cuts, assumptions,
-  trade-offs, accepted risks, spec refinements, tool/library choices — so the
-  "why" is never lost. Fires PROACTIVELY, not only on request: the moment you
-  (the agent) pick a default the user didn't specify, choose between two
+  Keep a MANDATORY, timestamped record of every significant decision — scope
+  cuts, assumptions, trade-offs, accepted risks, spec refinements, tool/library
+  choices, and what got LOCKED. Fires proactively, not only on request: the
+  moment you pick a default the user didn't specify, choose between two
   reasonable approaches, cut scope, accept a risk, or change a spec because
-  reality demanded it — log it immediately, before moving on, even if the user
-  didn't ask. Also triggers explicitly on "record this decision / decision log
-  / why did we do X / what did we decide about Y". Appends to
-  docs/sdd/DECISIONS.md (or inline in a `CHANGE-*.md` in lite/quick mode).
+  reality demanded it — record it immediately, before moving on, even if the
+  user didn't ask. Also on "record this / decision log / why did we do X / what
+  did we lock about Y". Writes one timestamped file per decision in
+  docs/sdd/decisions/.
 ---
 
-# decision-log — never lose the "why"
+# decision-log — never lose the "why", and make it findable
 
-Six months later, the expensive question is always "why did we do it this way?".
-This log answers it. It is a chronological record of the decisions that shaped the
-project, so anyone (a new dev, a cheaper model, the user) can understand the
-reasoning without archaeology.
+Six months later the expensive question is always "why did we do it this way,
+and is it locked?". This log answers it. It is **not optional** — a pipeline
+that decides things silently is a pipeline you can't audit or trust.
 
-Output: `docs/sdd/DECISIONS.md` (append-only — decisions are never edited away;
-if one is reversed, add a new entry that supersedes it).
+## Format: one file per decision (timestamped folder)
 
-## What belongs here
-
-Log any decision that would be costly or confusing to reverse-engineer:
-- **Scope** — what was cut or deferred and why (the "Won't" items).
-- **Assumptions** — anything assumed rather than confirmed, **especially autopilot
-  defaults chosen on the user's behalf** (so a human can audit and correct them).
-- **Trade-offs** — when two good options existed and you picked one.
-- **Accepted risks** — from the threat model, with the named owner.
-- **Spec refinements** — when implementation reality changed a spec (e.g. an FSD
-  refined because of a security constraint).
-- **Tool / process choices** — anything not already an ADR.
-
-## Relationship to ADRs (no duplication)
-
-**Architecture** decisions live as ADRs in `04-architecture.md` — that stays the
-SSOT for them. The decision log **links** to an ADR (`see ADR-003`) rather than
-copying it. The log is the broader, chronological "everything else + pointers"
-record; ADRs are the deep architecture entries.
-
-## Entry format
+`docs/sdd/decisions/` — a folder, one markdown file per decision, so each
+decision is its own findable, linkable node (Obsidian-style; ties into
+`project-memory`):
 
 ```
-### DEC-007 — Share link is idempotent, not re-shown  (2026-08-08)
-Phase/role: 8 / engineer
-Decision: A second "Share" while a link is active does not re-return the token.
-Context: only the token hash is stored (SEC-002), so the raw URL can't be
-         re-derived server-side.
-Why / alternatives: storing the token reversibly was rejected (weakens hash-at-
-         rest); security > convenience of re-showing the URL.
-Decided by: agent (autopilot default) — flagged for human confirmation.
-Links: FSD-008, SEC-002.  Supersedes: —
+docs/sdd/decisions/
+  2026-08-12-1430-datastore-postgres.md
+  2026-08-12-1615-share-link-idempotent.md
 ```
 
-- Stable IDs (`DEC-xxx`), dated, never renumbered.
-- Say **who decided** — the user, or the agent as an autopilot default (mark those
-  clearly so they get reviewed).
-- Link to the REQ/FSD/ADR/SEC it touches; keep the entry short.
+Filename: `YYYY-MM-DD-HHMM-<short-topic-slug>.md` — sortable (chronological by
+name) and readable at a glance. Each file:
 
-## When to write
+```markdown
+---
+title: Datastore = PostgreSQL
+timestamp: 2026-08-12 14:30
+status: locked            # proposed | decided | locked | superseded
+decided-by: user          # user | agent (autopilot default — review) | user+agent
+links: [REQ-NF-002, ADR-003, [[ordering-module]]]
+---
 
-Append the moment a decision is made — don't batch at the end (you'll forget the
-why). Don't wait to be asked. The orchestrator prompts for it at each gate;
-`stakeholder-brief` writes stakeholder decisions here; autopilot records every
-default it chose.
+## Description
+One-line statement of what was decided.
 
-**Self-check, every response where you built or decided something:** before
-moving to the next thing, ask "did I just pick a default, cut scope, choose
-between two viable approaches, or accept a risk?" If yes, log it **now**, in
-the same turn — not as a follow-up, not only if the user notices and asks.
-This matters most exactly when no one is watching closely (autopilot, or a
-long unattended stretch) — that is precisely when an unrecorded decision does
-the most damage later.
+## Context
+What forced the decision — the constraints, the situation.
+
+## Decision (and what's locked)
+The choice, stated plainly. Say explicitly what is now LOCKED (won't be
+revisited without a superseding decision) vs. still open.
+
+## Why / alternatives
+Why this over the others; name the main alternative(s) rejected and why.
+
+## Consequences
+What this constrains or costs downstream. Supersedes: <file> (if any).
+```
+
+- **Stable, dated, append-only** — never edit a decision away; if reversed, add
+  a new file that `Supersedes:` it and flip the old one's `status: superseded`.
+- **Say who decided** — mark autopilot defaults clearly so a human reviews them.
+- **Link** to the REQ/FSD/ADR/SEC and any `[[memory-note]]` it touches.
+
+## Lite/quick mode
+
+In `lite`/`quick` (no full `docs/sdd/` tree), a decision is still recorded —
+inline in a "Decisions" section of the `CHANGE-*.md`, with the same fields.
+Don't skip it for lack of a folder.
+
+## Architecture decisions (no duplication)
+
+Deep **architecture** decisions live as ADRs in `04-architecture.md` — that
+stays their SSOT. A decision file **links** to the ADR rather than copying it.
+
+## When to write — self-check, don't wait to be asked
+
+Every response where you built or decided something, ask: *did I just pick a
+default, cut scope, choose between approaches, accept a risk, or lock something?*
+If yes, write the file **now**, same turn. This matters most in autopilot or an
+unattended stretch — exactly when a missed decision does the most damage.
 
 ## Exit
-`docs/sdd/DECISIONS.md` reflects the real decision history: every non-trivial
-choice has a dated, attributed, linked entry; autopilot defaults are marked for
-review; architecture entries link to ADRs rather than duplicating them.
+
+`docs/sdd/decisions/` holds a timestamped file for every non-trivial choice,
+each stating what's locked and why, attributed and linked; autopilot defaults
+are marked for review; architecture entries link to ADRs.

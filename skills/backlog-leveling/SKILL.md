@@ -41,6 +41,14 @@ Put the tier in the ticket **and** summarize the split at the top of the backlog
 - **Self-containment test**: could someone who never read the PRD finish this
   ticket from the ticket alone? If not, add the missing context (don't link-hunt
   them across five docs).
+- **Cheap-model-executable test** (this is the pipeline's core promise): could a
+  *junior dev or a cheap/small model* execute this without inventing anything?
+  Its steps must name the **concrete files/functions** to touch, point at the
+  **exact spec sections** that define every shape (the FSD behavior, the
+  `04-schema.md` fields, the endpoint contract, the `04-stack-guide.md` idioms),
+  and say "use X from FSD-nnn, don't invent it." A T1 ticket should read almost
+  paint-by-numbers. If executing it would require guessing a field, a shape, a
+  path, or a contract, the ticket isn't ready — add the detail or link it.
 - **Every ticket traces to an FSD** (or a SEC control, or an ADR follow-up). No
   freelance tickets. `traceability` flags orphans.
 - **Security tickets exist**: every SEC-xxx that needs code gets its own ticket,

@@ -9,7 +9,7 @@ read a recipe when you have a specific job.
 - [How the agent picks defaults](#how-the-agent-picks-defaults)
 - [Recipes](#recipes-copy-a-phrasing) — copy a phrasing for your situation
 - [The phases (0–11)](#the-phases-0-11)
-- [All 26 skills](#all-26-skills-reference)
+- [All 27 skills](#all-27-skills-reference)
 - [Where files go](#where-files-go)
 - [What it guarantees](#what-it-guarantees)
 - [FAQ](#faq)
@@ -223,7 +223,7 @@ nothing upstream, the same id accidentally defined twice, and dead doc links.
 
 ---
 
-## All 26 skills (reference)
+## All 27 skills (reference)
 
 You rarely call these directly — the orchestrator routes to them — but here's
 **when each one fits, what it produces, and a tip** so nothing is a mystery.
@@ -375,11 +375,23 @@ a one-line coverage summary (verified mechanically by `check-traceability.mjs`,
 not eyeballed). *Tip:* a red row is the pipeline being honest — don't ask it
 to hide the gap, ask it to close the gap.
 
-**`decision-log`** — record every significant decision and the "why".
-*When:* any non-trivial call, especially an autopilot default made on your
-behalf. *Produces:* `DECISIONS.md` in `full` mode, or an inline "Decisions"
-section in `lite`/`quick`. *Tip:* this is where "why did we decide X" gets
-answered months later — worth it even when it feels like overhead in the moment.
+**`decision-log`** — record every significant decision, the "why", and what got
+locked.
+*When:* proactively, any non-trivial call — especially an autopilot default made
+on your behalf. *Produces:* one **timestamped file per decision** in
+`docs/sdd/decisions/` (`YYYY-MM-DD-HHMM-topic.md` — title, what's locked, why,
+alternatives), or an inline "Decisions" section in `lite`/`quick`. *Tip:* this
+is where "why did we decide X" gets answered months later, and each decision is
+its own linkable node.
+
+**`project-memory`** — an Obsidian-style knowledge graph about *this* codebase.
+*When:* whenever you learn something durable (a module's shape, a gotcha, a
+domain concept), or at the end of a substantial session. *Produces:*
+`docs/sdd/memory/` — small linked markdown notes + an `INDEX.md`. *Tip:*
+expensive to seed once, cheap forever after — later sessions (or a cheaper
+model) read the memory + a targeted code look instead of re-scanning the whole
+repo. Point your project's `CLAUDE.md`/`AGENTS.md` at `memory/INDEX.md` so it's
+read every session.
 
 **`stakeholder-brief`** — plain-language status + sign-off for non-technical
 people.

@@ -88,6 +88,35 @@ to this file — read it only when you need that specific detail (e.g. announcin
 roles in autopilot, or adapting doc placement to a non-default topology). Don't
 load it for routine runs; everything needed to route and gate correctly is here.
 
+## Project setup (do this once per project, first time you engage here)
+
+Two small, high-leverage setup steps — they're what make later sessions cheap
+and reliable:
+
+1. **Point the project's agent-config file at this skill and its memory.** Check
+   `CLAUDE.md` (Claude Code) or `AGENTS.md` (other agents) at the repo root. If
+   it does **not** already tell the agent to use `spec-driven-development` and to
+   read `docs/sdd/memory/INDEX.md` first, **add a short pointer** (create the
+   file if absent). This is mandatory — it's the one lever that reliably makes
+   the pipeline get used every session instead of only when the description
+   happens to match. Tell the user you added it. A minimal pointer:
+   > `## Development process` — For any feature/bugfix/dev work, use the
+   > `spec-driven-development` skill (it right-sizes itself). At the start of a
+   > session on existing work, read `docs/sdd/memory/INDEX.md` and the relevant
+   > memory notes, and the current `docs/sdd/` state, before acting.
+2. **Read memory first if it exists.** `docs/sdd/memory/INDEX.md` + the few notes
+   relevant to the task (see `project-memory`) — cheaper than re-scanning the
+   repo. Grow it as you learn.
+
+## Explain what you decide or propose
+
+Whenever you **propose** an approach or **make** a call the user didn't
+explicitly specify, say — briefly, in the moment, not buried in a doc — **what**
+you're proposing, **why** it's better, and **the main alternative you're not
+taking**. "I'll use X because Y; the other option was Z, rejected because W." A
+user should never watch a decision go by without being told the reasoning, and
+this feeds `decision-log` directly.
+
 ## The prime directive: traceability
 
 Every artifact carries stable IDs, linked upward:
@@ -117,7 +146,9 @@ docs/
     04-architecture.md 04-stack-guide.md 04-schema.md 04-ux-design.md   # design phase
     05-threat-model.md 06-backlog.md 07-test-plan.md 08-delivery.md
     analytics.md            # analytics-design (metrics/events)
-    ESTIMATE.md DECISIONS.md STAKEHOLDER-BRIEF.md HANDOFF.md
+    decisions/              # decision-log — one timestamped file per decision
+    memory/                 # project-memory — INDEX.md + linked notes (Obsidian-style graph)
+    ESTIMATE.md STAKEHOLDER-BRIEF.md HANDOFF.md
     CHANGE-<slug>.md        # lite mode: the collapsed one-file spec for a change
     traceability.md         # the matrix — always current
   user/<feature>.md         # documentation FOR USERS
@@ -137,7 +168,8 @@ by `implement`, `code-review`, and `infra`.
 ## The phases and their gates
 
 **Before anything else, check whether `docs/sdd/` already exists.** If it does,
-**read** `00-overview.md` (gate board), `traceability.md`, and `DECISIONS.md`
+**read** `00-overview.md` (gate board), `traceability.md`, `decisions/`, and
+`memory/INDEX.md`
 first — that's the real state of the project. Resume from there; don't restart,
 re-ask what's already answered, or assume phase 0 just because a new session
 started. If nothing exists yet, **then** create `docs/sdd/00-overview.md` from
@@ -171,9 +203,11 @@ plainly, mark it ⛔, and stop; do not sneak forward.
 
 Cross-cutting, any time: `traceability` (after every ID-changing phase),
 `decision-log` (any non-trivial decision, especially autopilot defaults),
-`stakeholder-brief` (non-technical status/sign-off), `handoff` (long runs or a
-model/tool switch), `debug` (whenever something fails, phases 8/10),
-`git-workflow` (committing during phase 8, PR/changelog at phase 11).
+`project-memory` (record durable codebase knowledge as you learn it; read it
+first next session), `stakeholder-brief` (non-technical status/sign-off),
+`handoff` (long runs or a model/tool switch), `debug` (whenever something fails,
+phases 8/10), `git-workflow` (committing during phase 8, PR/changelog at
+phase 11).
 
 ## How to route
 
@@ -182,9 +216,10 @@ model/tool switch), `debug` (whenever something fails, phases 8/10),
   `stack-conventions`, `database-design`, `ux-design`, `threat-model`,
   `backlog-leveling`, `test-plan`, `code-standards`, `implement`, `code-review`,
   `debug`, `infra`, `coverage-check`, `documentation`, `traceability`,
-  `decision-log`, `handoff`, `stakeholder-brief`, `git-workflow`. Every phase's
-  exit gate above is satisfiable with this pack alone — external skills below
-  are **enhancements you prefer when present, never requirements**.
+  `decision-log`, `project-memory`, `handoff`, `stakeholder-brief`,
+  `git-workflow`. Every phase's exit gate above is satisfiable with this pack
+  alone — external skills below are **enhancements you prefer when present,
+  never requirements**.
 - For planning, worktrees, and grilling — areas this pack doesn't cover —
   **defer to the user's installed skills** (e.g. mattpocock/skills, superpowers)
   when present. Also **prefer** an installed TDD / code-review / debugging skill

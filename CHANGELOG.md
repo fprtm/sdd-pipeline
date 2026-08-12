@@ -3,6 +3,57 @@
 All notable changes to SDD Pipeline. Versioning is [SemVer](https://semver.org/);
 pre-1.0, so minors may still move fast. Plain-language where possible.
 
+## [0.13.0] — 2026-08-12
+A big cohesion pass toward the user's stated goal — this shouldn't feel like "a
+bunch of skills" but a **framework** for building/maintaining apps that's tidy,
+predictable, robust, and easy to maintain. Driven by concrete gaps found in the
+real xplorenusa run.
+### Added
+- **`project-memory`** (27th skill) — a lightweight, Obsidian-style knowledge
+  graph about the codebase: small linked markdown notes (`docs/sdd/memory/`,
+  `INDEX.md` + `[[wikilinked]]` notes) capturing what's *durable and non-obvious*
+  (module shapes, gotchas, domain concepts). Expensive to seed once, cheap
+  forever after — later sessions/cheaper models read memory + a targeted look
+  instead of re-scanning the whole repo. Verified the pattern against how
+  Obsidian graphs + agent-memory setups actually work; kept it deliberately
+  simple and token-light (read the INDEX + a few notes, never the whole vault).
+- **Mandatory "Project setup" step** in the orchestrator (and `AGENTS.md`):
+  first engagement in a project **ensures the repo's `CLAUDE.md`/`AGENTS.md`
+  points at `spec-driven-development` + reading `memory/INDEX.md` first**, adding
+  the pointer if missing. This makes the "govern reliably" lever automatic
+  instead of a manual step the user has to remember — the user asked for this
+  explicitly.
+- **"Explain what you decide or propose"** principle in the orchestrator: when
+  proposing an approach or making an unspecified call, state what / why / the
+  main alternative rejected, in the moment — feeds `decision-log`. Addresses
+  "kurang ngasih penjelasan di setiap keputusan".
+### Changed
+- **`decision-log` is now a timestamped folder, not one file.**
+  `docs/sdd/decisions/YYYY-MM-DD-HHMM-<topic>.md`, one file per decision, each
+  with title / timestamp / status (proposed|decided|locked|superseded) /
+  decided-by / what's locked / why+alternatives / consequences / `[[links]]`.
+  Each decision is now a findable, linkable node (ties into `project-memory`).
+  Reworded as MANDATORY and proactive. (User: decision log must be guaranteed,
+  in a folder, timestamped, with proper title/description/what's-locked.)
+- **FSD and backlog are now held to a "cheap-model-executable" bar** — the
+  actual correction to the earlier "too long" misread: the real problem was the
+  opposite, specs too *high-level/conceptual*, so a junior or cheap model
+  hallucinates the shapes. `to-fsd` now requires naming exact fields+types, the
+  per-endpoint interaction shape, and a worked example; `backlog-leveling` adds
+  a rule that a ticket's steps must name concrete files/functions and point at
+  the exact spec sections defining every shape ("use X from FSD-nnn, don't
+  invent it"), T1 near paint-by-numbers.
+- **`arch-decision` now produces the concrete project structure and the API
+  contract**, not just module boundaries — the user noted these were missing and
+  that FE wasn't proposed in detail. New Step 3a writes the actual FE/BE/packages
+  directory tree (so a ticket never guesses a path) and decides FE structure in
+  detail by default (routing, state, folder layout) as `ADR-FE-xxx`; new Step 3b
+  defines the FE↔BE contract per feature/endpoint (route/method/request/response/
+  errors, referencing the schema). Exit gate now requires both.
+- Role map gains the **project-memory / scribe** touchpoint; the design-phase
+  hand-offs (`stack-conventions` + `database-design` + `ux-design`) are all in
+  the arch-decision exit gate now.
+
 ## [0.12.0] — 2026-08-12
 Prompted by real use on a production project (xplorenusa — reviewed the actual
 `docs/sdd/` output: a copilot+full+docs-only run producing 49 REQ, 44 FSD, 33
@@ -537,6 +588,7 @@ Initial release.
 - Portable SKILL.md skills + templates + multi-agent installer + Claude Code plugin/marketplace manifests.
 - Worked example (`examples/wishlist/`): full spec set + a runnable, tested backend (zero-dep TypeScript on Node type-stripping, HTTP delivery, SSR shared page, infra-as-code; 50 tests, ~99%/96% coverage).
 
+[0.13.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.13.0
 [0.12.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.12.0
 [0.11.1]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.11.1
 [0.11.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.11.0

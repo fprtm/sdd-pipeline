@@ -40,18 +40,20 @@ gates** and keeps a **traceability matrix** linking every requirement to a test:
 | 11 Ship | `documentation` + `git-workflow` (PR/changelog) + finish/`handoff` | deployed, docs written, matrix green |
 | any | `traceability` · `decision-log` · `stakeholder-brief` · `handoff` | matrix, decision "why", non-IT brief, snapshot |
 
-This pack is **self-sufficient** (26 skills; runs end to end alone). For planning,
+This pack is **self-sufficient** (27 skills; runs end to end alone). For planning,
 git worktrees, and grilling, **defer to skills you already have** (mattpocock/
 skills, superpowers); prefer an installed TDD / code-review / debugging skill over
 `implement` / `code-review` / `debug` if present.
 
 ## Tidy output layout (canonical — one home per artifact)
 
-Spec trail → `docs/sdd/` (00–08 + `ESTIMATE.md`, `DECISIONS.md`,
-`STAKEHOLDER-BRIEF.md`, `HANDOFF.md`, `traceability.md`); user docs →
-`docs/user/`; developer docs → `docs/dev/` (+ inline JSDoc/docstrings); code,
-tests, CI, IaC in their normal repo locations. Never scatter files — if it isn't
-in this layout, give it a home here first.
+Spec trail → `docs/sdd/` (00–08 incl. `04-schema.md`/`04-ux-design.md`, plus
+`analytics.md`, `ESTIMATE.md`, `STAKEHOLDER-BRIEF.md`, `HANDOFF.md`,
+`traceability.md`, a `decisions/` folder of timestamped decision files, and a
+`memory/` Obsidian-style knowledge graph); user docs → `docs/user/`; developer
+docs → `docs/dev/` (+ inline JSDoc/docstrings); code, tests, CI, IaC in their
+normal repo locations. Never scatter files — if it isn't in this layout, give it
+a home here first.
 
 **Stack-aware:** `stack-conventions` (phase 4) reads the chosen stack's official
 docs (via a docs tool like Context7 if available, else the official sites) and
@@ -74,6 +76,16 @@ designer, security, delivery lead, QA, engineer, DevOps/SRE, reviewer, tech
 writer). One agent covers the whole org; it announces which role it's "wearing"
 per phase so non-technical users can follow.
 
+## Project setup (once per project)
+
+First time you engage here: (1) ensure this repo's `AGENTS.md`/`CLAUDE.md`
+points the agent at `spec-driven-development` and at reading
+`docs/sdd/memory/INDEX.md` first — add a short pointer if missing (mandatory;
+it's what makes the pipeline get used every session). (2) Read the memory graph
+first if it exists — cheaper than re-scanning the repo. When you propose or
+decide something the user didn't specify, say briefly **what**, **why**, and the
+**main alternative rejected** — never let a decision pass unexplained.
+
 ## Stay in this mode for the whole conversation
 
 Skills aren't automatically "sticky" across turns in most runtimes — once
@@ -89,8 +101,9 @@ separate file — that's `full`-mode only), proactively, not only when asked.
 ## Read state, then ask — don't guess
 
 Before doing anything, **check whether `docs/sdd/` already exists** and read
-`00-overview.md`/`traceability.md`/`DECISIONS.md` if so — resume from the real
-state, don't restart or re-ask what's already answered. **Also read the actual
+`00-overview.md`/`traceability.md`/`decisions/`/`memory/INDEX.md` if so — resume
+from the real state, don't restart or re-ask what's already answered. **Also read
+the actual
 code for whatever specific area is under discussion right now** — not just
 `map-codebase`'s initial (deliberately shallow) pass; go deeper every time a
 new topic/file/feature comes up. Docs and your own earlier summary can both

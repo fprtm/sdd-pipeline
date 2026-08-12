@@ -66,8 +66,43 @@ the **module boundaries** (map to the FSD groupings), and note where the
 **seams for testing** are. If a deep-module design skill (`codebase-design`) is
 available, use it to shape the key interfaces.
 
-If there's any UI, or the FE/BE topology isn't obvious, go read `reference.md`
-now before continuing — those decisions belong in this same gate.
+## Step 3a — the concrete project structure (write the actual tree)
+
+Naming module boundaries isn't enough — **propose and document the actual
+directory layout** so a junior/cheap model knows exactly where every file goes.
+This is part of architecture, not an afterthought. Write the real tree into
+`04-architecture.md`:
+
+```
+apps/
+  api/        # backend — src/modules/<name>/{domain,application,infra}/
+  web/        # frontend — see FE structure below
+  <scanner>/  # any other client
+packages/
+  contracts/  # the FE↔BE contract (OpenAPI + generated types) — the seam
+  domain/     # pure business logic shared where it applies
+  ui/         # shared UI kit (with ux-design tokens)
+```
+State *why* the tree is shaped this way (it follows the dependency rule + the
+topology), and where each FSD module lives in it. A ticket should never have to
+guess a path.
+
+**Frontend structure is decided here too, in detail — not left for later or
+only when asked.** If there's a UI: its folder layout (feature-sliced vs
+layered), routing, server-state vs client-state, where domain logic must NOT
+leak, and how it consumes `packages/contracts`. Record as `ADR-FE-xxx`. Full
+FE-architecture checklist + the topology table: `reference.md`.
+
+## Step 3b — the API contract (per feature/endpoint, concrete)
+
+The **contract between FE and BE is an architecture artifact**, and it must be
+concrete, not "there's a contracts package". For each feature/endpoint the FSDs
+define, the contract names: the **route + method**, the **request shape**
+(fields + types, referencing `04-schema.md`), the **response shape**, and the
+**error responses** (status + meaning). This is what makes `to-fsd` executable
+and stops a cheap model inventing shapes — capture it in the `contracts` package
+(OpenAPI/types) or, at spec stage, inline in each FSD. Contract-first: the shape
+is agreed before the code.
 
 If a datastore was chosen, hand off the actual **schema shape** to
 `database-design` (normalization, table boundaries, indexing, migrations) — this
@@ -83,9 +118,11 @@ constrains). See `reference.md` for a full worked example.
 ## Exit gate
 
 Architecture style chosen with a written dependency rule; stack decided with an
-ADR per significant choice; the user signed off — or, if they deferred, the
+ADR per significant choice; **the concrete project/folder tree written down**
+(incl. FE structure in detail if there's a UI); **the FE↔BE contract shape
+defined per feature/endpoint**; the user signed off — or, if they deferred, the
 agent chose the most robust/scalable/maintainable option **and stated the
 reasoning**. Then invoke `traceability` (register ADR IDs and which FSDs they
-constrain), run **`stack-conventions`** to capture the chosen stack's official
-best practices as enforceable rules (`04-stack-guide.md`), and proceed to the
-**security gate** (`threat-model`).
+constrain), run **`stack-conventions`** and **`database-design`** (if data is
+persisted) and **`ux-design`** (if there's a UI), and proceed to the **security
+gate** (`threat-model`).

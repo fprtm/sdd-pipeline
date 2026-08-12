@@ -26,7 +26,7 @@ role, so one agent (or a human + agent) covers the whole org:
 | DevOps / SRE / platform | 9 | `infra` |
 | Reviewer / staff engineer | 10 | `code-review` |
 | Tech writer | 11, any | `documentation` |
-| Delivery manager / scribe | any | `stakeholder-brief`, `handoff`, `decision-log` |
+| Delivery manager / scribe | any | `stakeholder-brief`, `handoff`, `decision-log`, `project-memory` |
 
 Say this out loud when you switch phases ("acting as the architect now…") so a
 non-technical user can follow who's "in the room". In **copilot** mode the human
@@ -80,7 +80,8 @@ currency as enforced, not aspirational:
 (Full detail lives in each skill's own `SKILL.md`; this is just the map.)
 
 - `traceability` — the matrix; run `tools/check-traceability.mjs` to verify it.
-- `decision-log` — `docs/sdd/DECISIONS.md`; the running "why", including every
+- `decision-log` — `docs/sdd/decisions/` (one timestamped file per decision;
+  what was locked and why), including every
   autopilot default chosen for the user (marked for human review).
 - `stakeholder-brief` — `docs/sdd/STAKEHOLDER-BRIEF.md`; plain-language status
   and a sign-off loop that writes decisions back into the specs.
