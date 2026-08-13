@@ -13,6 +13,42 @@ down so a junior dev — or a cheap model — can execute the easy parts safely.
 > how to use it, the 3 dials (size / mode / stop-point), every skill, and
 > copy-paste recipes for common jobs.
 
+## Start here — what do you want to do?
+
+You don't need to learn 27 skills. There are two ways in:
+
+**🟢 Just want it built or fixed? (great for non-developers too)** — describe
+what you want and let **`spec-driven-development`** handle everything. It
+**right-sizes itself**, so it's *never* too much: a typo gets zero ceremony, a
+feature gets one file, a whole app gets the full treatment.
+> *"build me a booking app"* · *"add CSV export to the reports page"* · *"fix the date bug"*
+
+**🔧 A developer who wants to drive one step at a time?** Reach for the single
+skill that matches your need — like picking one tool off the shelf:
+
+| I just want to… | Reach for |
+|---|---|
+| Build/change something, end to end | **`spec-driven-development`** (right-sizes — fine for a 1-line fix too) |
+| Brainstorm / pressure-test an idea | **`discovery`** (or a grilling skill) |
+| Understand an unfamiliar repo | **`map-codebase`** |
+| Write requirements (PRD) | **`to-prd`** |
+| Write the functional spec | **`to-fsd`** |
+| Decide architecture / stack / folder structure | **`arch-decision`** |
+| Design the database schema | **`database-design`** |
+| Design the UI / design system | **`ux-design`** |
+| Threat-model a flow | **`threat-model`** |
+| Break work into tickets + estimate | **`backlog-leveling`** |
+| Write the test plan | **`test-plan`** |
+| Implement a ticket, test-first | **`implement`** |
+| Fix a bug | **`debug`** |
+| Review a diff | **`code-review`** |
+| Commit / open a PR | **`git-workflow`** |
+
+Everything else in the pack — traceability, coverage checks, the code-quality
+bar, decision log, project memory, CI setup — is **machinery the pipeline runs
+for you**. You rarely invoke it directly; it's there so the results stay
+tested, traceable, and predictable.
+
 ## What makes it different
 
 | Principle | What it means |
@@ -46,7 +82,11 @@ there and it routes the rest. On existing code, a **pre-0 `map-codebase`** step
 runs first (brownfield). For small work the whole thing collapses — see the size
 dial below.
 
-## Skills in this pack
+## Skills in this pack (full reference)
+
+The complete list, for when you want the map — but you don't need to memorize
+it. Most rows are machinery the orchestrator runs for you; see **[Start here](#start-here--what-do-you-want-to-do)**
+above for the handful you actually reach for.
 
 | Skill | Role in the "team" | Phase |
 |-------|--------------------|-------|
@@ -329,7 +369,7 @@ sdd-pipeline/
 
 ## Status
 
-**v0.14.0** — usable end to end; 27 self-sufficient skills; a worked example with a
+**v0.15.0** — usable end to end; 27 self-sufficient skills; a worked example with a
 runnable, tested backend (54 tests); a self-sufficiency audit and a token-usage
 pass behind it. Pre-1.0, so things may still move. See [CHANGELOG.md](CHANGELOG.md).
 Contributions/adjustments welcome — the skills are plain Markdown, so fork and

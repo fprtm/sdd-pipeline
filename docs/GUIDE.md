@@ -24,8 +24,31 @@ build (test-first) → verify → ship — and writes tidy docs as it goes. You 
 it from a one-liner fix (no docs) up to a whole new product, and from "just give
 me a plan" up to "build and deploy it".
 
-Start it by saying: **"use spec-driven-development to <your goal>"**. It will pick
-sensible defaults and tell you what it chose — correct it if you want.
+**You don't need to learn the whole pack. Two ways in:**
+
+- **Just want it built/fixed** (non-developers too): describe it and let
+  **`spec-driven-development`** handle everything — it right-sizes, so it's never
+  "too much" even for a one-line fix. *"build me a booking app" · "add CSV
+  export" · "fix the date bug".*
+- **A developer who wants to drive one step at a time:** reach for the one skill
+  that matches your need (below). That's the modular, tool-off-the-shelf way.
+
+| I just want to… | Reach for |
+|---|---|
+| Build/change something, end to end | **`spec-driven-development`** (right-sizes — fine for a 1-line fix) |
+| Brainstorm / pressure-test an idea | **`discovery`** (or a grilling skill) |
+| Understand an unfamiliar repo | **`map-codebase`** |
+| Write requirements / functional spec | **`to-prd`** / **`to-fsd`** |
+| Decide architecture / stack / structure | **`arch-decision`** |
+| Design the DB schema / the UI | **`database-design`** / **`ux-design`** |
+| Threat-model a flow | **`threat-model`** |
+| Break work into tickets + estimate | **`backlog-leveling`** |
+| Write the test plan / implement / fix a bug | **`test-plan`** / **`implement`** / **`debug`** |
+| Review a diff / commit / open a PR | **`code-review`** / **`git-workflow`** |
+
+The rest (traceability, coverage, code-quality bar, decision log, project
+memory, CI) is **machinery the pipeline runs for you** — you rarely call it
+directly. Full per-skill detail is in [All 27 skills](#all-27-skills-reference).
 
 ---
 

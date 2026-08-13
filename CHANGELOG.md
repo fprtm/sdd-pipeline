@@ -3,6 +3,34 @@
 All notable changes to SDD Pipeline. Versioning is [SemVer](https://semver.org/);
 pre-1.0, so minors may still move fast. Plain-language where possible.
 
+## [0.15.0] — 2026-08-12
+Approachability / onboarding — docs only, no skill or behavior change. The user's
+real concern (clarified after a grilling): the pack is powerful but not *easy or
+comfortable to use*, so people don't adopt it or feel its benefit — and the "too
+modular" feeling is really "I can't tell which door to walk through for my
+specific need" (a small fix? just brainstorm? just design? just tests?). Also
+surfaced a genuine two-audience gap: a non-dev needs one door ("describe it");
+a developer wants the explicit, methodology-correct steps to pick from.
+
+Deliberately did **not** merge skills into bigger ones (the earlier proposal) —
+that would re-bloat the skills, hurt weaker models, and blur the gates, trading
+one presentation problem for three architecture ones. The fix is presentation:
+make the entry points obvious, keep the machinery as machinery.
+### Added
+- **A "Start here — what do you want to do?" section at the top of the README**
+  (and an intent map in GUIDE.md's 30-second version): two clearly labeled doors
+  — (1) "just want it built/fixed" (non-dev too) → `spec-driven-development`,
+  which right-sizes so it's never "too much" even for a one-liner; (2) "a
+  developer who wants to drive one step at a time" → a compact intent→skill
+  table (brainstorm→`discovery`, spec→`to-prd`/`to-fsd`, design→`arch-decision`/
+  `database-design`/`ux-design`, implement→`implement`, fix→`debug`, review→
+  `code-review`, …). The mattpocock-style "reach for one tool" clarity, but at
+  the front where a new user actually looks.
+- The full 27-skill table is relabeled "full reference" with a lead-in saying
+  most rows are **machinery the orchestrator runs for you** — you don't memorize
+  them; the Start-here map is the handful you actually reach for. This directly
+  answers "27 is overwhelming to search through."
+
 ## [0.14.0] — 2026-08-12
 The behavioral/UX pass, plus real fixes grounded in the user's internal-dsg
 BTER branch (`feature/bter-reminder#2890`). Inspecting it showed: the scary
@@ -633,6 +661,7 @@ Initial release.
 - Portable SKILL.md skills + templates + multi-agent installer + Claude Code plugin/marketplace manifests.
 - Worked example (`examples/wishlist/`): full spec set + a runnable, tested backend (zero-dep TypeScript on Node type-stripping, HTTP delivery, SSR shared page, infra-as-code; 50 tests, ~99%/96% coverage).
 
+[0.15.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.15.0
 [0.14.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.14.0
 [0.13.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.13.0
 [0.12.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.12.0
