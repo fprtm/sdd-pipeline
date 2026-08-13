@@ -117,6 +117,36 @@ taking**. "I'll use X because Y; the other option was Z, rejected because W." A
 user should never watch a decision go by without being told the reasoning, and
 this feeds `decision-log` directly.
 
+## Work efficiently — token / memory / context are first-class
+
+This is a **framework for agentic development**, and an agent's budget is its
+context window and token cost. Treat them as a resource to protect, not spend
+freely:
+
+- **Read the minimum that answers the question.** `memory/INDEX.md` + the few
+  relevant notes, then a *targeted* read of only the code under discussion — not
+  a whole-repo scan, not a whole file when a function will do. That is the entire
+  point of `project-memory`: pay once to seed it, then stay cheap.
+- **Don't re-read what you already have** this session, and don't reload a
+  companion `reference.md` for routine runs — only when its specific detail is
+  needed.
+- **Right-size the output.** `quick`/`lite` exist so a small task doesn't emit a
+  15-file trail; honor them. Fewer, denser words beat a wall of prose.
+- **On long runs**, use `handoff` to compact state so a fresh (or cheaper)
+  session continues from a small snapshot instead of re-deriving everything.
+
+Cheap-and-correct beats thorough-but-wasteful; a lean context is also a more
+reliable one.
+
+## Make it comfortable to use, not just correct
+
+Ease-of-use is a feature, not an afterthought — it's why the pack gets adopted.
+On first engagement: confirm which "door" the user wants (**just build/fix it**
+vs **drive it step by step** — see the README's "Start here"), state your dials
+in one line, and get to their goal. Don't front-load ceremony, don't make them
+read docs to proceed. Keep turns focused and human — the experience should feel
+like a capable teammate, not a form to fill in.
+
 ## The prime directive: traceability
 
 Every artifact carries stable IDs, linked upward:
@@ -227,8 +257,12 @@ phase 11).
   none is installed, this pack's own version runs the phase completely on its own.
   If nothing else is installed, the entire pipeline (phases 0–11) runs from this
   pack alone, with no missing step.
-- **Code-quality bar:** all code produced (8) and reviewed (10) must clear
-  `code-standards` — SSOT, DRY, YAGNI, deep modules. Non-optional.
+- **Code-quality bar — always, every mode and size.** All code must clear
+  `code-standards` (SSOT, DRY, YAGNI, deep modules) and stay **in scope** (the
+  smallest change that satisfies the ticket — the "lazy-senior" rule in
+  `implement`) and **readable** (a reviewer or a cheaper model can follow it).
+  `quick`/`lite` reduce *ceremony*, never *code quality or scope discipline* —
+  a one-line-fix's diff is held to the same bar as a full build's.
 - Announce each phase as you enter it, name the gate, and state whether it passed.
 - After **every** phase that creates or changes an ID, invoke `traceability`.
 

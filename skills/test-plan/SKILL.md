@@ -46,6 +46,28 @@ Keep tests behavior-focused (assert observable outcomes, not internals) so they
 survive refactors — this is what makes the suite a safety net rather than a
 maintenance tax.
 
+## Test environment safety — LOCAL only, never production (hard stop)
+
+Tests create, mutate, and delete data. **Running them against a production (or
+any non-local/shared) database or environment can destroy real data — this is
+one of the few truly irreversible mistakes.** So, before running *any* test
+suite (here, in `implement`, `debug`, or `coverage-check`):
+
+- **Confirm the target is local/ephemeral.** `NODE_ENV` (or the stack's
+  equivalent) must be `test`/`development`, and the datastore must be a local or
+  disposable test DB (e.g. `localhost`/`127.0.0.1`, a `*_test` database, an
+  in-memory DB, or a throwaway testcontainer) loaded from a test env file
+  (`.env.test`/`.env.test.local`), **not** the app's real `.env`.
+- **If anything points at production or a non-local host** — `NODE_ENV=production`,
+  a `DATABASE_URL`/DB host that isn't clearly local/test, a shared staging DB, or
+  you simply can't tell — **STOP. Do not run the tests. Ask the user to confirm
+  the correct local test target first.** Never guess; never "just try it."
+- Prefer a dedicated test database and transactional or truncate-between-tests
+  isolation, so a test run can't leak into dev data either.
+
+State the exact test command + which env file it uses in the plan, so the
+executor runs the right one.
+
 ## The pyramid — right shape, not just count
 
 Aim for many fast unit tests, a solid band of integration tests at the seams the

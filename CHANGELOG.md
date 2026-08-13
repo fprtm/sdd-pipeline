@@ -3,6 +3,36 @@
 All notable changes to SDD Pipeline. Versioning is [SemVer](https://semver.org/);
 pre-1.0, so minors may still move fast. Plain-language where possible.
 
+## [0.16.0] — 2026-08-12
+### Added — test safety: local DB only (hard stop)
+- **Before running any test suite, the target must be a local/disposable test
+  DB** (`NODE_ENV=test`/`development`, `localhost`/`*_test`/in-memory/
+  testcontainer, from `.env.test` — not the app's real `.env`). **If anything
+  points at production or a non-local host, or it can't be told, STOP and ask
+  the user — never run.** Running tests against a production DB is one of the few
+  truly irreversible mistakes. Full rule in `test-plan` ("Test environment
+  safety"), enforced with a hard-stop reminder in `implement` before its
+  test-first loop, and mirrored in `AGENTS.md`'s baked-in principles.
+### Added — efficiency as a first-class framework concern
+- New **"Work efficiently — token / memory / context are first-class"**
+  principle in the orchestrator: read the minimum (memory `INDEX.md` + relevant
+  notes + *targeted* code, not whole-repo scans), don't re-read or reload
+  `reference.md` needlessly, right-size output, use `handoff` on long runs.
+  Codifies what `project-memory` / targeted-reads / the reference.md splits were
+  already for — stated plainly because this is a framework for agentic
+  development, not a one-off skill. Mirrored in `AGENTS.md`.
+### Changed
+- **Ease of use is now stated as a runtime behavior, not just docs** — a new
+  "Make it comfortable to use" section in the orchestrator: on first engagement
+  confirm which door (just-build-it vs drive-step-by-step), one-line dials, get
+  to the goal, don't front-load ceremony or make the user read docs to proceed.
+  This carries the v0.15 "Start here" clarity into the actual interaction (the
+  user asked that the comfort be felt in use, not only in the README/GUIDE).
+- **Code-quality bar reworded to hold in every mode and size** — `quick`/`lite`
+  reduce ceremony, never code quality or scope discipline; a one-line fix's diff
+  is held to the same SSOT/DRY/YAGNI + in-scope + readable + surgical bar as a
+  full build. Reinforced in `AGENTS.md` and the GUIDE's guarantees.
+
 ## [0.15.0] — 2026-08-12
 Approachability / onboarding — docs only, no skill or behavior change. The user's
 real concern (clarified after a grilling): the pack is powerful but not *easy or
@@ -661,6 +691,7 @@ Initial release.
 - Portable SKILL.md skills + templates + multi-agent installer + Claude Code plugin/marketplace manifests.
 - Worked example (`examples/wishlist/`): full spec set + a runnable, tested backend (zero-dep TypeScript on Node type-stripping, HTTP delivery, SSR shared page, infra-as-code; 50 tests, ~99%/96% coverage).
 
+[0.16.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.16.0
 [0.15.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.15.0
 [0.14.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.14.0
 [0.13.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.13.0

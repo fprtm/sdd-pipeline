@@ -54,6 +54,15 @@ For each ticket:
    (security-sensitive, cross-cutting) deserves extra care and a review before
    moving on. Don't hand a T3 to autopilot-speed.
 
+## Before running any test: local DB only (hard stop)
+
+Tests mutate and delete data. **Before running the suite, confirm the target is
+a local/disposable test DB** (`NODE_ENV=test`/`development`, a `localhost`/`*_test`/
+in-memory/testcontainer DB from `.env.test`, not the real `.env`). **If anything
+points at production or a non-local host — or you can't tell — STOP and ask the
+user; do not run.** Full rule: `test-plan` → "Test environment safety". This is
+irreversible if you get it wrong; never guess.
+
 ## Test-first loop (red → green → refactor)
 
 For each acceptance criterion / TEST-xxx:

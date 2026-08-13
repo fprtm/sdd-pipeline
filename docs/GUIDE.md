@@ -482,10 +482,17 @@ README per module/slice), with a top-level index in `docs/dev/`.
   drift (untracked ids, broken refs, duplicate id definitions, dead links) so the
   docs can't quietly lie.
 - **Code quality bar** — SSOT / DRY / YAGNI / deep modules, plus your stack's own
-  best practices (from its official docs).
+  best practices (from its official docs) — in every mode, held even for a
+  one-line fix. In-scope, readable, surgical diffs (no silent refactor-balloons).
 - **Security by design** — threats modelled before code; controls tracked to tests.
+- **Tests never touch production data** — the suite runs against a local/
+  disposable DB only; if the environment looks like production, it stops and asks.
+- **Efficient by design** — reads the minimum (memory index + targeted code, not
+  whole-repo scans), right-sizes output, and compacts long runs via `handoff`;
+  context and tokens are treated as a resource.
 - **Right-sized** — a one-liner doesn't get 15 documents.
-- **Dev + non-dev** — every doc opens with a plain-language summary.
+- **Dev + non-dev** — two clear doors, and every doc opens with a plain-language
+  summary.
 
 ---
 

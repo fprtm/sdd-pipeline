@@ -164,3 +164,17 @@ Neither mode nor size ever removes a gate or reduces requirement collection.
   non-developers, then technical detail for developers/agents.
 - **Executor-friendly backlog** — tickets are tiered so trivial work can go to a
   junior dev or a cheap model, complex work to a senior/strong model.
+- **Tests run against LOCAL DB only** — before running any suite, confirm the
+  target is a local/disposable test DB (`NODE_ENV=test`, `localhost`/`*_test`/
+  in-memory, from `.env.test`). If anything points at production or a non-local
+  host, or you can't tell, **STOP and ask** — never run tests against real data.
+- **In scope + readable + surgical** — the smallest change that satisfies the
+  ticket, held to the SSOT/DRY/YAGNI bar, in every mode/size (quick/lite reduce
+  ceremony, never code quality or scope). A refactor of working code is its own
+  decision, not a silent diff-balloon.
+- **Efficiency is first-class** — context window and tokens are a resource:
+  read the minimum (memory INDEX + relevant notes + targeted code, not
+  whole-repo scans), don't re-read, right-size output, use `handoff` on long
+  runs. This is a framework for agentic development, not a one-off skill.
+- **Ease of use is a feature** — two clear doors (just-build-it vs
+  drive-step-by-step), light first turn, feels like a teammate not a form.
