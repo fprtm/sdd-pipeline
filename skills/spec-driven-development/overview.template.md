@@ -1,14 +1,37 @@
-# <Feature / Release> — SDD Overview
+# <Project> — SDD Overview & Index
 
-> **Plain-language summary:** _one paragraph: what this is and where it stands._
+> **Plain-language summary:** _one paragraph: what this project is and where it
+> stands overall._
 
-- **Interaction mode:** autopilot | copilot   ·   **Size:** full | lite
+- **Interaction mode:** autopilot | copilot
 - **Owner (PM):** <name> · **Tech lead:** <name>
-- **Problem (one sentence):**
-- **Status:** discovery | speccing | building | verifying | shipped
 
-## Gate board
-_The tech-lead dashboard. A gate may not be ✅ until its exit condition holds._
+<!--
+  THIS FILE IS THIN. It is the INDEX + global ID registry, not a place to append
+  every topic's brief or board.
+  - LITE / brownfield (many changes over time): fill ONLY the "Topic index" table
+    below — one row per change. Each change's brief, gate board, and IDs live in
+    its own self-contained docs/sdd/changes/YYYY-MM-DD-<topic>.md (see
+    change.template.md). This keeps two sessions from editing the same file and
+    stops this file from ballooning.
+  - FULL build (one cohesive product): use the "Gate board (full build)" section
+    instead — it's one build, so one shared board is correct.
+  Read protocol: read this index first, match your task to a row by its
+  one-line description, then open ONLY that file.
+-->
+
+## Topic index (lite / ongoing changes)
+_One row per change. The `description` is the relevance hook — a reader decides
+from here whether to open the file. Adding a topic = adding one row (no conflict)._
+
+| Date | Topic file | Description (one line) | Status | Branch |
+|------|-----------|------------------------|--------|--------|
+| YYYY-MM-DD | [changes/YYYY-MM-DD-<topic>.md](changes/YYYY-MM-DD-<topic>.md) | <what it is> | building | feat/<slug> |
+
+## Gate board (full build only — one cohesive product)
+_Use this section only for a single full-mode product build; for ongoing lite
+changes, leave it and use each topic file's own mini board instead.
+A gate may not be ✅ until its exit condition holds._
 
 | # | Phase | Gate | State |
 |---|-------|------|-------|

@@ -147,6 +147,14 @@ in one line, and get to their goal. Don't front-load ceremony, don't make them
 read docs to proceed. Keep turns focused and human — the experience should feel
 like a capable teammate, not a form to fill in.
 
+**Match depth to the audience.** Basic, plain questions are exactly right for the
+non-dev "just build it" door — don't drown them in UX/architecture talk. But on
+the **developer door**, or whenever a change **genuinely touches UI or
+architecture** (a new screen, a data-model change, a new integration), proactively
+raise the UX and architecture decisions (phase-4 gate) instead of staying basic —
+a dev wants that surfaced, a non-dev wants it handled with a robust default and a
+one-line "why".
+
 ## The prime directive: traceability
 
 Every artifact carries stable IDs, linked upward:
@@ -181,13 +189,51 @@ context** (a later session, a cheaper model, a teammate). Write for them:
 Test: could a fresh session open this file and act correctly in a minute, without
 re-reading the whole trail? If not, tighten it.
 
+## File & folder management — index-first, one topic per file
+
+Different sessions touch this project at different times. A single shared file
+that everyone appends to (an ever-growing `00-overview.md`, one giant FSD) causes
+three problems at once: **merge conflicts** (two sessions edit it), **unbounded
+growth**, and **token waste** (every session re-reads the whole thing). Avoid all
+three with the same discipline:
+
+- **One topic = one self-contained, dated file.** A lite/brownfield change goes
+  in `docs/sdd/changes/YYYY-MM-DD-<topic-slug>.md` (see `change.template.md`) and
+  carries **its own** mini gate board, IDs, and inline decisions. Date-prefix so
+  the folder is chronological; kebab slug; **one topic, one slug** — never spawn
+  `-v2-ux`/`-scope-and-ux` near-duplicates, update the file or pick a clearly
+  distinct slug. `decisions/` follows the same dated form.
+- **`00-overview.md` is a THIN index, not a ledger.** For ongoing lite work it
+  holds just the **topic registry** (one row per change: date · file · one-line
+  description · status · branch) plus the **global ID next-free** counters.
+  Adding a topic adds *one row* → sessions rarely collide, and it never balloons.
+  (A single **full-mode product** is the one exception: it's one cohesive build,
+  so its one shared gate board in `00-overview.md` is correct.)
+- **Frontmatter description on every artifact.** Each `changes/…` file and memory
+  note opens with a one-line `description` — the relevance hook.
+- **Read index-first (the token-saver).** Before opening bodies:
+  1. Read the indexes — `00-overview.md` (topic registry) and `memory/INDEX.md`.
+  2. **Match your task to a row/note by its one-line description** — don't open
+     files yet.
+  3. Open **only** the file(s) whose description is relevant. Never load the whole
+     trail to find one thing.
+
+## Language: docs follow the user, code artifacts are English
+
+Spec prose and user-facing docs may be written in the **user's language** (that's
+how a non-dev reads them). But **code-level artifacts are always English**:
+identifiers, **JSDoc/docstrings (kept simple)**, and **commit messages / branch
+slugs**. This keeps the code portable and reviewable regardless of the
+conversation language. (`documentation` owns the JSDoc rule; `git-workflow` the
+commit rule.)
+
 ## Workspace layout (canonical — one home per artifact, never scatter files)
 
 ```
 docs/
   sdd/                     # the spec-driven trail
     00-codebase-map.md     # map-codebase (BROWNFIELD only)
-    00-overview.md         # gate board + ID registry (this skill)
+    00-overview.md         # THIN index: topic registry (1 row/change) + global ID registry; full gate board ONLY for a single full-mode product
     00-context.md          # glossary — seeded by discovery, sharpened by domain-modeling if present
     01-prd.md 02-diagrams.md 03-fsd.md
     04-architecture.md 04-stack-guide.md 04-schema.md 04-ux-design.md   # design phase
@@ -196,7 +242,7 @@ docs/
     decisions/              # decision-log — one timestamped file per decision
     memory/                 # project-memory — INDEX.md + linked notes (Obsidian-style graph)
     ESTIMATE.md STAKEHOLDER-BRIEF.md HANDOFF.md
-    changes/                # lite mode: one <topic>.md per feature/fix (NOT appended to the numbered trail)
+    changes/                # lite/brownfield: one dated, SELF-CONTAINED file per topic — YYYY-MM-DD-<topic>.md (own mini board + IDs + decisions); indexed by 1 row in 00-overview. NOT appended to the numbered trail
     traceability.md         # the matrix — always current
   user/<feature>.md         # documentation FOR USERS
   dev/README.md dev/api.md dev/architecture.md   # documentation FOR DEVELOPERS
@@ -229,10 +275,15 @@ Run phases in order. **A gate that fails blocks the next phase** — say so
 plainly, mark it ⛔, and stop; do not sneak forward.
 
 **Definition of Done is explicit, always.** Every phase's exit-gate cell below
-*is* its DoD; every ticket carries its own (acceptance criteria met + its
-TEST-xxx green + traceability + docs updated). Nothing is "done" until its DoD is
-checked — `quick`/`lite` included (a quick fix's DoD: test written, tests green,
-change noted). State the DoD up front, then tick it off; don't leave "done" to feel.
+*is* its DoD; every ticket carries its own: acceptance criteria met + its
+TEST-xxx green + traceability updated + **docs handled**. "Docs handled" =
+**check whether docs already exist for the touched area, then update them if
+behavior changed, or create them if missing** — both the user guide
+(`docs/user/`) and developer docs (`docs/dev/` + inline JSDoc), per
+`documentation`. A missing doc is a *create*, not a pass. Nothing is "done" until
+its DoD is checked — `quick`/`lite` included (a quick fix's DoD: test written,
+tests green, change + docs noted). State the DoD up front, then tick it off;
+don't leave "done" to feel.
 
 | # | Phase | Skill to invoke | Exit gate (must be true to proceed) |
 |---|-------|-----------------|-------------------------------------|
@@ -342,13 +393,15 @@ tasks.** A one-line fix does not need a 15-file doc tree.
   `docs/sdd/` trail (`01-prd.md`, `03-fsd.md`, `04-schema.md`, …). Fixed
   filenames are right here because it's *one* product.
 - **Lite** — a feature or non-trivial change to an existing app: **its own
-  topic-scoped file**, `docs/sdd/changes/<topic-slug>.md` (e.g.
-  `changes/bter-reminder.md`) — a self-contained mini-trail (one-paragraph PRD,
-  one sequence diagram, an FSD bullet list, confirm existing architecture, a
-  quick threat check, 1–3 tickets, test plan). **Do NOT append to the global
-  numbered trail for per-feature work** — appending each feature's spec into a
-  shared `03-fsd.md` is exactly how those files balloon. One topic = one file in
-  `changes/`. Update `traceability.md` only if the project keeps one.
+  dated, self-contained file**, `docs/sdd/changes/YYYY-MM-DD-<topic-slug>.md`
+  (e.g. `changes/2026-08-13-bter-reminder.md`), from `change.template.md` — with
+  frontmatter (`description`/`status`/`branch`/dates) and a self-contained
+  mini-trail: brief, locked decisions, FSD bullets, its **own mini gate board +
+  IDs**, 1–3 tickets, test plan, inline traceability. Then add **one row** to
+  `00-overview.md`'s topic index. **Do NOT append to the global numbered trail,
+  and do NOT put this topic's board/brief in `00-overview.md`** — appending each
+  feature into a shared file is exactly how they balloon and conflict. One topic
+  = one dated file.
 - **Quick** — a tiny, low-risk change: **skip the doc tree entirely.** Understand
   the immediate area, change test-first, run the tests, note the change in one
   sentence (a commit message, or a decision file if something was locked).

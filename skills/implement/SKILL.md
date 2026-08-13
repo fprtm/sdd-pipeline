@@ -105,10 +105,14 @@ that ignores it). Non-negotiable output quality, not a suggestion.
 
 ## Document as you go (same change, not later)
 
-A ticket isn't done until its docs match its code. Update inline JSDoc/docstrings
-for any public interface you touch, and the co-located module/feature doc (see
-`documentation` for placement rules) — while the context is fresh, not deferred
-to ship. `code-review` blocks a public-interface change with no matching doc update.
+A ticket isn't done until its docs match its code. **Check whether docs already
+exist for what you touched, then update them if behavior changed or create them
+if missing** — both the user guide and developer docs, plus inline
+JSDoc/docstrings for any public interface (see `documentation`). Do it while the
+context is fresh, not deferred to ship; a missing doc is a *create*, not a skip.
+**JSDoc stays simple and is written in English** (code artifacts are English even
+when specs/user docs aren't). `code-review` blocks a public-interface change with
+no matching doc.
 
 ## Keep the trail honest as you go
 

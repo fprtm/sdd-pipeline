@@ -3,6 +3,46 @@
 All notable changes to SDD Pipeline. Versioning is [SemVer](https://semver.org/);
 pre-1.0, so minors may still move fast. Plain-language where possible.
 
+## [0.19.0] — 2026-08-13
+File & folder management overhaul, grounded in the user's real runs
+(`internal-dsg`, `internal-dsg-2`): topic-scoping worked, but `00-overview.md` was
+a single shared file accumulating every topic's brief + gate board + IDs — a
+source of merge conflicts (two sessions edit it), unbounded growth, and token
+waste (every session re-reads it whole). Plus messy, near-duplicate filenames
+(`product-v2-ux` vs `product-v2-scope-and-list-ux`) and an empty `memory/INDEX`.
+### Changed — one topic = one dated, self-contained file; overview is a thin index
+- **`docs/sdd/changes/` files are now dated + self-contained:**
+  `YYYY-MM-DD-<topic-slug>.md` (folder stays chronological), each carrying **its
+  own** mini gate board, IDs, and inline decisions. New bundled
+  **`change.template.md`** with that shape + frontmatter.
+- **`00-overview.md` is now a THIN index**, not a ledger: a topic registry (one
+  row per change — date · file · one-line description · status · branch) + the
+  global ID next-free counters. Adding a topic adds *one row* → sessions rarely
+  collide and it never balloons. (A single **full-mode product** keeps its one
+  shared gate board — that case is one cohesive build.) `overview.template.md`
+  restructured accordingly.
+- **Naming convention:** kebab, one topic = one slug, no `-v2-ux` near-duplicates
+  (update the file or pick a clearly distinct slug).
+### Added — index-first, description-gated reading (the token-saver)
+- Every `changes/…` file and memory note carries a one-line **frontmatter
+  `description`** (the relevance hook). The read protocol is now explicit: read
+  the indexes (`00-overview.md` + `memory/INDEX.md`), **match the task to a
+  row/note by its description**, then open **only** the relevant file — never load
+  the whole trail to find one thing. Mirrored in `project-memory` and `AGENTS.md`.
+### Added — docs currency is enforced (check → update or create)
+- `documentation` + `implement` + the DoD: before a change is done, **check
+  whether user + developer docs exist for the touched area; update if behavior
+  changed, create if missing** (a missing doc is a create, not a skip).
+### Added — code artifacts are English; docs follow the user
+- Identifiers, **JSDoc (kept simple)**, and **commit messages / branch slugs** are
+  always English, even when specs and user-facing docs are in the user's language.
+  Stated in the orchestrator, `documentation` (JSDoc), `git-workflow` (commits),
+  and `AGENTS.md`.
+### Added — depth matches the audience
+- Basic questions are right for the non-dev door; on the **developer** door, or
+  when a change genuinely touches **UI or architecture**, the agent proactively
+  surfaces the UX/architecture decisions instead of staying basic.
+
 ## [0.18.0] — 2026-08-13
 ### Added — `self-update` skill (28th): the pack keeps itself current
 - New **`self-update`** skill: ask the agent to "update sdd-pipeline" and it
@@ -738,6 +778,7 @@ Initial release.
 - Portable SKILL.md skills + templates + multi-agent installer + Claude Code plugin/marketplace manifests.
 - Worked example (`examples/wishlist/`): full spec set + a runnable, tested backend (zero-dep TypeScript on Node type-stripping, HTTP delivery, SSR shared page, infra-as-code; 50 tests, ~99%/96% coverage).
 
+[0.19.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.19.0
 [0.18.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.18.0
 [0.17.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.17.0
 [0.16.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.16.0

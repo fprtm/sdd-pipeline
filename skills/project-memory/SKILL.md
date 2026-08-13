@@ -34,6 +34,7 @@ Each note has short frontmatter + a focused body that links to related notes:
 ```markdown
 ---
 title: Quota reservation (no-oversell)
+description: why concurrent checkouts serialize on the (variant,date) row-lock
 type: gotcha        # module | concept | gotcha | how-to | pointer
 updated: 2026-08-12
 ---
@@ -60,9 +61,11 @@ Source of truth: [[04-schema]] quota table, FSD-007.
   split it — small notes link better and load cheaper.
 - **Link liberally** with `[[slug]]` — a link to a note that doesn't exist yet
   is fine; it marks something worth writing later. The links are the graph.
-- **`INDEX.md` is the map** — one line per note (`- [[slug]] — hook`), always
-  current. Read it first; then open only the few notes that matter to the task.
-  **Never load the whole vault** — that defeats the point.
+- **`INDEX.md` is the map** — one line per note (`- [[slug]] — hook`, the hook =
+  the note's `description`), always current. Read it first, **match your task to
+  a note by its hook/description, then open only those few notes**. Never load the
+  whole vault — that defeats the point. (Same index-first, description-gated read
+  the orchestrator uses for `00-overview.md`'s topic registry.)
 - **Update a note when it's wrong; delete it when obsolete.** Stale memory is
   worse than none.
 - **Seed on brownfield, grow as you go.** `map-codebase`'s pass is the first

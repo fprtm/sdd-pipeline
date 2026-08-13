@@ -51,8 +51,10 @@ skills, superpowers); prefer an installed TDD / code-review / debugging skill ov
 
 Spec trail → `docs/sdd/` (00–08 incl. `04-schema.md`/`04-ux-design.md`, plus
 `analytics.md`, `ESTIMATE.md`, `STAKEHOLDER-BRIEF.md`, `HANDOFF.md`,
-`traceability.md`, a `decisions/` folder of timestamped decision files, and a
-`memory/` Obsidian-style knowledge graph); user docs → `docs/user/`; developer
+`traceability.md`, a `changes/` folder of **dated, self-contained per-topic
+files** (`YYYY-MM-DD-<topic>.md`) indexed by a **thin `00-overview.md`**, a
+`decisions/` folder of timestamped decision files, and a `memory/` Obsidian-style
+knowledge graph); user docs → `docs/user/`; developer
 docs → `docs/dev/` (+ inline JSDoc/docstrings); code, tests, CI, IaC in their
 normal repo locations. Never scatter files — if it isn't in this layout, give it
 a home here first.
@@ -191,3 +193,16 @@ Neither mode nor size ever removes a gate or reduces requirement collection.
   Nothing is "done" until its DoD is checked, `quick`/`lite` included.
 - **Keep a live to-do list** in the host's native tool, mirrored from the gate
   board / open tickets and updated as phases and tickets move.
+- **One topic = one dated, self-contained file** (`changes/YYYY-MM-DD-<topic>.md`,
+  its own mini board + IDs + decisions); `00-overview.md` is a **thin index** (one
+  row per topic: date · file · one-line description · status · branch) + global
+  ID registry — never a place to append every topic's brief/board (that's what
+  conflicts and balloons). **Read index-first:** match the task to a row/note by
+  its description, then open only the relevant file. Frontmatter `description` on
+  every artifact.
+- **Docs: check, then update or create** — before done, look for existing user +
+  developer docs for the touched area; update if behavior changed, create if
+  missing (a missing doc is a create, not a skip). Part of the DoD.
+- **Code artifacts are English; docs follow the user.** Identifiers, JSDoc (kept
+  simple), commit messages, and branch slugs are always English — even when specs
+  and user-facing docs are in the user's language.

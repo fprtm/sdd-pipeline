@@ -15,6 +15,20 @@ Two audiences, two very different documents, both kept honest and in sync with
 the specs. Docs that drift from reality are worse than none, so **derive** from
 the SSOT (PRD/FSD/diagrams/contract) and link back to it rather than restating it.
 
+## Check first — then update or create (don't skip because none exists)
+
+Before finishing any change, **look for existing docs for the area you touched**
+— `docs/user/<feature>.md`, the relevant `docs/dev/` pages, and the JSDoc on the
+interfaces you changed. Then:
+
+- **Exists + behavior changed →** update it (and its examples) in the *same*
+  change, not later.
+- **Doesn't exist →** create it — both the user guide and the developer docs.
+  A missing doc is a task to do, not a reason to skip. This is part of the
+  ticket's Definition of Done.
+
+Never leave a public interface changed with stale or absent docs.
+
 Tidy placement (canonical — don't scatter):
 - **User docs →** `docs/user/<feature>.md`
 - **Developer docs →** `docs/dev/` (`README.md`, `api.md`, `architecture.md`)
@@ -49,7 +63,10 @@ For whoever *extends or maintains* it — including a cheaper model or a new dev
   every **public** interface (the deep module's surface): what it does, params,
   returns, errors thrown, and the *why* for anything non-obvious. Don't document
   the obvious or restate the code. Private internals get a comment only when the
-  reasoning isn't clear from the code.
+  reasoning isn't clear from the code. **Keep it simple, and always write it in
+  English** — code-level artifacts (identifiers, JSDoc, comments) are English
+  even when the spec and user docs are in the user's language. A one-line JSDoc
+  that states purpose + params + returns beats a paragraph.
 - **`docs/dev/api.md`** — the API/contract reference: endpoints, request/response
   shapes (from the `contract` package — generate from it where possible so it
   can't drift), status codes, auth, and which SEC controls apply.

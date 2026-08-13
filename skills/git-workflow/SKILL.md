@@ -34,6 +34,10 @@ subject line already makes it obvious.>
 Refs: TICKET-018, FSD-012 [, SEC-008 if a security control was touched]
 ```
 
+- **Always write the commit message in English** — subject, body, and scope —
+  even when the specs and conversation are in another language. Commit history is
+  a code-level artifact (like identifiers and JSDoc); English keeps it portable
+  and reviewable. Same for branch slugs.
 - `<type>`: `feat`, `fix`, `refactor`, `test`, `docs`, `chore` — pick the one
   that matches what most of the diff is.
 - **Why, not what** — the diff already shows what changed; the message earns
