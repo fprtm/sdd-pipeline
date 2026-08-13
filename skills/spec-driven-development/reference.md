@@ -3,7 +3,50 @@
 This file holds elaboration that isn't needed to route or gate correctly — the
 core `SKILL.md` is self-sufficient without it. Read this only for the specific
 detail you need (announcing roles in autopilot, adapting doc placement to a
-non-default topology, or understanding why doc-currency is enforced).
+non-default topology, understanding why doc-currency is enforced, the shared-file
+failure modes, the setup pointer text, or the full skill roster).
+
+## Project-setup pointer (verbatim)
+
+The minimal block to add to the project's `CLAUDE.md`/`AGENTS.md` in the setup
+step (core `SKILL.md` → "Project setup"):
+
+> `## Development process` — For any feature/bugfix/dev work, use the
+> `spec-driven-development` skill (it right-sizes itself). At the start of a
+> session on existing work, read `docs/sdd/memory/INDEX.md` and the relevant
+> memory notes, and the current `docs/sdd/` state, before acting.
+
+## Why one topic = one file (the shared-file failure modes)
+
+The core rule "one dated self-contained file per topic; `00-overview.md` is a thin
+index" exists because a single shared file that every session appends to fails
+three ways at once:
+
+- **Merge conflicts** — two sessions editing the same `00-overview.md` (or one
+  giant `03-fsd.md`) at different times collide, or one silently overwrites the
+  other's state.
+- **Unbounded growth** — each feature's brief + board + IDs piling into one file
+  makes it grow without limit.
+- **Token waste** — every later session must re-read the whole thing to find one
+  relevant part, which is exactly what the index-first, description-gated read
+  avoids.
+
+The numbered `docs/sdd/` trail is the deliberate exception: a single full-mode
+product is *one* cohesive build, so one shared gate board and fixed filenames are
+correct there. Topic-scoping (`changes/`, `decisions/`, `memory/` as folders of
+one-file-per-topic) is for anything that *recurs* over time.
+
+## Full skill roster (self-sufficiency)
+
+Every phase's exit gate is satisfiable with this pack alone. Pipeline skills:
+`map-codebase`, `discovery`, `to-prd`, `analytics-design`, `to-diagrams`,
+`to-fsd`, `arch-decision`, `stack-conventions`, `database-design`, `ux-design`,
+`threat-model`, `backlog-leveling`, `test-plan`, `code-standards`, `implement`,
+`code-review`, `debug`, `infra`, `coverage-check`, `documentation`. Cross-cutting:
+`traceability`, `decision-log`, `project-memory`, `handoff`, `stakeholder-brief`,
+`git-workflow`. Maintenance (not a phase): `self-update`. External skills
+(mattpocock/skills, superpowers, an installed TDD/review/debug skill) are preferred
+when present but never required.
 
 ## The team this represents
 

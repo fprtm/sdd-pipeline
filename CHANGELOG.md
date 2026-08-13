@@ -3,6 +3,29 @@
 All notable changes to SDD Pipeline. Versioning is [SemVer](https://semver.org/);
 pre-1.0, so minors may still move fast. Plain-language where possible.
 
+## [0.20.0] — 2026-08-13
+Orchestrator slimming pass — **no behavior change, no rule removed.** The core
+`spec-driven-development/SKILL.md` (loaded every run) had grown to ~4520 words as
+each release added behavior; this moves the *narrative, rationale, and examples*
+into the on-demand `reference.md` while keeping **every rule** in the core, stated
+imperatively.
+### Changed
+- Core `SKILL.md` **4522 → 3342 words (−26%)**; `reference.md` 750 → 1060. All 51
+  behavioral rules verified still present (cheat-sheet, re-engage-per-request,
+  copilot contract, DoD, docs-currency, index-first file management, English code
+  artifacts, code-quality bar, mode/size/stop-point dials, gate table, modular
+  table, …). Prose compressed to tight imperative bullets; the gate table, modular
+  table, and workspace tree kept verbatim (they're the routing/gating spec).
+- Moved to `reference.md`: the verbatim `CLAUDE.md`/`AGENTS.md` setup pointer, the
+  shared-file failure-mode rationale (why one-topic-per-file), and the full
+  self-sufficiency skill roster.
+### Note
+- The remaining bulk is mostly irreducible structured content (the phase/gate
+  table, the "which skill for which job" table, the workspace tree). Going
+  materially below ~3300 would mean relocating one of those into `reference.md`,
+  which the agent would then have to reload for routine routing — a trade against
+  the efficiency goal, so left in the core.
+
 ## [0.19.0] — 2026-08-13
 File & folder management overhaul, grounded in the user's real runs
 (`internal-dsg`, `internal-dsg-2`): topic-scoping worked, but `00-overview.md` was
@@ -778,6 +801,7 @@ Initial release.
 - Portable SKILL.md skills + templates + multi-agent installer + Claude Code plugin/marketplace manifests.
 - Worked example (`examples/wishlist/`): full spec set + a runnable, tested backend (zero-dep TypeScript on Node type-stripping, HTTP delivery, SSR shared page, infra-as-code; 50 tests, ~99%/96% coverage).
 
+[0.20.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.20.0
 [0.19.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.19.0
 [0.18.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.18.0
 [0.17.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.17.0
