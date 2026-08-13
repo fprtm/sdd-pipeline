@@ -38,9 +38,11 @@ gates** and keeps a **traceability matrix** linking every requirement to a test:
 | 9 Infra & delivery | `infra` | CI/CD, IaC, envs, secrets, observability, deploy |
 | 10 Verify gate | `coverage-check` + `code-review` + `threat-model` re-check (+ `debug`) | proof |
 | 11 Ship | `documentation` + `git-workflow` (PR/changelog) + finish/`handoff` | deployed, docs written, matrix green |
-| any | `traceability` · `decision-log` · `stakeholder-brief` · `handoff` | matrix, decision "why", non-IT brief, snapshot |
+| any | `traceability` · `decision-log` · `stakeholder-brief` · `handoff` · `self-update` | matrix, decision "why", non-IT brief, snapshot, pack self-update |
 
-This pack is **self-sufficient** (27 skills; runs end to end alone). For planning,
+This pack is **self-sufficient** (28 skills; the pipeline runs end to end alone —
+`self-update` is a maintenance helper that keeps the installed pack current from
+the remote, not a phase). For planning,
 git worktrees, and grilling, **defer to skills you already have** (mattpocock/
 skills, superpowers); prefer an installed TDD / code-review / debugging skill over
 `implement` / `code-review` / `debug` if present.

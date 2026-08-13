@@ -15,7 +15,7 @@ down so a junior dev — or a cheap model — can execute the easy parts safely.
 
 ## Start here — what do you want to do?
 
-You don't need to learn 27 skills. There are two ways in:
+You don't need to learn 28 skills. There are two ways in:
 
 **🟢 Just want it built or fixed? (great for non-developers too)** — describe
 what you want and let **`spec-driven-development`** handle everything. It
@@ -117,9 +117,11 @@ above for the handful you actually reach for.
 | `project-memory` | Obsidian-style codebase knowledge graph — cheap to re-read next session | any |
 | `stakeholder-brief` | plain-language brief + sign-off for non-IT | any |
 | `handoff` | resumable snapshot for another agent / cheaper model | any |
+| `self-update` | check the remote and update the installed pack (no manual updating) | any |
 
-27 self-sufficient skills — every phase's gate is satisfiable with this pack
-alone, nothing else required. If you also have other skills installed for
+28 skills. The pipeline is **self-sufficient** — every phase's gate is
+satisfiable with this pack alone, nothing else required (`self-update` is a
+maintenance helper, not a phase). If you also have other skills installed for
 planning, worktrees, grilling, TDD, review, or debugging, this pack prefers
 those when present; otherwise its own versions run the phase completely.
 
@@ -331,7 +333,10 @@ e.g. *"…copilot, lite"* or *"…docs-only, just a plan"*. See the
 
 ## Updating
 
-How you installed determines how you update:
+**Easiest: just ask the agent to "update sdd-pipeline".** The `self-update` skill
+checks the remote, tells you if a newer release exists, and runs (or hands you)
+the right update commands for your install method — so you don't track releases
+by hand. What it does under the hood, by method:
 
 | Install method | Update |
 |---|---|
@@ -369,9 +374,10 @@ sdd-pipeline/
 
 ## Status
 
-**v0.17.0** — usable end to end; 27 self-sufficient skills; a worked example with a
-runnable, tested backend (54 tests); a self-sufficiency audit and a token-usage
-pass behind it. Pre-1.0, so things may still move. See [CHANGELOG.md](CHANGELOG.md).
+**v0.18.0** — usable end to end; 28 skills (self-sufficient pipeline + a
+`self-update` maintainer); a worked example with a runnable, tested backend
+(54 tests); a self-sufficiency audit and a token-usage pass behind it. Pre-1.0,
+so things may still move. See [CHANGELOG.md](CHANGELOG.md).
 Contributions/adjustments welcome — the skills are plain Markdown, so fork and
 adapt to your own conventions.
 

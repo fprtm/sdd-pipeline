@@ -411,6 +411,7 @@ one you want, like reaching for a single tool. Clear map:
 | **Commit / open a PR** | `git-workflow` |
 | **Record a decision** | `decision-log` |
 | **Remember something about the codebase** | `project-memory` |
+| **Update this pack to the latest release** | `self-update` |
 
 Invoking one directly loses the automatic gating/traceability wiring — that's
 the trade for speed. If you want the chain enforced but no code, use `docs-only`

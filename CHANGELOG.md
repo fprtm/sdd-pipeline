@@ -3,6 +3,29 @@
 All notable changes to SDD Pipeline. Versioning is [SemVer](https://semver.org/);
 pre-1.0, so minors may still move fast. Plain-language where possible.
 
+## [0.18.0] — 2026-08-13
+### Added — `self-update` skill (28th): the pack keeps itself current
+- New **`self-update`** skill: ask the agent to "update sdd-pipeline" and it
+  checks the remote for a newer release and updates the installed copy via
+  whatever install method is in use — no more tracking releases by hand.
+  - Bundled **`check-update.mjs`** (zero-dep): reads the local `version` +
+    `repository` from `plugin.json`, compares against the highest remote release
+    tag (falls back to raw `plugin.json` over HTTP), prints `local` / `latest` /
+    a `RESULT:` line, and exits `0` up-to-date / `10` update-available.
+  - **Safety-gated:** refuses to clobber a working clone of the source (dirty
+    tree / commits ahead → STOP); updating changes config, so it confirms first.
+  - **Method-aware update:** Claude Code plugin → hands you `/plugin marketplace
+    update` + `/plugin update` (agents can't run slash commands); `install.sh`
+    copy → `git pull` + re-run the installer; live-read clone → `git pull` only.
+  - Verifies the new version afterward and gives a short plain-language recap of
+    what changed across the range (from `CHANGELOG.md`).
+- Added `homepage` + `repository` to `plugin.json` (SSOT for the remote URL the
+  checker reads).
+- Wired into the README (skills table + "Updating" now leads with the skill),
+  `AGENTS.md`, the orchestrator's modular "which skill for which job" table, and
+  the GUIDE catalog. Counts updated 27 → **28** (the pipeline is still
+  self-sufficient on its own; `self-update` is a maintenance helper, not a phase).
+
 ## [0.17.0] — 2026-08-13
 Output-quality + working-rhythm pass, driven by how these files actually get
 read: **each session is a different context** (later run, cheaper model,
@@ -715,6 +738,7 @@ Initial release.
 - Portable SKILL.md skills + templates + multi-agent installer + Claude Code plugin/marketplace manifests.
 - Worked example (`examples/wishlist/`): full spec set + a runnable, tested backend (zero-dep TypeScript on Node type-stripping, HTTP delivery, SSR shared page, infra-as-code; 50 tests, ~99%/96% coverage).
 
+[0.18.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.18.0
 [0.17.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.17.0
 [0.16.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.16.0
 [0.15.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.15.0

@@ -9,7 +9,7 @@ read a recipe when you have a specific job.
 - [How the agent picks defaults](#how-the-agent-picks-defaults)
 - [Recipes](#recipes-copy-a-phrasing) — copy a phrasing for your situation
 - [The phases (0–11)](#the-phases-0-11)
-- [All 27 skills](#all-27-skills-reference)
+- [All 28 skills](#all-28-skills-reference)
 - [Where files go](#where-files-go)
 - [What it guarantees](#what-it-guarantees)
 - [FAQ](#faq)
@@ -48,7 +48,7 @@ me a plan" up to "build and deploy it".
 
 The rest (traceability, coverage, code-quality bar, decision log, project
 memory, CI) is **machinery the pipeline runs for you** — you rarely call it
-directly. Full per-skill detail is in [All 27 skills](#all-27-skills-reference).
+directly. Full per-skill detail is in [All 28 skills](#all-28-skills-reference).
 
 ---
 
@@ -251,7 +251,7 @@ nothing upstream, the same id accidentally defined twice, and dead doc links.
 
 ---
 
-## All 27 skills (reference)
+## All 28 skills (reference)
 
 You rarely call these directly — the orchestrator routes to them — but here's
 **when each one fits, what it produces, and a tip** so nothing is a mystery.
@@ -432,6 +432,13 @@ cold.
 *When:* a session is getting long, or you're switching tools/models.
 *Produces:* `HANDOFF.md` — self-contained, no memory of this conversation
 required to pick it up.
+
+**`self-update`** — keep the installed pack current without doing it by hand.
+*When:* you want to check for / pull the latest release ("update sdd-pipeline",
+"am I on the latest?"). *Produces:* a version check against the remote and, once
+you confirm, the right update for your install method (plugin `/plugin update`,
+or `git pull` + re-run `install.sh`, or just `git pull` for a live-read clone).
+*Tip:* it won't overwrite a clone you're developing — it's for installed copies.
 
 ### General recommendations
 
