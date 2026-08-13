@@ -57,30 +57,30 @@ asks to stop.
 - If a follow-up question seems unrelated to the work in progress, don't assume
   the pipeline is over — briefly note you're still in `<mode>`/`<phase>` and
   check whether the user wants to continue there or step away from it.
+- **Keep a live task list in your platform's native to-do tool.** Mirror the
+  gate board / open tickets into it and update status as you go — phase entered,
+  ticket red→green, gate passed. It's the at-a-glance state for you and the user,
+  and it survives a context switch better than prose. Derive it from what's
+  written (`00-overview.md` / the `changes/<topic>.md`), and keep the two in sync.
 
 ## Read state, then ask — don't guess
 
-Before acting: **read the existing state** — this project's `docs/sdd/` if any,
-**and the actual code for whatever specific area is under discussion right
-now**. `map-codebase`'s initial pass is deliberately shallow outside the
-immediate touch area (see that skill's "what wasn't explored" note) — that's
-not an excuse to stay shallow forever. **Every time a new topic/file/feature
-comes up mid-conversation, read the real code for it before discussing,
-deciding, or changing anything about it** — docs and your own earlier
-summary of a file can both drift from what the code actually does; the code
-is the ground truth. Guessing what's already true, or trusting a stale mental
-model from earlier in the conversation, wastes the user's time correcting you.
-Then, for anything **consequential that isn't already answered by that
-state**, **ask rather than assume** — this holds in `copilot` always, and in
-`autopilot` for anything blocking/irreversible (autopilot batches routine
-unknowns into a recorded default, per Modes below, but a genuinely
-consequential unclear point still gets asked, not guessed).
+Before acting, **read the existing state** — this project's `docs/sdd/` if any,
+**and the actual code for the specific area under discussion**. `map-codebase`'s
+first pass is deliberately shallow outside the touch area; that's no excuse to
+stay shallow. **Every time a new topic/file/feature comes up, read its real code
+before discussing, deciding, or changing it** — docs and your own earlier summary
+both drift from what the code does; the code is ground truth, and guessing wastes
+the user's time. Then, for anything **consequential the state doesn't already
+answer**, **ask rather than assume** — always in `copilot`; in `autopilot`, for
+anything blocking/irreversible (routine unknowns get batched into a recorded
+default, but a genuinely consequential unknown still gets asked).
 
-**When you ask, prefer your platform's native structured question tool** (e.g.
-a multiple-choice/quick-select UI), if one is available, over a plain-text
-question buried in prose — it's faster for the user to answer, and batches
-cleanly for autopilot's "ask once, batched" requirement. Fall back to a plain
-question only when no such tool exists.
+**Whenever you ask, brainstorm, or seek confirmation, use your platform's native
+structured question tool** (a multiple-choice / quick-select UI) — not a
+plain-text question buried in prose. It's faster to answer, batches cleanly for
+autopilot's "ask once" rule, and makes the choice explicit. Only fall back to a
+plain question when no such tool exists in the runtime.
 
 For the full team/role narrative, extended topology-placement rules, and the
 rationale behind doc-currency enforcement, see [`reference.md`](reference.md) next
@@ -164,6 +164,23 @@ freelance tickets/tests, dead links).
 Every artifact opens with a **plain-language summary** (3–6 sentences a
 non-developer can read), then technical detail below it.
 
+## Write for the next reader — a different session, human or AI
+
+Specs are read far more than written, usually by **someone without your current
+context** (a later session, a cheaper model, a teammate). Write for them:
+
+- **Split by concern — never one giant file.** One topic per file (topic-scoping
+  / `changes/<topic>.md`); within a file, short scannable sections with stable
+  IDs. A reader should find the one thing they need without reading the rest.
+- **To the point.** State the spec/decision and its *why*; cut restatement and
+  filler. Dense and skimmable beats long. Drop any section that isn't load-bearing.
+- **Self-contained.** Each file makes sense cold — link *up* the traceability
+  chain instead of copying context, but name its own subject so a reader landing
+  there isn't lost.
+
+Test: could a fresh session open this file and act correctly in a minute, without
+re-reading the whole trail? If not, tighten it.
+
 ## Workspace layout (canonical — one home per artifact, never scatter files)
 
 ```
@@ -210,6 +227,12 @@ with a reason) as you enter/exit each phase, and bump the ID registry's
 
 Run phases in order. **A gate that fails blocks the next phase** — say so
 plainly, mark it ⛔, and stop; do not sneak forward.
+
+**Definition of Done is explicit, always.** Every phase's exit-gate cell below
+*is* its DoD; every ticket carries its own (acceptance criteria met + its
+TEST-xxx green + traceability + docs updated). Nothing is "done" until its DoD is
+checked — `quick`/`lite` included (a quick fix's DoD: test written, tests green,
+change noted). State the DoD up front, then tick it off; don't leave "done" to feel.
 
 | # | Phase | Skill to invoke | Exit gate (must be true to proceed) |
 |---|-------|-----------------|-------------------------------------|

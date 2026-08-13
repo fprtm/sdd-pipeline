@@ -110,8 +110,10 @@ new topic/file/feature comes up. Docs and your own earlier summary can both
 drift from what the code actually does — the code is the ground truth. For
 anything consequential that state doesn't already answer, **ask rather than
 assume** (always in copilot; in autopilot, for anything blocking/irreversible —
-routine unknowns still get batched into a recorded default). If your host tool
-offers a structured question UI, prefer it over a plain-text question.
+routine unknowns still get batched into a recorded default). **Whenever you ask,
+brainstorm, or seek confirmation, use your host's native structured question tool**
+(quick-select UI), not a plain-text question — fall back to plain text only when
+the runtime has none.
 
 ## Modes
 
@@ -178,3 +180,12 @@ Neither mode nor size ever removes a gate or reduces requirement collection.
   runs. This is a framework for agentic development, not a one-off skill.
 - **Ease of use is a feature** — two clear doors (just-build-it vs
   drive-step-by-step), light first turn, feels like a teammate not a form.
+- **Write for the next reader** — a later session or cheaper model reads these
+  cold: split by topic (never one giant file), scannable sections with stable
+  IDs, to the point, each file self-contained. Could a fresh session act on it in
+  a minute? If not, tighten it.
+- **Definition of Done, always explicit** — each phase's exit gate is its DoD;
+  each ticket's DoD = acceptance criteria + tests green + traceability + docs.
+  Nothing is "done" until its DoD is checked, `quick`/`lite` included.
+- **Keep a live to-do list** in the host's native tool, mirrored from the gate
+  board / open tickets and updated as phases and tickets move.

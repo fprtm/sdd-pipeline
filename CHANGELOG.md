@@ -3,6 +3,30 @@
 All notable changes to SDD Pipeline. Versioning is [SemVer](https://semver.org/);
 pre-1.0, so minors may still move fast. Plain-language where possible.
 
+## [0.17.0] — 2026-08-13
+Output-quality + working-rhythm pass, driven by how these files actually get
+read: **each session is a different context** (later run, cheaper model,
+teammate), so the artifacts have to be re-understandable cold, fast.
+### Added
+- **"Write for the next reader" principle** (orchestrator + `AGENTS.md`): split
+  by topic — never one giant file; short scannable sections with stable IDs;
+  to the point; each file self-contained. The test: could a fresh session open
+  this file and act on it in a minute without re-reading the whole trail?
+- **Definition of Done is explicit, always** — each phase's exit-gate cell *is*
+  its DoD; each ticket's DoD = acceptance criteria + its TEST-xxx green +
+  traceability + docs updated. Nothing is "done" until its DoD is ticked off,
+  `quick`/`lite` included. State it up front; don't leave "done" to feel.
+- **Live to-do list in the host's native tool** — mirror the gate board / open
+  tickets into it and keep status current (phase entered, ticket red→green, gate
+  passed), derived from and kept in sync with what's written.
+### Changed
+- **Asking/brainstorming/confirming now *always* uses the host's native
+  structured-question UI** (was "prefer if available") — plain text only as a
+  fallback when the runtime has none.
+- Tightened the orchestrator's "Read state, then ask" prose (same rules, less
+  restatement). Note: the orchestrator (~4000 words) is the one real outlier;
+  every other skill is already 430–1158 words / to the point.
+
 ## [0.16.0] — 2026-08-12
 ### Added — test safety: local DB only (hard stop)
 - **Before running any test suite, the target must be a local/disposable test
@@ -691,6 +715,7 @@ Initial release.
 - Portable SKILL.md skills + templates + multi-agent installer + Claude Code plugin/marketplace manifests.
 - Worked example (`examples/wishlist/`): full spec set + a runnable, tested backend (zero-dep TypeScript on Node type-stripping, HTTP delivery, SSR shared page, infra-as-code; 50 tests, ~99%/96% coverage).
 
+[0.17.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.17.0
 [0.16.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.16.0
 [0.15.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.15.0
 [0.14.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.14.0
