@@ -40,6 +40,30 @@ take a snapshot (accessibility tree), then act on elements by role + name
 layout changes; coordinate-clicking is flaky. Use a vision/coordinate mode only
 for things absent from the a11y tree (canvas, charts, drag-drop).
 
+## Set it up if it's missing — don't make the user do it by hand
+
+If no browser capability is wired up yet, **set one up before giving up** (the same
+"auto-configure, then tell the user" spirit as the orchestrator's Project-setup
+step):
+
+- **Claude Code / host with a built-in browser** — nothing to install; use it.
+- **OpenCode (and Playwright MCP isn't configured yet)** — run the bundled,
+  idempotent, non-clobbering setup:
+  ```bash
+  node skills/browser-qa/setup-browser-mcp.mjs
+  ```
+  It merges the Playwright MCP server into `~/.config/opencode/opencode.json`
+  (preserving any existing config; `--project` for a project-level config;
+  `--dry-run` to preview). Then **tell the user to restart OpenCode** — a
+  freshly-added MCP server can't be used in the *current* session, so browser
+  verification resumes on the next run. (Requires Node ≥ 20.)
+- **Other MCP clients / in-repo Playwright-Cypress runner** — see
+  [`docs/browser-qa-setup.md`](../../docs/browser-qa-setup.md).
+
+Writing to the user's agent config is a config change: say what you changed and
+that a restart is needed. Only after setup genuinely isn't possible (no config
+mechanism, or the user declines) do you fall back below.
+
 **If no browser capability is available at all:** do not fake it. Verify the
 journey at the highest fidelity you can (API/SSR-level), and **flag in the verify
 gate that the browser layer is unverified** — an honest gap, not a silent pass.

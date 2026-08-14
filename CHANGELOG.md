@@ -3,6 +3,30 @@
 All notable changes to SDD Pipeline. Versioning is [SemVer](https://semver.org/);
 pre-1.0, so minors may still move fast. Plain-language where possible.
 
+## [0.23.0] — 2026-08-14
+Make the browser capability set itself up, and fix a schema bug caught by
+verifying against primary docs (the recurring lesson: never trust one secondary
+source for an integration config).
+### Fixed — wrong OpenCode MCP schema in v0.22's setup doc
+- v0.22's `docs/browser-qa-setup.md` nested the server under `mcp.servers.<name>`
+  (copied from a secondary source). Verified against
+  [opencode.ai/docs/mcp-servers](https://opencode.ai/docs/mcp-servers): the real
+  schema is `mcp.<name>` directly (with `type`/`command`/`enabled`). Corrected.
+### Added — `setup-browser-mcp.mjs`: auto-configure, don't make the user do it
+- Bundled with `browser-qa`: idempotent, **non-clobbering** script that merges the
+  Playwright MCP server into `~/.config/opencode/opencode.json` (or a `--project`/
+  `--path` config), preserving `$schema`, other top-level keys, and existing MCP
+  servers. `--dry-run` previews; backs up to `.bak` before editing; **refuses to
+  touch an unparseable config** rather than clobber it; no-ops if already present.
+- `browser-qa` now has a "set it up if it's missing" step: for OpenCode it runs
+  the script, then tells the user to **restart** (a freshly-added MCP server isn't
+  usable in the running session) — the same auto-configure-and-tell spirit as the
+  orchestrator's Project-setup pointer. Only after setup genuinely isn't possible
+  does it fall back to flagging the browser layer as an honest gap.
+- Verified across cases: dry-run writes nothing; fresh create emits the correct
+  schema; re-run is a no-op; merging preserves other servers + keys + writes a
+  backup; invalid JSON is refused, not overwritten.
+
 ## [0.22.0] — 2026-08-14
 Real browser e2e — closing a gap the framework named but never operationalized.
 The pyramid already listed "e2e over Must journeys," but "driven through the outer
@@ -868,6 +892,7 @@ Initial release.
 - Portable SKILL.md skills + templates + multi-agent installer + Claude Code plugin/marketplace manifests.
 - Worked example (`examples/wishlist/`): full spec set + a runnable, tested backend (zero-dep TypeScript on Node type-stripping, HTTP delivery, SSR shared page, infra-as-code; 50 tests, ~99%/96% coverage).
 
+[0.23.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.23.0
 [0.22.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.22.0
 [0.21.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.21.0
 [0.20.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.20.0

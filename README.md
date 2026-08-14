@@ -375,7 +375,7 @@ sdd-pipeline/
 
 ## Status
 
-**v0.22.0** — usable end to end; 29 skills (self-sufficient pipeline + a
+**v0.23.0** — usable end to end; 29 skills (self-sufficient pipeline + a
 `self-update` maintainer); a worked example with a runnable, tested backend
 (54 tests); a self-sufficiency audit and a token-usage pass behind it. Pre-1.0,
 so things may still move. See [CHANGELOG.md](CHANGELOG.md).

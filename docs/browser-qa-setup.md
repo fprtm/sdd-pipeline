@@ -26,25 +26,36 @@ with the `testing` capability — explicit assertions
 
 ### OpenCode
 
-Add to `~/.config/opencode/opencode.json` (merge into your existing `mcp` block —
-don't overwrite the whole file):
+**Easiest — let the pack add it for you** (idempotent; won't clobber existing
+config):
+
+```bash
+node skills/browser-qa/setup-browser-mcp.mjs
+```
+
+Then **restart OpenCode** (a freshly-added MCP server isn't usable in the running
+session). Requires Node ≥ 20.
+
+**Or add it by hand** to `~/.config/opencode/opencode.json` — the MCP server is a
+**direct child of `mcp`**, keyed by name (verified against
+[opencode.ai/docs/mcp-servers](https://opencode.ai/docs/mcp-servers); it is *not*
+nested under a `servers` key):
 
 ```json
 {
   "$schema": "https://opencode.ai/config.json",
   "mcp": {
-    "servers": {
-      "playwright": {
-        "type": "local",
-        "command": ["npx", "-y", "@playwright/mcp@latest", "--caps=testing"]
-      }
+    "playwright": {
+      "type": "local",
+      "command": ["npx", "-y", "@playwright/mcp@latest", "--caps=testing"],
+      "enabled": true
     }
   }
 }
 ```
 
-Then restart OpenCode and confirm with `opencode mcp list` (expect
-`playwright  connected`).
+Merge this into your existing `mcp` block rather than overwriting the file. Then
+restart OpenCode.
 
 `--caps=testing` adds the explicit assertion tools so the agent *verifies* rather
 than only clicks. Add `vision` (`--caps=testing,vision`) **only** if you need
