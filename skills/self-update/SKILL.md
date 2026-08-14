@@ -44,13 +44,15 @@ Look for where the pack lives and how it got there (check in this order):
   clone) or Cursor (`AGENTS.md` points at the clone). No copy; the clone is read
   fresh.
 
-Read the current version from the installed `.claude-plugin/plugin.json`
-(`version`).
-
 ## Step 2 — check the remote
 
-Run the bundled checker (it reads the local version + the `repository` URL from
-`plugin.json`, then compares against the highest remote release tag):
+Run the bundled checker. It reads the local version from **`VERSION`** (a
+plain-text file bundled inside this skill's own folder — present in every
+install method, including a skills-only copy, since `.claude-plugin/plugin.json`
+usually isn't); it falls back to `.claude-plugin/plugin.json` when that's present
+too (a full clone), which also supplies the remote repo URL — otherwise it uses
+the pack's known default repo. Then it compares against the highest remote
+release tag:
 
 ```bash
 node skills/self-update/check-update.mjs

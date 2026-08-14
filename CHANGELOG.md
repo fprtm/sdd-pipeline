@@ -3,6 +3,39 @@
 All notable changes to SDD Pipeline. Versioning is [SemVer](https://semver.org/);
 pre-1.0, so minors may still move fast. Plain-language where possible.
 
+## [0.29.0] — 2026-08-14
+Real bug, live evidence: the user ran `self-update` from inside a project-scoped
+OpenCode install (`.opencode/skills/self-update`) and the agent had to resort to
+manually `find`-ing for a `plugin.json` across several directories — a clear sign
+`check-update.mjs` was failing silently. Root cause: **`install.sh` copies only
+the `skills/` subtree, never `.claude-plugin/`** — so every skills-only install
+(project or global OpenCode/Claude/Codex — by far the most common install
+method) has **no `plugin.json` anywhere**, and `check-update.mjs` had no other
+way to learn the local version or the remote repo URL.
+### Fixed — `check-update.mjs` now works for a skills-only install (the common case)
+- New bundled **`skills/self-update/VERSION`** — a plain-text version file living
+  *inside this skill's own folder*, so it travels with every install method
+  (skills-only copies included) the same way any other skill-bundled file does.
+  This is now the primary local-version source; `.claude-plugin/plugin.json` is
+  still read as a fallback (and its source for the repo URL) when it's actually
+  present — a full clone / the Claude Code marketplace clone.
+- Added a **default repo constant** so remote resolution no longer depends on
+  `plugin.json` existing at all — `--repo` still overrides it.
+- Removed the old hard failure ("could not determine the remote repo") that
+  fired on every skills-only install; a sensible default now makes that path
+  unreachable in practice.
+- `self-update`'s own SKILL.md corrected — it described reading version from
+  `plugin.json` alone, the same stale assumption that caused the bug.
+- Verified by simulating a real skills-only install (skills/ copied with no
+  `.claude-plugin/` anywhere near it, matching `.opencode/skills/self-update`
+  exactly) — previously failed, now reports correctly.
+### Also — repo audit for hardcoded paths / sensitive info (nothing found)
+- User asked to check the whole pack for machine-specific hardcoded paths or
+  sensitive data (would break for anyone else installing it) — audited all
+  tracked files and all 54 commit messages: no hardcoded paths, no leaked email,
+  no secrets. All bundled scripts already resolve paths dynamically
+  (`homedir()`, `process.cwd()`, `import.meta.url`) — genuinely portable.
+
 ## [0.28.0] — 2026-08-14
 Explicit fallback mitigation for every "prefer an installed X skill" pattern
 (TDD/code-review/debugging/UI-UX) — user asked directly: what if the named
@@ -1014,6 +1047,7 @@ Initial release.
 - Portable SKILL.md skills + templates + multi-agent installer + Claude Code plugin/marketplace manifests.
 - Worked example (`examples/wishlist/`): full spec set + a runnable, tested backend (zero-dep TypeScript on Node type-stripping, HTTP delivery, SSR shared page, infra-as-code; 50 tests, ~99%/96% coverage).
 
+[0.29.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.29.0
 [0.28.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.28.0
 [0.27.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.27.0
 [0.26.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.26.0
