@@ -3,6 +3,21 @@
 All notable changes to SDD Pipeline. Versioning is [SemVer](https://semver.org/);
 pre-1.0, so minors may still move fast. Plain-language where possible.
 
+## [0.28.0] — 2026-08-14
+Explicit fallback mitigation for every "prefer an installed X skill" pattern
+(TDD/code-review/debugging/UI-UX) — user asked directly: what if the named
+example (e.g. `ui-ux-pro-max`) isn't actually installed?
+### Changed — named external-skill examples are illustrative, never assumed present
+- Orchestrator's "How to route": **named examples are illustrative, not assumed
+  present** — check what's actually available rather than guessing from the
+  name; don't stall, don't ask the user to confirm an install, don't claim to
+  have used a skill that isn't there. **If it isn't installed, this pack's own
+  version runs the phase completely, automatically, with no missing step** —
+  restated as the self-sufficiency *guarantee*, not a degraded fallback.
+- `ux-design` mirrors it locally: check the skill is actually available before
+  assuming so; if none is installed, do the whole thing yourself (§§1–6 need no
+  external tool — already fully self-sufficient).
+
 ## [0.27.0] — 2026-08-14
 Caught immediately after shipping v0.26.0's "prefer an installed UI/UX skill":
 tested live on `xplorenusa`, and `ui-ux-pro-max` (correctly preferred) wrote its
@@ -999,6 +1014,7 @@ Initial release.
 - Portable SKILL.md skills + templates + multi-agent installer + Claude Code plugin/marketplace manifests.
 - Worked example (`examples/wishlist/`): full spec set + a runnable, tested backend (zero-dep TypeScript on Node type-stripping, HTTP delivery, SSR shared page, infra-as-code; 50 tests, ~99%/96% coverage).
 
+[0.28.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.28.0
 [0.27.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.27.0
 [0.26.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.26.0
 [0.25.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.25.0

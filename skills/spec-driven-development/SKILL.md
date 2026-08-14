@@ -243,8 +243,13 @@ model/tool switch), `debug` (whenever something fails, phases 8/10), `git-workfl
 - **Defer to the user's installed skills** for planning, worktrees, and grilling
   (areas this pack doesn't cover); and **prefer** an installed TDD / code-review /
   debugging / UI-UX-design skill (e.g. `ui-ux-pro-max`) over this pack's
-  `implement` / `code-review` / `debug` / `ux-design` when one exists —
-  otherwise the pack's own version runs the phase completely.
+  `implement` / `code-review` / `debug` / `ux-design` when one exists.
+  **Named examples are illustrative, not assumed present** — check what's
+  actually available (the runtime's own skill listing) rather than guessing;
+  don't stall, ask the user to confirm an install, or claim to have used a skill
+  that isn't actually there. **If it isn't installed, this pack's own version
+  runs the phase completely, automatically, with no missing step** — that's the
+  self-sufficiency guarantee, not a degraded fallback.
 - **Code-quality bar — always, every mode and size.** All code clears
   `code-standards` (SSOT, DRY, YAGNI, deep modules), stays **in scope** (the
   smallest change that satisfies the ticket — `implement`'s lazy-senior rule), and

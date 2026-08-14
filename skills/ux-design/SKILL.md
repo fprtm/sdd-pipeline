@@ -23,8 +23,10 @@ Output: `docs/sdd/04-ux-design.md`. Skip only for a genuinely UI-less service
 If a specialized UI/UX design skill is also installed (e.g. `ui-ux-pro-max` —
 searchable style/palette/typography/a11y data — or a Figma-integrated design
 skill), **prefer it** and treat this skill's rules — confirm direction first,
-tokens, states for every screen, a11y — as the checklist to hold it to.
-Otherwise, do it yourself as below.
+tokens, states for every screen, a11y — as the checklist to hold it to. **Check
+it's actually available before assuming so** (don't guess from the name alone).
+**If none is installed, do everything yourself as below** — §§1–6 need no
+external tool; this skill is fully self-sufficient on its own.
 
 **But its output still has to land in the canonical tree** — a tool with its own
 hardcoded output convention doesn't get to scatter files outside `docs/sdd/`
