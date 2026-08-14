@@ -47,8 +47,10 @@ the user clearly changes topic, ends the session, or asks to stop.
   cut scope, choose between approaches, or accept a risk? If yes, log it now
   (`decision-log`). In `quick`/`lite` that's a short inline "Decisions" note in the
   `changes/…` file, not skipped for lack of a dedicated file.
-- **Keep a live to-do list in your platform's native to-do tool**, mirrored from
-  the gate board / open tickets and kept in sync with what's written.
+- **Keep a live to-do list in your platform's native to-do tool, updated the
+  moment state actually changes** (ticket started, criterion green, ticket
+  done, new work found) — not batched to end-of-turn. A stale entry is worse
+  than none; see `implement`'s "Keep the trail honest as you go".
 
 ## Read state, then ask — don't guess
 

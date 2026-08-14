@@ -55,6 +55,26 @@ Put the tier in the ticket **and** summarize the split at the top of the backlog
   tiered honestly (usually T2/T3).
 - **Sequence by dependency**, and mark what can run in **parallel** — this is
   what lets a multi-agent runtime fan tickets out to several subagents at once.
+- **Foundation first, then one vertical slice at a time — not layer-by-layer.**
+  When a feature has several similar operations (the classic case: CRUD on one
+  resource — Create/Read/Update/Delete; also applies to multiple report types,
+  notification channels, etc.):
+  1. **One foundation ticket first**, *only if genuinely shared and not already
+     there* — the type/interface/schema/port every operation needs (respect
+     `database-design`'s schema work; don't speculative-design shared
+     abstractions no operation needs yet — that's still YAGNI).
+  2. **Then one ticket per operation, each a complete vertical slice**: route →
+     service → domain → tests → docs for *that one operation*, done and
+     shippable, before the next operation's ticket starts. **Don't** create
+     cross-cutting tickets like "all four routes" then "all four services" —
+     layer-slicing leaves every operation simultaneously half-done, which is
+     exactly what makes progress hard to see and a to-do list drift from reality.
+  3. This ordering is also *why* it's easier to track: a vertical-slice ticket
+     has one unambiguous done/not-done state, not several partially-finished
+     threads at once.
+
+  Say explicitly in the backlog which tickets are foundation vs. per-operation
+  slices, and their order.
 - **Acceptance criteria are Given/When/Then** so `test-plan` maps them 1:1 to
   tests and the executor knows exactly when they're done.
 - **Right-size**: a ticket should be finishable in one focused sitting. If it

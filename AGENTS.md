@@ -191,8 +191,13 @@ Neither mode nor size ever removes a gate or reduces requirement collection.
 - **Definition of Done, always explicit** — each phase's exit gate is its DoD;
   each ticket's DoD = acceptance criteria + tests green + traceability + docs.
   Nothing is "done" until its DoD is checked, `quick`/`lite` included.
-- **Keep a live to-do list** in the host's native tool, mirrored from the gate
-  board / open tickets and updated as phases and tickets move.
+- **Keep a live to-do list** in the host's native tool, updated **the moment
+  state actually changes** (ticket started/criterion green/ticket done/new work
+  found) — not batched to end-of-turn. A stale entry is worse than none.
+- **Foundation first, then one vertical slice at a time** for multi-operation
+  features (CRUD and similar) — finish one operation fully (route→service→
+  domain→tests→docs) before starting the next; don't layer-slice across all
+  operations at once. Easier to track, and keeps the to-do list honest.
 - **One topic = one dated, self-contained file** (`changes/YYYY-MM-DD-<topic>.md`,
   its own mini board + IDs + decisions); `00-overview.md` is a **thin index** (one
   row per topic: date · file · one-line description · status · branch) + global

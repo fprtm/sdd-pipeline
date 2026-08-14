@@ -3,6 +3,32 @@
 All notable changes to SDD Pipeline. Versioning is [SemVer](https://semver.org/);
 pre-1.0, so minors may still move fast. Plain-language where possible.
 
+## [0.25.0] — 2026-08-14
+Backlog sequencing + to-do freshness, from real friction: "kadang ga update
+dengan real todonya" (the live to-do sometimes drifts from what's actually
+done) and a concrete example — a CRUD user feature — where the fix is really
+about *how the backlog is ordered*, not just a stronger reminder.
+### Added — `backlog-leveling`: foundation first, then one vertical slice at a time
+- For a feature with several similar operations (CRUD being the classic case;
+  also multiple report types, notification channels, …): **one foundation
+  ticket first** (only if genuinely shared and not already there — the
+  type/interface/schema every operation needs; still YAGNI, don't
+  speculative-design what no operation needs yet), **then one ticket per
+  operation, each a complete vertical slice** (route → service → domain →
+  tests → docs for *that one operation*, shippable) before the next operation
+  starts. Explicitly **not** layer-by-layer ("all four routes" then "all four
+  services") — that leaves every operation simultaneously half-done, which is
+  exactly what makes progress hard to see and a to-do list drift from reality.
+### Changed — `implement` respects the slice order + to-do freshness is concrete
+- New rule: finish the current operation's vertical slice completely (tests
+  green) before touching the next operation's ticket, even if it looks quick —
+  don't leave two operations half-built at once.
+- **"Keep the trail honest as you go" now says exactly when to update the live
+  to-do**: the moment state actually changes (ticket started, criterion green,
+  ticket done, new work discovered) — not batched to end-of-turn. A stale entry
+  is worse than none. Mirrored (tightened) in the orchestrator's existing
+  live-to-do bullet and in `AGENTS.md`, plus the new slice-ordering principle.
+
 ## [0.24.0] — 2026-08-14
 Grounded in a real accident: `xplorenusa`'s `.opencode/skills/` (37 files) had been
 committed since the initial commit — nobody decided that, `install.sh opencode`'s
@@ -918,6 +944,7 @@ Initial release.
 - Portable SKILL.md skills + templates + multi-agent installer + Claude Code plugin/marketplace manifests.
 - Worked example (`examples/wishlist/`): full spec set + a runnable, tested backend (zero-dep TypeScript on Node type-stripping, HTTP delivery, SSR shared page, infra-as-code; 50 tests, ~99%/96% coverage).
 
+[0.25.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.25.0
 [0.24.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.24.0
 [0.23.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.23.0
 [0.22.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.22.0

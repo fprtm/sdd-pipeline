@@ -45,7 +45,13 @@ line-for-line, with no "why did this file change?" surprises.
 ## Work one ticket at a time
 
 Pick the next ticket whose dependencies are met (respect the backlog's waves).
-For each ticket:
+**Respect the backlog's slice order** — if `backlog-leveling` sequenced a
+foundation ticket then one vertical slice per operation (e.g. CRUD: Read fully
+done before Create starts), finish the current operation's slice completely
+(route → service → domain → tests → docs, ticket's TEST-xxx green) before
+touching the next operation's ticket, even if it looks quick or independent.
+Don't leave two operations simultaneously half-built — that's exactly what
+makes the to-do list below drift from what's actually done. For each ticket:
 
 1. **Re-read the ticket + its traces** — the FSD it implements, the ADRs that
    constrain it, the SEC controls it must honor, and the TEST-xxx that will prove
@@ -123,6 +129,14 @@ no matching doc.
 
 ## Keep the trail honest as you go
 
+- **Update the live to-do (your platform's native tool) the moment state
+  actually changes** — when you start a ticket, when each acceptance criterion
+  goes green, when the ticket is fully done, when you discover new work. Not
+  batched to the end of the turn, not "I'll update it later" — the to-do list
+  is only useful if it reflects **real, current** state, and stale entries
+  (marked-done-but-isn't, or missing newly-discovered work) are worse than no
+  list at all. This is easiest to keep honest when tickets are vertical slices
+  (above) — one clean done/not-done per ticket, not several partial threads.
 - Update the ticket's state on the gate board (`00-overview.md`) and flip its row
   toward green in `traceability.md` **only when its tests actually pass**.
 - If implementation reveals a spec gap or a wrong assumption (it often does),
