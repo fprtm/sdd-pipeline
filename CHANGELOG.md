@@ -3,6 +3,37 @@
 All notable changes to SDD Pipeline. Versioning is [SemVer](https://semver.org/);
 pre-1.0, so minors may still move fast. Plain-language where possible.
 
+## [0.26.0] — 2026-08-14
+`ux-design` skipped straight to producing artifacts — no check-in on whether the
+user even wants wireframes made, what design language they want, or how much
+detail — and wireframes had no requirement to explain *why* a screen was laid
+out that way. Real gap: every other consequential decision in the pipeline is
+confirmed or explained before/while being made; UX direction wasn't.
+### Added — `ux-design`: confirm direction first, explain wireframe decisions
+- **New §0 "Confirm direction first"** — before writing anything, ask (native
+  question tool): (1) is there already a design to follow (brand guide, Figma,
+  reference app, existing design system) — if so, **respect-existing** like
+  `arch-decision` does for architecture, don't reinvent; (2) if starting fresh,
+  which design direction (2–3 concrete options + a recommendation, e.g.
+  minimal/utilitarian vs expressive/brand-forward vs "match this reference"),
+  light/dark preference, brand constraints; (3) how much wireframe detail —
+  structure-only vs fully detailed. Answers recorded at the top of
+  `04-ux-design.md`; §1's principles are now derived from them, not invented
+  independently.
+- **§3 wireframes now has two explicit depths**: structure-only (the prior
+  behavior, default for `quick`/`lite`) or **fully detailed** — every
+  section/component named, spacing/hierarchy tied to the design tokens, and a
+  short **"why"** per screen (layout/hierarchy/primary-action reasoning, the
+  main alternative rejected if any) — the same "explain what you decide" rule
+  the rest of the pipeline already holds to, made concrete for UX.
+- Exit gate now requires direction was confirmed (not assumed) and, when full
+  detail was asked for, that each screen states its rationale.
+- **Prefer an installed specialized UI/UX skill if present** (e.g.
+  `ui-ux-pro-max` — searchable style/palette/typography/a11y data), same pattern
+  as `implement`/`code-review`/`debug` preferring an installed TDD/review/
+  debugging skill — treat this skill's rules as the checklist to hold it to.
+  Mirrored in the orchestrator's routing section.
+
 ## [0.25.0] — 2026-08-14
 Backlog sequencing + to-do freshness, from real friction: "kadang ga update
 dengan real todonya" (the live to-do sometimes drifts from what's actually
@@ -944,6 +975,7 @@ Initial release.
 - Portable SKILL.md skills + templates + multi-agent installer + Claude Code plugin/marketplace manifests.
 - Worked example (`examples/wishlist/`): full spec set + a runnable, tested backend (zero-dep TypeScript on Node type-stripping, HTTP delivery, SSR shared page, infra-as-code; 50 tests, ~99%/96% coverage).
 
+[0.26.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.26.0
 [0.25.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.25.0
 [0.24.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.24.0
 [0.23.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.23.0
