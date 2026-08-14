@@ -3,6 +3,31 @@
 All notable changes to SDD Pipeline. Versioning is [SemVer](https://semver.org/);
 pre-1.0, so minors may still move fast. Plain-language where possible.
 
+## [0.30.0] — 2026-08-14
+User asked for a real option on backlog tickets: write locally, or also mirror to
+GitHub Issues.
+### Added — `backlog-leveling`: ask where tickets live (local vs. GitHub Issues mirror)
+- New "Where do tickets live?" step, asked before writing tickets (native
+  question tool): **local file only** (default, `docs/sdd/06-backlog.md`) or
+  **also mirror to GitHub Issues**.
+- **The local backlog stays the traceability SSOT regardless** — GitHub Issues,
+  when chosen, is a linked mirror (assignable/labelable/commentable on the
+  repo's own board), never a second source of truth to reconcile later.
+- **Capability checked before promising it**: `gh auth status` + `gh repo view`;
+  falls back to local-only and says so if either fails — same honest-gap pattern
+  as `browser-qa`.
+- **Confirmed before creating** — bulk-creating issues is a visible, external
+  action (same category as posting to any external service); shows titles +
+  count and gets a yes first, especially the first batch.
+- Each mirrored issue carries the ticket's full self-contained body (so it's
+  usable standalone on GitHub too), a tier label, and `Refs: TICKET-xxx,
+  FSD-xxx`; the resulting issue number is recorded back into the local ticket
+  (new `GitHub Issue:` field in `backlog.template.md`) — the link always goes
+  both ways.
+- `git-workflow`'s commit template gained an optional `Closes #<issue>` line for
+  when a ticket was mirrored. Exit gate updated to require this was confirmed,
+  not assumed.
+
 ## [0.29.0] — 2026-08-14
 Real bug, live evidence: the user ran `self-update` from inside a project-scoped
 OpenCode install (`.opencode/skills/self-update`) and the agent had to resort to
@@ -1047,6 +1072,7 @@ Initial release.
 - Portable SKILL.md skills + templates + multi-agent installer + Claude Code plugin/marketplace manifests.
 - Worked example (`examples/wishlist/`): full spec set + a runnable, tested backend (zero-dep TypeScript on Node type-stripping, HTTP delivery, SSR shared page, infra-as-code; 50 tests, ~99%/96% coverage).
 
+[0.30.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.30.0
 [0.29.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.29.0
 [0.28.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.28.0
 [0.27.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.27.0

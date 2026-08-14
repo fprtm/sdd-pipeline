@@ -32,6 +32,7 @@ through a wave of parallel-safe tickets, each still gets its own commit.
 subject line already makes it obvious.>
 
 Refs: TICKET-018, FSD-012 [, SEC-008 if a security control was touched]
+[Closes #42 — only if backlog-leveling mirrored this ticket to a GitHub Issue]
 ```
 
 - **Always write the commit message in English** — subject, body, and scope —

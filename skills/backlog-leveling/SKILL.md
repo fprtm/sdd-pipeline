@@ -19,6 +19,31 @@ are allocated deliberately.
 Write to `docs/sdd/06-backlog.md` using `backlog.template.md` (bundled with this
 skill) — see [`reference.md`](reference.md) for a full worked ticket example.
 
+## Where do tickets live? Ask, don't assume
+
+Before writing tickets, ask (native question tool): **local file only**
+(default — `docs/sdd/06-backlog.md`, no external dependency) or **also mirror
+to GitHub Issues** (visible on the repo's own board, assignable/labelable,
+commentable by the team).
+
+- **The local backlog file is always the traceability SSOT — GitHub Issues, if
+  chosen, is a mirror, never a replacement.** `traceability.md` and the
+  REQ→FSD→TICKET→TEST chain point at `TICKET-xxx`; an issue is an additional,
+  linked surface, not a second source of truth to reconcile later.
+- **Check the capability is actually there before promising it**: `gh auth
+  status` and `gh repo view` (a real GitHub repo, authenticated). If either
+  fails, say so and fall back to local-only — don't fake it.
+- **Creating issues is a visible, external action — confirm before doing it**,
+  same as any "posting to an external service" action: show what will be
+  created (titles + count) and get a yes, especially for the first batch.
+- **Per ticket, if mirroring**: `gh issue create` with the ticket's title,
+  its **full self-contained body** (plain-language goal, context, steps,
+  acceptance criteria, DoD — same content as the local entry, so the issue
+  alone is usable without the repo open), a tier label (`T1`/`T2`/`T3`), and
+  `Refs: TICKET-xxx, FSD-xxx` in the body. **Record the resulting issue
+  number back into the local ticket's entry** (`backlog.template.md`'s
+  `GitHub Issue:` field) — the link must go both ways, never dangle.
+
 ## The tiers
 
 Assign a tier from **the ticket's intrinsic difficulty and blast radius**, not
@@ -93,5 +118,7 @@ changes. Record confirmed estimating assumptions in `decision-log`.
 
 Every FSD and every code-bearing SEC has ≥1 ticket; every ticket is tiered, has
 acceptance criteria and a definition of done, and passes the self-containment
-test; parallelizable tickets are marked. Invoke `traceability`, then proceed to
-`test-plan`. (Produce `ESTIMATE.md` too if effort/cost was asked for.)
+test; parallelizable tickets are marked; **where tickets live was confirmed, not
+assumed** (local-only, or mirrored to GitHub Issues with every issue linked back
+to its `TICKET-xxx`). Invoke `traceability`, then proceed to `test-plan`.
+(Produce `ESTIMATE.md` too if effort/cost was asked for.)
