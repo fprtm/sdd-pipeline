@@ -1,3 +1,13 @@
+---
+title: Clear my wishlist
+description: add a one-action "clear whole wishlist" capability, owner-scoped, no new arch
+status: shipped
+size: lite
+branch: feat/clear-wishlist
+created: 2026-08-09
+updated: 2026-08-09
+---
+
 # Change — Clear my wishlist
 
 > **Lite-mode change** (brownfield, existing `impl/` codebase). One collapsed file,

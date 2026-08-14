@@ -353,7 +353,7 @@ fully-traceable plan (PRD, diagrams, FSD, ADRs, threat model, tiered backlog,
 test plan, honest traceability matrix) **plus a runnable, tested backend** in
 [`examples/wishlist/impl/`](examples/wishlist/impl/) (zero-dependency TypeScript,
 54 tests, ~99% coverage, HTTP + SSR + infra-as-code). It also includes a
-brownfield change ([`changes/clear-wishlist.md`](examples/wishlist/docs/sdd/changes/clear-wishlist.md))
+brownfield change ([`changes/2026-08-09-clear-wishlist.md`](examples/wishlist/docs/sdd/changes/2026-08-09-clear-wishlist.md))
 showing lite mode on existing code.
 
 ## Repo layout
@@ -374,7 +374,7 @@ sdd-pipeline/
 
 ## Status
 
-**v0.20.0** — usable end to end; 28 skills (self-sufficient pipeline + a
+**v0.21.0** — usable end to end; 28 skills (self-sufficient pipeline + a
 `self-update` maintainer); a worked example with a runnable, tested backend
 (54 tests); a self-sufficiency audit and a token-usage pass behind it. Pre-1.0,
 so things may still move. See [CHANGELOG.md](CHANGELOG.md).

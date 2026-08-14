@@ -36,6 +36,15 @@ product is *one* cohesive build, so one shared gate board and fixed filenames ar
 correct there. Topic-scoping (`changes/`, `decisions/`, `memory/` as folders of
 one-file-per-topic) is for anything that *recurs* over time.
 
+**Why there's a checker, not just the rule.** Markdown instructions are followed
+probabilistically — a weaker model under time pressure can (and, in real runs,
+does) skip the date prefix or the frontmatter even when the rule is loaded and
+correct. `check-file-hygiene.mjs` (bundled with this skill) turns "hope the model
+remembers" into "a deterministic script catches it," the same backstop pattern
+`traceability` already uses for the ID matrix. Run it after touching
+`changes/`/`decisions/`/`memory`, and wire it into CI via `infra` so drift outside
+an agent session still gets caught.
+
 ## Full skill roster (self-sufficiency)
 
 Every phase's exit gate is satisfiable with this pack alone. Pipeline skills:

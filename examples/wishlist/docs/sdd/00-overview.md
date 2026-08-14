@@ -14,6 +14,14 @@
   implemented & tested (`impl/`: 54 tests, ~99%/96% coverage); owner SPA, real
   adapters, and actual deploy pending
 
+## Topic index (lite changes on top of this build)
+_This project is a full-mode build (one gate board below), plus later
+brownfield changes layered on top — each its own dated, self-contained file._
+
+| Date | Topic file | Description | Status | Branch |
+|------|-----------|--------------|--------|--------|
+| 2026-08-09 | [changes/2026-08-09-clear-wishlist.md](changes/2026-08-09-clear-wishlist.md) | add a one-action "clear whole wishlist" capability, owner-scoped, no new arch | shipped | feat/clear-wishlist |
+
 ## Gate board
 _A gate may not be ✅ until its exit condition holds._
 

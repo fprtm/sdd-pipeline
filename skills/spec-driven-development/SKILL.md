@@ -144,6 +144,12 @@ and token waste all at once (detail: `reference.md`). Avoid all three:
 - **Read index-first:** read the indexes (`00-overview.md` + `memory/INDEX.md`) →
   **match the task to a row/note by its one-line description** → open **only** the
   file(s) that are relevant. Never load the whole trail to find one thing.
+- **Run the checker, don't just remember the rule.** This convention is
+  instructions, not enforced code — it can slip under a weak model or time
+  pressure. Run the bundled `check-file-hygiene.mjs` after writing/renaming a
+  `changes/`/`decisions/`/`memory` file (copy to `tools/` in the project, wire
+  into CI via `infra`): `node tools/check-file-hygiene.mjs docs/sdd`. Treat a
+  non-zero exit as a real defect to fix, not a nuisance.
 
 ## Language: docs follow the user, code artifacts are English
 

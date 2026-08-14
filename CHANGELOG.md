@@ -3,6 +3,33 @@
 All notable changes to SDD Pipeline. Versioning is [SemVer](https://semver.org/);
 pre-1.0, so minors may still move fast. Plain-language where possible.
 
+## [0.21.0] — 2026-08-14
+A deterministic backstop for the v0.19 file-management rule, triggered by real
+evidence: tested v0.20 live on `internal-dsg-2` and confirmed the correct,
+up-to-date instructions (date-prefix rule stated twice) **were** loaded — the
+agent (a weaker model) still wrote an undated `changes/*.md` with no frontmatter.
+Confirms the known ceiling — markdown instructions are followed probabilistically
+— and that "state the rule more clearly" isn't the fix; a mechanical check is.
+### Added — `check-file-hygiene.mjs`, bundled with `spec-driven-development`
+- Zero-dep script checking: `changes/*.md` filenames are date-prefixed
+  (`YYYY-MM-DD-<slug>.md`) and carry frontmatter `description:`; `decisions/*.md`
+  filenames are timestamped (`YYYY-MM-DD-HHMM-<slug>.md`) and carry a valid
+  `status:`; `memory/*.md` notes carry `description:`; every `changes/`/`memory`
+  file is actually registered in its index (`00-overview.md`/`memory/INDEX.md`) —
+  catches an orphaned topic file the same way an unindexed one is caught.
+  Exit 0 clean / 10 violations / 2 nothing to check.
+- Wired in: the orchestrator's "File & folder management" section now says to run
+  it after writing/renaming a `changes`/`decisions`/`memory` file; `infra` copies
+  it to `tools/check-file-hygiene.mjs` and runs it in CI, same pattern as
+  `check-traceability.mjs`.
+### Fixed — dogfooding: the bundled wishlist example didn't pass its own new checker
+- `examples/wishlist/docs/sdd/changes/clear-wishlist.md` (written before v0.19)
+  had no date prefix and no frontmatter — renamed to `2026-08-09-clear-wishlist.md`
+  (real date from git history), given frontmatter, and registered in a new
+  "Topic index" section in `00-overview.md` (which otherwise correctly keeps its
+  single full-mode gate board — the documented exception). README's link updated.
+  The example now passes `check-file-hygiene.mjs` clean.
+
 ## [0.20.0] — 2026-08-13
 Orchestrator slimming pass — **no behavior change, no rule removed.** The core
 `spec-driven-development/SKILL.md` (loaded every run) had grown to ~4520 words as
@@ -801,6 +828,7 @@ Initial release.
 - Portable SKILL.md skills + templates + multi-agent installer + Claude Code plugin/marketplace manifests.
 - Worked example (`examples/wishlist/`): full spec set + a runnable, tested backend (zero-dep TypeScript on Node type-stripping, HTTP delivery, SSR shared page, infra-as-code; 50 tests, ~99%/96% coverage).
 
+[0.21.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.21.0
 [0.20.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.20.0
 [0.19.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.19.0
 [0.18.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.18.0

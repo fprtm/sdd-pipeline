@@ -39,6 +39,12 @@ baseline:
   `traceability` skill) into the project as `tools/check-traceability.mjs`, run
   it in CI so a drifting matrix fails the build — the backstop against the
   matrix becoming decoration.
+- **File hygiene check** — copy `check-file-hygiene.mjs` (bundled with
+  `spec-driven-development`) into the project as `tools/check-file-hygiene.mjs`,
+  run it in CI. It catches what markdown instructions alone can't guarantee: a
+  `changes/`/`decisions/` file with the wrong (undated) name, missing frontmatter
+  `description`, or not registered in its index — exactly the kind of drift a
+  weaker model skips under time pressure.
 
 The pipeline is the enforcement point for the verify gate; a merge is not allowed
 if any of these fail.
