@@ -204,6 +204,15 @@ altering it — so it can prove it didn't break what worked.
 
 ## Install
 
+**Not committed by default.** A project-scoped install (`claude-proj`, `opencode`,
+`codex`, or `generic --dest` inside a repo) automatically adds its destination to
+`.gitignore` — it's tooling, not your app's code, and committing it means every
+pack update becomes an unrelated diff in your project's history. Pass `--vendor`
+if you deliberately want it committed instead (e.g. a team pinning an exact
+methodology version across every teammate/CI run, like a lockfile). If the folder
+was already tracked before this existed, the installer tells you the exact
+`git rm -r --cached` command to stop that.
+
 ### Claude Code (plugin)
 
 ```bash
@@ -375,7 +384,7 @@ sdd-pipeline/
 
 ## Status
 
-**v0.23.0** — usable end to end; 29 skills (self-sufficient pipeline + a
+**v0.24.0** — usable end to end; 29 skills (self-sufficient pipeline + a
 `self-update` maintainer); a worked example with a runnable, tested backend
 (54 tests); a self-sufficiency audit and a token-usage pass behind it. Pre-1.0,
 so things may still move. See [CHANGELOG.md](CHANGELOG.md).

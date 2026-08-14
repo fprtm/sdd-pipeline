@@ -22,6 +22,14 @@
 #
 # For agents that read a single rules file, use --bundle to also emit one
 # concatenated markdown file (all skills in order) you can point the agent at.
+#
+# By default, a project-scoped install (claude-proj/opencode/codex/generic
+# --dest inside a repo) auto-excludes its destination via .gitignore — an
+# installed copy is tooling, not your app's code, and committing it means
+# every pack update becomes a diff in your project's own history. Pass
+# --vendor if you deliberately want it committed (e.g. a team pinning an
+# exact methodology version, like a lockfile) — see the README's Install
+# section for the trade-off.
 
 set -euo pipefail
 
@@ -30,20 +38,58 @@ SKILLS_DIR="$ROOT/skills"
 TARGET="${1:-}"
 DEST=""
 BUNDLE=0
+VENDOR=0
 
 shift || true
 while [ $# -gt 0 ]; do
   case "$1" in
     --dest) DEST="$2"; shift 2 ;;
     --bundle) BUNDLE=1; shift ;;
+    --vendor) VENDOR=1; shift ;;
     *) echo "unknown arg: $1" >&2; exit 2 ;;
   esac
 done
 
 if [ -z "$TARGET" ]; then
-  echo "usage: $0 <claude|claude-proj|cursor|codex|opencode|generic> [--dest DIR] [--bundle]" >&2
+  echo "usage: $0 <claude|claude-proj|cursor|codex|opencode|generic> [--dest DIR] [--bundle] [--vendor]" >&2
   exit 2
 fi
+
+maybe_gitignore() {
+  # Exclude an installed, project-scoped copy from git by default (see the
+  # header note above). No-ops outside a git repo, or with --vendor.
+  local out="$1"
+  [ "$VENDOR" -eq 1 ] && return 0
+  [ -d "$out" ] || return 0
+
+  local repo_root
+  repo_root="$(git -C "$out" rev-parse --show-toplevel 2>/dev/null)" || return 0
+
+  local abs_out abs_root relpath
+  abs_out="$(cd "$out" && pwd)"
+  abs_root="$(cd "$repo_root" && pwd)"
+  relpath="${abs_out#"$abs_root"/}"
+  [ "$relpath" != "$abs_out" ] || return 0 # not actually under repo_root — leave it alone
+
+  local gitignore="$repo_root/.gitignore"
+  local pattern="/$relpath/"
+  if ! grep -qxF "$pattern" "$gitignore" 2>/dev/null; then
+    {
+      [ -s "$gitignore" ] && echo
+      echo "# sdd-pipeline: installed skills — tooling, not app code (install/install.sh --vendor to commit instead)"
+      echo "$pattern"
+    } >> "$gitignore"
+    echo "Excluded $pattern via $gitignore (not committing installed skills by default)."
+  fi
+
+  local tracked_count
+  tracked_count="$(git -C "$repo_root" ls-files -- "$relpath" | wc -l | tr -d ' ')"
+  if [ "$tracked_count" -gt 0 ]; then
+    echo "NOTE: $tracked_count file(s) under $relpath are already tracked in git."
+    echo "      .gitignore doesn't untrack existing files. To stop committing them:"
+    echo "        git rm -r --cached $relpath && git commit -m 'chore: stop vendoring sdd-pipeline skills'"
+  fi
+}
 
 copy_skills() {
   # Every file a skill needs (its template, its bundled script) lives inside
@@ -56,6 +102,7 @@ copy_skills() {
   mkdir -p "$out"
   cp -R "$SKILLS_DIR/." "$out/"
   echo "Installed skills → $out"
+  maybe_gitignore "$out"
 }
 
 emit_bundle() {

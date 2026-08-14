@@ -3,6 +3,32 @@
 All notable changes to SDD Pipeline. Versioning is [SemVer](https://semver.org/);
 pre-1.0, so minors may still move fast. Plain-language where possible.
 
+## [0.24.0] — 2026-08-14
+Grounded in a real accident: `xplorenusa`'s `.opencode/skills/` (37 files) had been
+committed since the initial commit — nobody decided that, `install.sh opencode`'s
+default output path just landed inside a `git add -A`. After a refresh, `git
+status` showed 14 unrelated "modified" skill files mixed into the project's own
+diff — noise, not signal.
+### Changed — `install.sh` excludes a project-scoped install from git by default
+- After copying skills into `claude-proj`, `opencode`, `codex`, or a `generic
+  --dest` **inside a git repo**, the installer now auto-appends the destination
+  to that repo's `.gitignore` (idempotent — checks first, never duplicates).
+  Installed skills are tooling, not app code; committing them turns every pack
+  update into an unrelated diff in the project's own history.
+- **New `--vendor` flag** opts out — for a team that deliberately wants an exact
+  methodology version pinned and committed (like a lockfile) across every
+  teammate/CI run. Skips the auto-gitignore entirely.
+- **If the destination was already tracked** (the `xplorenusa` situation), the
+  installer does **not** silently untrack it (that's a real git-history action,
+  not a default to sneak in) — it adds the `.gitignore` entry (so new files stop
+  being caught) *and* prints the exact count and the `git rm -r --cached …`
+  command to run if the user wants to stop committing them.
+- No-ops cleanly outside any git repo (global installs like `~/.claude/skills`,
+  `~/.config/opencode/skills`) and with `--vendor`. Verified with 5 scenarios in
+  a scratch repo: fresh install, idempotent re-run, already-tracked warning,
+  `--vendor` skip, and a non-repo destination.
+- README's Install section documents the default + the trade-off.
+
 ## [0.23.0] — 2026-08-14
 Make the browser capability set itself up, and fix a schema bug caught by
 verifying against primary docs (the recurring lesson: never trust one secondary
@@ -892,6 +918,7 @@ Initial release.
 - Portable SKILL.md skills + templates + multi-agent installer + Claude Code plugin/marketplace manifests.
 - Worked example (`examples/wishlist/`): full spec set + a runnable, tested backend (zero-dep TypeScript on Node type-stripping, HTTP delivery, SSR shared page, infra-as-code; 50 tests, ~99%/96% coverage).
 
+[0.24.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.24.0
 [0.23.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.23.0
 [0.22.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.22.0
 [0.21.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.21.0
