@@ -26,6 +26,18 @@ skill), **prefer it** and treat this skill's rules — confirm direction first,
 tokens, states for every screen, a11y — as the checklist to hold it to.
 Otherwise, do it yourself as below.
 
+**But its output still has to land in the canonical tree** — a tool with its own
+hardcoded output convention doesn't get to scatter files outside `docs/sdd/`
+(same "one home per artifact" rule the orchestrator holds everywhere else). For
+`ui-ux-pro-max` specifically: it writes to `design-system/<project-slug>/`
+relative to whatever `--output-dir` you pass — **pass `--output-dir docs/sdd`**
+so it lands at `docs/sdd/design-system/<slug>/MASTER.md` (+ `pages/`), not at
+the repo root. `04-ux-design.md` still carries the tokens and full wireframes
+itself (§2/§3) and **must cite** `MASTER.md` as their SSOT so the two never
+silently diverge. Note: an empty `pages/` folder is **expected**, not a bug — 
+`ui-ux-pro-max` creates a page-override file lazily, only once that specific
+page is actually built (phase 8), not upfront for the whole wireframe set.
+
 ## 0. Confirm direction first — ask, don't assume
 
 Design direction is a **consequential decision the user didn't necessarily

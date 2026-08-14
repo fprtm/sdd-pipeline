@@ -171,6 +171,7 @@ docs/
     00-context.md          # glossary — seeded by discovery, sharpened by domain-modeling if present
     01-prd.md 02-diagrams.md 03-fsd.md
     04-architecture.md 04-stack-guide.md 04-schema.md 04-ux-design.md   # design phase
+    design-system/          # OPTIONAL — an external UI/UX skill's own SSOT output (e.g. ui-ux-pro-max's MASTER.md); redirect its --output-dir here, never let it land outside docs/sdd
     05-threat-model.md 06-backlog.md 07-test-plan.md 08-delivery.md
     analytics.md            # analytics-design (metrics/events)
     decisions/              # decision-log — one timestamped file per decision

@@ -3,6 +3,30 @@
 All notable changes to SDD Pipeline. Versioning is [SemVer](https://semver.org/);
 pre-1.0, so minors may still move fast. Plain-language where possible.
 
+## [0.27.0] — 2026-08-14
+Caught immediately after shipping v0.26.0's "prefer an installed UI/UX skill":
+tested live on `xplorenusa`, and `ui-ux-pro-max` (correctly preferred) wrote its
+`design-system/xplorenusa/MASTER.md` at the **repo root**, outside `docs/sdd/` —
+because that tool has its own hardcoded output convention
+(`design-system/<slug>/`) that "prefer it" didn't reconcile with this pack's own
+"one home per artifact, never scatter files" rule. (The wireframes themselves
+were fine — all 50 screens + why-per-screen landed correctly inside
+`04-ux-design.md` as designed; only the raw token-source file escaped the tree.)
+### Fixed — `ui-ux-pro-max`'s (or similar) output now stays inside docs/sdd/
+- `ux-design`: **pass `--output-dir docs/sdd`** when invoking `ui-ux-pro-max`, so
+  its `design-system/<slug>/MASTER.md` + `pages/` land at
+  `docs/sdd/design-system/<slug>/` instead of the repo root. `04-ux-design.md`
+  still carries the actual tokens + wireframes and must cite `MASTER.md` as SSOT.
+- Documented that an **empty `pages/` folder is expected, not a bug** —
+  `ui-ux-pro-max` creates a page-override file lazily, only once that page is
+  actually built (phase 8), not upfront for the whole wireframe set. (This was
+  the second thing the user couldn't explain from the output alone.)
+- Added `design-system/` to the orchestrator's canonical workspace-layout tree
+  as the documented home for an external UI/UX skill's own SSOT output.
+- General lesson, stated for next time: preferring an external skill (any
+  skill, not just UI/UX) means deferring to its *process*, never to *where its
+  files land* — that still has to resolve inside the canonical tree.
+
 ## [0.26.0] — 2026-08-14
 `ux-design` skipped straight to producing artifacts — no check-in on whether the
 user even wants wireframes made, what design language they want, or how much
@@ -975,6 +999,7 @@ Initial release.
 - Portable SKILL.md skills + templates + multi-agent installer + Claude Code plugin/marketplace manifests.
 - Worked example (`examples/wishlist/`): full spec set + a runnable, tested backend (zero-dep TypeScript on Node type-stripping, HTTP delivery, SSR shared page, infra-as-code; 50 tests, ~99%/96% coverage).
 
+[0.27.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.27.0
 [0.26.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.26.0
 [0.25.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.25.0
 [0.24.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.24.0
