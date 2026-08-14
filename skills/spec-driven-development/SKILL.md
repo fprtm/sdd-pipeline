@@ -218,7 +218,7 @@ up front, then tick it off.
 | — | **`docs-only` stops here** — phases 0–7 alone are a complete, code-free deliverable (see Modes) |
 | 8 | Implement | `implement` (or installed `tdd`/`executing-plans`) + `git-workflow` per commit | Work one ticket at a time, red→green→refactor; each ticket's tests pass |
 | 9 | Infra & delivery | `infra` | CI + coverage/security gates set up (early); IaC, envs, secrets, observability, deploy+rollback ready |
-| 10 | **Verify gate** | `coverage-check` + `code-review` + re-check `threat-model` | Tests pass, coverage ≥ target, review clean, no unmitigated High/Critical threat |
+| 10 | **Verify gate** | `coverage-check` + `code-review` + re-check `threat-model` + `browser-qa` (if there's a UI) | Tests pass, coverage ≥ target, review clean, no unmitigated High/Critical threat; **every Must-priority UI journey browser-verified against the running app** (or its gap explicitly flagged) |
 | 11 | Ship | `documentation` + `git-workflow` (PR/changelog) + `handoff` (this pack's own) — plus `finishing-a-development-branch` if present for branch cleanup | Traceability matrix green; user + developer docs written; changelog written; deployed + smoke-checked |
 
 > Phase 9 (`infra`) runs partly *early* — CI + coverage/security gates stand up at
@@ -342,6 +342,7 @@ like reaching for one tool:
 | **Break work into tickets / estimate** | `backlog-leveling` |
 | **Write the test plan** | `test-plan` |
 | **Implement a ticket, test-first** | `implement` (or an installed TDD skill) |
+| **QA a user journey in a real browser** | `browser-qa` |
 | **Fix a bug** | `debug` |
 | **Review a diff** | `code-review` |
 | **Commit / open a PR** | `git-workflow` |

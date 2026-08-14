@@ -3,6 +3,46 @@
 All notable changes to SDD Pipeline. Versioning is [SemVer](https://semver.org/);
 pre-1.0, so minors may still move fast. Plain-language where possible.
 
+## [0.22.0] — 2026-08-14
+Real browser e2e — closing a gap the framework named but never operationalized.
+The pyramid already listed "e2e over Must journeys," but "driven through the outer
+interface" was abstract: for a UI product it quietly degraded to an API/SSR-level
+integration test (the bundled wishlist example: 54 node:test, zero browser). So
+"verified" was weaker than it looked for UIs.
+### Added — `browser-qa` skill (29th): verify Must journeys in a real browser
+- New **`browser-qa`**: drive a real browser against the **locally-running** app to
+  verify each Must-priority user journey — navigate/click/type/submit + **explicit
+  assertions**, not just "the click didn't throw".
+  - **Capability-agnostic** (the point, given multi-agent): uses the host's
+    built-in browser (e.g. Claude Code), **Playwright MCP** (OpenCode/Codex/other
+    MCP clients), or an **in-repo Playwright/Cypress runner** — whichever exists.
+    Interacts by **accessibility ref** (role + name), not screen coordinates.
+    No capability at all → verify at the best fidelity available and **flag the
+    browser gap honestly**, never fake a pass.
+  - **Local-only hard stop** — reuses `test-plan`'s "Test environment safety":
+    browser QA runs only against a local app + disposable DB, stops if it detects
+    production/non-local, and neutralizes real side effects (email/payments).
+  - **Thin, on purpose** — Must-priority journeys only; the bulk stays in
+    unit/integration (pyramid discipline, not "click everything").
+  - **Two flavors:** an interactive agent-driven run (fast dev loop:
+    run→act→assert→fix→retest, ephemeral) *and* a committed Playwright/Cypress
+    spec (durable regression net CI reruns).
+- **Multi-tool setup doc** `docs/browser-qa-setup.md` — Claude Code's built-in
+  browser, Playwright MCP for OpenCode/Codex (config + `--caps=testing`), and the
+  in-repo runner option.
+### Changed — wired the browser layer through the pipeline
+- **Verify gate (phase 10)** now requires each Must UI journey browser-verified (or
+  its gap flagged) — orchestrator gate row + `coverage-check` honesty check #5 +
+  `AGENTS.md`.
+- `test-plan`'s e2e class + pyramid now say a UI's "outer interface" is a real
+  browser via `browser-qa`, and an API/SSR-only "e2e" for a UI is an integration
+  test mislabeled.
+- `implement`'s test-first loop: a UI ticket on a Must journey isn't done on
+  unit-green alone — browser-verify it (local-only), fix and retest on failure.
+- `infra` runs the committed browser e2e specs in CI against an ephemeral env.
+- Modular "which skill for which job" table, README/GUIDE catalogs, role map, and
+  skill roster updated. Count 28 → **29**.
+
 ## [0.21.0] — 2026-08-14
 A deterministic backstop for the v0.19 file-management rule, triggered by real
 evidence: tested v0.20 live on `internal-dsg-2` and confirmed the correct,
@@ -828,6 +868,7 @@ Initial release.
 - Portable SKILL.md skills + templates + multi-agent installer + Claude Code plugin/marketplace manifests.
 - Worked example (`examples/wishlist/`): full spec set + a runnable, tested backend (zero-dep TypeScript on Node type-stripping, HTTP delivery, SSR shared page, infra-as-code; 50 tests, ~99%/96% coverage).
 
+[0.22.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.22.0
 [0.21.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.21.0
 [0.20.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.20.0
 [0.19.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.19.0

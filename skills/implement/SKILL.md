@@ -77,6 +77,13 @@ Cover the **error/alternate flows** from the FSD, not just the happy path — th
 where defects and the interesting tests live. Every bug found gets a failing
 regression test before the fix.
 
+**For a UI ticket on a Must-priority journey, unit/integration green isn't
+"done" — verify it in a real browser** (`browser-qa`): run the app locally (same
+local-DB-only hard stop) and drive the journey to confirm a user can actually
+complete it, then fix and retest on failure. A feature that passes its unit tests
+but is broken in the browser is not shipped. Prefer leaving a committed
+Playwright/Cypress spec so CI keeps guarding the journey.
+
 ## Write to the code-quality bar
 
 Every line must clear `code-standards` (SSOT/DRY/YAGNI/deep modules/clarity —

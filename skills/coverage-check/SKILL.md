@@ -48,6 +48,10 @@ A passing percentage is necessary but not sufficient. Also verify:
    assertions. Grep for and flag them.
 4. **New code isn't dragging coverage down** — if a diff added lines that are
    uncovered, name them even if the global number still clears 80%.
+5. **For a UI product, every Must-priority journey is browser-verified** (via
+   `browser-qa`) or its gap is explicitly flagged. A high coverage number over
+   code that was never exercised through the real UI is false comfort — a green
+   unit suite doesn't prove a user can complete the journey in a browser.
 
 ## Step 4 — verdict
 

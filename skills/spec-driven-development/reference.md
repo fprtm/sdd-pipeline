@@ -51,7 +51,8 @@ Every phase's exit gate is satisfiable with this pack alone. Pipeline skills:
 `map-codebase`, `discovery`, `to-prd`, `analytics-design`, `to-diagrams`,
 `to-fsd`, `arch-decision`, `stack-conventions`, `database-design`, `ux-design`,
 `threat-model`, `backlog-leveling`, `test-plan`, `code-standards`, `implement`,
-`code-review`, `debug`, `infra`, `coverage-check`, `documentation`. Cross-cutting:
+`code-review`, `debug`, `browser-qa`, `infra`, `coverage-check`, `documentation`.
+Cross-cutting:
 `traceability`, `decision-log`, `project-memory`, `handoff`, `stakeholder-brief`,
 `git-workflow`. Maintenance (not a phase): `self-update`. External skills
 (mattpocock/skills, superpowers, an installed TDD/review/debug skill) are preferred
@@ -73,7 +74,7 @@ role, so one agent (or a human + agent) covers the whole org:
 | UI/UX designer | 4 | `ux-design` |
 | Security engineer (AppSec) | 5, re-check at 10 | `threat-model` |
 | Delivery lead | 6 | `backlog-leveling` (tickets + estimate) |
-| QA / test lead | 7, 10 | `test-plan`, `coverage-check` |
+| QA / test lead | 7, 10 | `test-plan`, `coverage-check`, `browser-qa` (UI e2e) |
 | Engineer | 8, + when bugs arise | `implement` (+ `code-standards`), `debug`, `git-workflow` |
 | DevOps / SRE / platform | 9 | `infra` |
 | Reviewer / staff engineer | 10 | `code-review` |

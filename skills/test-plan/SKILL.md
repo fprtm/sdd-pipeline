@@ -25,9 +25,14 @@ Write to `docs/sdd/07-test-plan.md` using `test-plan.template.md` (bundled with 
 - **Edge / negative** — boundaries, empty/max, invalid input, error flows from
   the FSD's alternate paths, authorization denials. This is where most defects
   hide, so weight effort here.
-- **E2E** — a real user journey across the whole stack, driven through the outer
-  interface, mirroring a sequence diagram from `to-diagrams`. Fewer of these,
-  but they must cover each Must-priority journey.
+- **E2E** — a real user journey across the whole stack, mirroring a sequence
+  diagram from `to-diagrams`. Fewer of these, but they must cover each
+  Must-priority journey. **For a product with a UI, "the outer interface" means a
+  real browser, not the API underneath** — plan these journeys for execution by
+  `browser-qa` (drive the running app in a browser and assert the result), and
+  prefer a committed Playwright/Cypress spec so CI keeps guarding it. An e2e case
+  "verified" only at the API/SSR level for a UI product is an integration test
+  wearing an e2e label — say so, don't count it as browser-verified.
 - **Non-functional** — performance (assert the REQ-NF p95/throughput target),
   and security cases derived from `threat-model`.
 
@@ -72,8 +77,9 @@ executor runs the right one.
 
 Aim for many fast unit tests, a solid band of integration tests at the seams the
 architecture defined (`arch-decision`), and a **small, high-value** set of e2e
-tests over the key journeys. Don't invert it into all-e2e (slow, flaky) or
-all-unit (misses wiring bugs).
+tests over the key journeys — for a UI, executed in a real browser by
+`browser-qa`. Don't invert it into all-e2e (slow, flaky) or all-unit (misses
+wiring bugs, and never proves the UI actually works).
 
 ## Coverage target
 

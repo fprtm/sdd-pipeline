@@ -31,6 +31,11 @@ baseline:
 - **Static checks** — lint, type-check, format.
 - **Secret scanning** — block commits/PRs that contain credentials.
 - **SAST** (where available) for the languages in use.
+- **Browser e2e (UI products)** — run the committed Playwright/Cypress specs
+  (`browser-qa`'s durable flavor) against the app on an ephemeral local/CI
+  environment with a disposable DB, so each Must-priority journey is guarded on
+  every change — never against production. Keep this suite thin (Must journeys
+  only) so CI stays fast.
 - **Docs-drift check** — flag a public-interface change with no matching doc
   change in the same diff. `implement`/`code-review` keep docs current inside the
   pipeline; this is the backstop for changes made outside it (a pre-commit hook

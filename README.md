@@ -15,7 +15,7 @@ down so a junior dev — or a cheap model — can execute the easy parts safely.
 
 ## Start here — what do you want to do?
 
-You don't need to learn 28 skills. There are two ways in:
+You don't need to learn 29 skills. There are two ways in:
 
 **🟢 Just want it built or fixed? (great for non-developers too)** — describe
 what you want and let **`spec-driven-development`** handle everything. It
@@ -107,6 +107,7 @@ above for the handful you actually reach for.
 | `code-standards` | the SSOT/DRY/YAGNI/deep-module code bar | 8·10 |
 | `implement` | the coding phase, test-first, ticket-by-ticket | 8 |
 | `debug` | systematic root-cause debugging + regression test | 8·10 |
+| `browser-qa` | drive a real browser to verify Must-priority UI journeys (e2e) | 10 |
 | `git-workflow` | commit/branch/PR conventions tied to the backlog + traceability | 8·11 |
 | `infra` | CI/CD, IaC, envs, secrets, observability, deploy | 9 |
 | `code-review` | Standards + Spec review | 10 |
@@ -119,7 +120,7 @@ above for the handful you actually reach for.
 | `handoff` | resumable snapshot for another agent / cheaper model | any |
 | `self-update` | check the remote and update the installed pack (no manual updating) | any |
 
-28 skills. The pipeline is **self-sufficient** — every phase's gate is
+29 skills. The pipeline is **self-sufficient** — every phase's gate is
 satisfiable with this pack alone, nothing else required (`self-update` is a
 maintenance helper, not a phase). If you also have other skills installed for
 planning, worktrees, grilling, TDD, review, or debugging, this pack prefers
@@ -374,7 +375,7 @@ sdd-pipeline/
 
 ## Status
 
-**v0.21.0** — usable end to end; 28 skills (self-sufficient pipeline + a
+**v0.22.0** — usable end to end; 29 skills (self-sufficient pipeline + a
 `self-update` maintainer); a worked example with a runnable, tested backend
 (54 tests); a self-sufficiency audit and a token-usage pass behind it. Pre-1.0,
 so things may still move. See [CHANGELOG.md](CHANGELOG.md).

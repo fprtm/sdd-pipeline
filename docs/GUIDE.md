@@ -9,7 +9,7 @@ read a recipe when you have a specific job.
 - [How the agent picks defaults](#how-the-agent-picks-defaults)
 - [Recipes](#recipes-copy-a-phrasing) — copy a phrasing for your situation
 - [The phases (0–11)](#the-phases-0-11)
-- [All 28 skills](#all-28-skills-reference)
+- [All 29 skills](#all-29-skills-reference)
 - [Where files go](#where-files-go)
 - [What it guarantees](#what-it-guarantees)
 - [FAQ](#faq)
@@ -48,7 +48,7 @@ me a plan" up to "build and deploy it".
 
 The rest (traceability, coverage, code-quality bar, decision log, project
 memory, CI) is **machinery the pipeline runs for you** — you rarely call it
-directly. Full per-skill detail is in [All 28 skills](#all-28-skills-reference).
+directly. Full per-skill detail is in [All 29 skills](#all-29-skills-reference).
 
 ---
 
@@ -251,7 +251,7 @@ nothing upstream, the same id accidentally defined twice, and dead doc links.
 
 ---
 
-## All 28 skills (reference)
+## All 29 skills (reference)
 
 You rarely call these directly — the orchestrator routes to them — but here's
 **when each one fits, what it produces, and a tip** so nothing is a mystery.
@@ -372,6 +372,14 @@ from real gate results. *Tip:* ask for this **per ticket**, not once at the
 end — smaller commits are easier to review and revert.
 
 ### Verify & ship
+
+**`browser-qa`** — drive a real browser to verify Must-priority UI journeys.
+*When:* the verify gate (phase 10) for any product with a UI, or "QA this in the
+browser / does it actually work end-to-end". *Produces:* per-journey PASS/FAIL
+against the running app, ideally a committed Playwright/Cypress spec CI can rerun.
+*Tip:* it's capability-agnostic (Claude Code's browser, Playwright MCP, or an
+in-repo runner — see [browser-qa-setup.md](browser-qa-setup.md)), stays thin
+(Must journeys only), and runs **local-only** — it stops before touching prod.
 
 **`infra`** — CI/CD, infra-as-code, secrets, observability, deploy.
 *When:* setting up CI, or getting ready to deploy. *Produces:* pipelines, IaC,
