@@ -3,6 +3,41 @@
 All notable changes to SDD Pipeline. Versioning is [SemVer](https://semver.org/);
 pre-1.0, so minors may still move fast. Plain-language where possible.
 
+## [0.32.0] — 2026-08-14
+User asked directly: is there really no technique to make `parallel-work`'s
+"which tickets are safe to parallelize" step automatic instead of eyeballing
+the backlog by hand? Answer grounded in what's actually possible: the
+Agent-tool spawn itself always needs an agent turn to invoke it (no script can
+call it unattended), but the *safety judgment* is genuinely mechanical and was
+being done by reading, not by rule — so make it a deterministic script, same
+backstop pattern as every other checker this pack ships.
+### Added — `check-parallel-safety.mjs`, bundled with `parallel-work`
+- Zero-dep script: parses `06-backlog.md`, finds tickets eligible to start now
+  (not done, not claimed, dependencies met), and computes **strict-safe
+  clusters** (zero file overlap between `Files likely touched` lists) plus
+  **near-safe pairs** (a small shared file, flagged for a human call rather
+  than silently included or excluded) — replacing manual list-comparison with
+  the same check, run mechanically. Verified against real data (xplorenusa's
+  actual 115-ticket backlog — correctly excluded the two tickets this
+  session's live demo had already completed, correctly unblocked a
+  previously-dependent ticket, correctly flagged the same shared-file case
+  found by hand earlier) and a synthetic backlog covering every branch (done,
+  blocked-dependency, already-claimed, strict cluster, near-safe pair, solo).
+- `parallel-work` §2 now leads with running this script; its plan is the
+  starting point, not a hand-picked guess.
+### Changed — spawning always requires explicit confirmation, every mode
+- New rule, deliberately stricter than the pack's usual autopilot-batches
+  default: **present the checker's plan and get an explicit yes before
+  spawning any agent, in autopilot and copilot alike** — committing several
+  background agents at once is a real resource decision, not a routine one.
+### Fixed — merge-trial belongs in its own worktree too
+- Grounded in a real incident this session: trial-merging in the repo's main
+  checkout raced with another concurrent session actively using that same
+  directory, and a `git checkout` from that other session silently moved
+  `HEAD` mid-trial. §5 now says the merge-and-verify step must also run in its
+  own worktree, never the main checkout — same isolation guarantee as every
+  other step in the protocol, no exception for "just a trial."
+
 ## [0.31.0] — 2026-08-14
 A full grilling session (`/mattpocock-skills:grilling`, 2 rounds, 9 questions) on
 two real, unresolved problems: running several agents on the same repo without
@@ -1120,6 +1155,7 @@ Initial release.
 - Portable SKILL.md skills + templates + multi-agent installer + Claude Code plugin/marketplace manifests.
 - Worked example (`examples/wishlist/`): full spec set + a runnable, tested backend (zero-dep TypeScript on Node type-stripping, HTTP delivery, SSR shared page, infra-as-code; 50 tests, ~99%/96% coverage).
 
+[0.32.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.32.0
 [0.31.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.31.0
 [0.30.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.30.0
 [0.29.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.29.0

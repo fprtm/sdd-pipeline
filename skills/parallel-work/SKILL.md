@@ -46,7 +46,7 @@ git worktree add ../xplorenusa-ticket113 -b feat/ticket-113-resend-email
 Each agent works entirely inside its own worktree directory; no two agents ever
 share a working tree. Remove with `git worktree remove <path>` once merged.
 
-## 2. Pick genuinely independent tickets (vertical-slice, not layer)
+## 2. Pick genuinely independent tickets (vertical-slice, not layer) — run the checker, don't eyeball it
 
 Assign **one full vertical slice per agent** (route → service → domain → tests
 → docs for one operation), not one layer per agent (e.g. "agent A = all
@@ -55,15 +55,34 @@ interdependent on the other's in-progress shape even with a locked contract —
 edge cases surface during coding, and neither side is independently mergeable
 until both land. A slice split is fully independent and mergeable in any order.
 
-**Before assigning, check for file overlap — this is the actual test, not a
-guess:** two tickets are parallel-safe only if their `Files likely touched`
-lists (from `backlog-leveling`'s ticket template) **don't intersect**. A shared
-file two tickets both need to edit (e.g. both registering a new provider in the
-same factory module) is a real collision waiting to happen on merge, even with
-perfectly separate business logic — sequence those two instead of parallelizing
-them. (Real example: in one run, two "independent-looking" adapter tickets both
-needed to edit the same `notification.module.ts` factory function — not
-parallel-safe once that was checked, despite touching otherwise-unrelated code.)
+**Run the bundled checker first — this is the actual test, not a guess:**
+
+```bash
+node skills/parallel-work/check-parallel-safety.mjs docs/sdd/06-backlog.md
+```
+
+It parses the backlog, finds tickets that are eligible right now (not done, not
+claimed, dependencies met), and groups them into **strict-safe clusters** — sets
+of tickets whose `Files likely touched` lists (from `backlog-leveling`'s ticket
+template) share **zero** files — plus a separate list of **near-safe pairs**
+that share one or two files, flagged for a human judgment call rather than
+silently included or silently excluded. Use its cluster output as the starting
+plan; don't hand-pick tickets by memory. (Real example the checker's design is
+grounded in: two "independent-looking" adapter tickets both needed to edit the
+same `notification.module.ts` factory function — a shared file two tickets both
+need to edit is a real collision waiting to happen on merge, even with
+perfectly separate business logic, and the checker surfaces it instead of
+requiring someone to notice it by reading two file lists side by side.)
+
+## Always confirm the plan before spawning — every mode, no exception
+
+Spawning several background agents is a real commitment (time, tokens, a batch
+of real diffs to review) — **present the checker's plan (which clusters, which
+tickets, the near-safe calls) and get an explicit yes before spawning any
+agent, in autopilot and copilot alike.** This is stricter than the pack's usual
+autopilot-batches-routine-decisions default, deliberately — unlike a single
+ticket's implementation choices, this is a go/no-go on committing real
+resources to several parallel threads of work at once.
 
 ## 3. Claim before starting — cheap, prevents silent duplication
 
@@ -89,7 +108,7 @@ pack — cheap insurance, not process for its own sake.
   about being parallel changes the code-quality bar, the local-DB-only test
   rule, or scope discipline.
 
-## 5. Merge order
+## 5. Merge order — trial-merge in its own worktree too
 
 Merge in the **same wave-dependency order `backlog-leveling` already tracked**
 (don't merge a Wave-2 ticket's branch before its Wave-1 dependency is in). Per
@@ -100,11 +119,22 @@ one). If two merged branches conflict despite the file-overlap check in step 2,
 that's a real signal the tickets weren't actually independent — fix it now,
 and tighten the check next time rather than treating it as normal friction.
 
+**If you trial-merge branches to verify they combine cleanly before opening
+real PRs, do that in its own worktree too — never in the repo's main
+checkout.** The main checkout is exactly the working directory a human (or
+another concurrent agent session) is most likely to be actively using; checking
+out a temporary integration branch there races with anything else touching that
+same directory — a `git checkout` from another live session can silently move
+you off the branch you think you're on mid-trial. A dedicated worktree for the
+trial-merge has no such risk, same as any other worktree in this protocol.
+
 ## Exit gate
 
-Every ticket assigned to a parallel agent passed the file-overlap check (step
-2); each was claimed before starting and released on merge; each agent worked
-inside its own worktree, never a shared working tree; merges landed in
-wave-dependency order through the normal per-ticket review/PR flow. If a runtime
-without real concurrent-agent support was used, say so plainly rather than
-implying automation that didn't happen.
+`check-parallel-safety.mjs` ran and its plan was **confirmed with the user
+before any agent was spawned**; every ticket assigned to a parallel agent
+passed the file-overlap check; each was claimed before starting and released
+on merge; each agent worked inside its own worktree, never a shared working
+tree — including any trial-merge/verify step; merges landed in wave-dependency
+order through the normal per-ticket review/PR flow. If a runtime without real
+concurrent-agent support was used, say so plainly rather than implying
+automation that didn't happen.
