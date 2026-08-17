@@ -9,7 +9,7 @@ read a recipe when you have a specific job.
 - [How the agent picks defaults](#how-the-agent-picks-defaults)
 - [Recipes](#recipes-copy-a-phrasing) — copy a phrasing for your situation
 - [The phases (0–11)](#the-phases-0-11)
-- [All 29 skills](#all-29-skills-reference)
+- [All 30 skills](#all-30-skills-reference)
 - [Where files go](#where-files-go)
 - [What it guarantees](#what-it-guarantees)
 - [FAQ](#faq)
@@ -48,7 +48,7 @@ me a plan" up to "build and deploy it".
 
 The rest (traceability, coverage, code-quality bar, decision log, project
 memory, CI) is **machinery the pipeline runs for you** — you rarely call it
-directly. Full per-skill detail is in [All 29 skills](#all-29-skills-reference).
+directly. Full per-skill detail is in [All 30 skills](#all-30-skills-reference).
 
 ---
 
@@ -251,7 +251,7 @@ nothing upstream, the same id accidentally defined twice, and dead doc links.
 
 ---
 
-## All 29 skills (reference)
+## All 30 skills (reference)
 
 You rarely call these directly — the orchestrator routes to them — but here's
 **when each one fits, what it produces, and a tip** so nothing is a mystery.
@@ -370,6 +370,15 @@ traceability.
 a commit message referencing `TICKET-xxx`/`FSD-xxx`, or a PR description built
 from real gate results. *Tip:* ask for this **per ticket**, not once at the
 end — smaller commits are easier to review and revert.
+
+**`parallel-work`** — run several agents on the same repo at the same time.
+*When:* contracts are locked, the backlog has independent tickets, and you want
+them built concurrently instead of one agent working through them in sequence.
+*Produces:* git-worktree isolation (not clones), a vertical-slice ticket
+assignment, a lightweight claim so two agents never duplicate work, and a merge
+order. *Tip:* verified against real docs — OpenCode's own subagents are
+sequential child sessions, not concurrent workers; this protocol runs manually
+there. On Claude Code, its `Agent` tool can execute it directly.
 
 ### Verify & ship
 

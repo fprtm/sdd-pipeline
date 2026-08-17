@@ -34,13 +34,13 @@ gates** and keeps a **traceability matrix** linking every requirement to a test:
 | 5 Security gate (SSDLC) | `threat-model` | `docs/sdd/05-threat-model.md` (SEC-xxx) |
 | 6 Backlog | `backlog-leveling` | `06-backlog.md` (tiered TICKET-xxx) + `ESTIMATE.md` (effort/cost) |
 | 7 Test plan | `test-plan` | `docs/sdd/07-test-plan.md` (TEST-xxx, ≥80% target) |
-| 8 Implement | `implement` + `code-standards` (+ `debug`) + `git-workflow` per commit | tested code clearing the SSOT/DRY/YAGNI bar |
+| 8 Implement | `implement` + `code-standards` (+ `debug`) + `git-workflow` per commit (+ `parallel-work` if running several agents on the backlog at once) | tested code clearing the SSOT/DRY/YAGNI bar |
 | 9 Infra & delivery | `infra` | CI/CD, IaC, envs, secrets, observability, deploy |
 | 10 Verify gate | `coverage-check` + `code-review` + `threat-model` re-check + `browser-qa` (if UI) (+ `debug`) | proof — incl. Must UI journeys browser-verified |
 | 11 Ship | `documentation` + `git-workflow` (PR/changelog) + finish/`handoff` | deployed, docs written, matrix green |
 | any | `traceability` · `decision-log` · `stakeholder-brief` · `handoff` · `self-update` | matrix, decision "why", non-IT brief, snapshot, pack self-update |
 
-This pack is **self-sufficient** (29 skills; the pipeline runs end to end alone —
+This pack is **self-sufficient** (30 skills; the pipeline runs end to end alone —
 `self-update` is a maintenance helper that keeps the installed pack current from
 the remote, not a phase). For planning,
 git worktrees, and grilling, **defer to skills you already have** (mattpocock/

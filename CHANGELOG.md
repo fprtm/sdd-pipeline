@@ -3,6 +3,54 @@
 All notable changes to SDD Pipeline. Versioning is [SemVer](https://semver.org/);
 pre-1.0, so minors may still move fast. Plain-language where possible.
 
+## [0.31.0] — 2026-08-14
+A full grilling session (`/mattpocock-skills:grilling`, 2 rounds, 9 questions) on
+two real, unresolved problems: running several agents on the same repo without
+fear of forking/conflict, and UX-design output quality. Two verified facts
+grounded the design tree before any question was asked: (1) OpenCode's own
+subagents are **sequential child sessions**, not concurrent workers — verified
+against `opencode.ai/docs/agents`, not assumed; (2) a direct re-read of
+xplorenusa's real `04-ux-design.md` showed the wireframe *content* was already
+detailed (why-per-element, breakpoints, device strategy) — the actual gap,
+confirmed by the user, was findability/clarity, not depth.
+### Added — `parallel-work` skill (30th): several agents, one repo, no forking
+- Git **worktree** isolation (shares history, isn't a fork) instead of separate
+  clones. **Vertical-slice-per-operation** ticket assignment, not layer-split
+  (2 BE/2 FE) — independently mergeable, no cross-agent waiting.
+- **File-overlap is the actual parallel-safety test**, not a guess — two
+  tickets are only parallel-safe if their `Files likely touched` lists don't
+  intersect (real example from xplorenusa's own backlog documented as the
+  worked case: two "independent-looking" adapter tickets both needed the same
+  `notification.module.ts` factory — not parallel-safe once checked).
+- Lightweight **`Claimed by:`** ticket field (new in `backlog.template.md`) so
+  two agents never silently duplicate work.
+- **Roles clarified**: `test-plan` is upstream (phase 7, before implementation
+  agents start), not a concurrent peer; `code-review` genuinely is
+  concurrent-compatible. Merge in wave-dependency order through the normal
+  per-ticket review/PR flow.
+- **Runtime-honest**: the protocol works manually on any runtime; on Claude
+  Code specifically, its `Agent` tool (`isolation: "worktree"`,
+  `run_in_background`) can execute it directly. Never implies automated
+  parallelism a runtime doesn't actually have.
+### Changed — `ux-design`: index-first per-flow files, not one mega-section
+- **One file per flow** (`docs/sdd/ux-screens/<flow-slug>.md`), frontmatter
+  `description` + `priority` (`Must`/`Should`/`Could`) — `04-ux-design.md` §3
+  becomes a thin index. Same topic-scoping fix already applied to
+  `changes`/`decisions`/`memory`, now applied to wireframes (50 screens in one
+  530-line section was genuinely unfindable, even though the content was good).
+- Per screen, "fully detailed" now also requires an **interaction/behavior
+  spec** (what happens on tap/validation/edge case) beyond the screen-level
+  states — a layout with no interaction spec is only half-specified.
+- **§0 strengthened**: direction options now need a **concrete preview each**
+  (a real sample, not just a style label — a named style with nothing to look
+  at isn't a real choice), and **check-in happens per flow**, not once at the
+  start with the rest produced silently in one batch.
+- `check-file-hygiene.mjs` extended to validate `ux-screens/` (filename,
+  `description`/`priority` frontmatter, indexed in §3) — same backstop pattern
+  as `changes`/`decisions`/`memory`.
+- Skill roster, modular table, README/GUIDE catalogs, workspace-layout tree
+  updated. Count 29 → **30**.
+
 ## [0.30.0] — 2026-08-14
 User asked for a real option on backlog tickets: write locally, or also mirror to
 GitHub Issues.
@@ -1072,6 +1120,7 @@ Initial release.
 - Portable SKILL.md skills + templates + multi-agent installer + Claude Code plugin/marketplace manifests.
 - Worked example (`examples/wishlist/`): full spec set + a runnable, tested backend (zero-dep TypeScript on Node type-stripping, HTTP delivery, SSR shared page, infra-as-code; 50 tests, ~99%/96% coverage).
 
+[0.31.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.31.0
 [0.30.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.30.0
 [0.29.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.29.0
 [0.28.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.28.0

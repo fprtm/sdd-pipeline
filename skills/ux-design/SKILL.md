@@ -40,7 +40,7 @@ silently diverge. Note: an empty `pages/` folder is **expected**, not a bug —
 `ui-ux-pro-max` creates a page-override file lazily, only once that specific
 page is actually built (phase 8), not upfront for the whole wireframe set.
 
-## 0. Confirm direction first — ask, don't assume
+## 0. Confirm direction first — with a concrete preview, not just a label
 
 Design direction is a **consequential decision the user didn't necessarily
 specify** (same "ask rather than assume" rule the whole pipeline holds to) — don't
@@ -52,20 +52,23 @@ ask (via the native structured-question tool where available):
    If yes — **respect-existing** (the same brownfield principle `arch-decision`
    uses for architecture): extract and document the *actual* tokens/patterns
    rather than inventing new ones; only fill genuine gaps.
-2. **What design language/direction, if starting fresh?** Present 2–3 concrete
-   directions with a recommendation (e.g. "minimal/utilitarian" vs
-   "expressive/brand-forward" vs "match this reference: <name>") rather than
-   silently picking one — same pattern `arch-decision` uses for architecture
-   options. Ask about light/dark preference and any hard brand constraints
-   (existing logo, locked colors) too.
+2. **What design language/direction, if starting fresh?** Present 2–3 candidate
+   directions **with a concrete preview each** — a short sample (one real screen
+   sketched, or the actual palette/type swatch), not just a label like "minimal
+   vs expressive". A named style with nothing to look at isn't a real choice —
+   the user is picking blind. Recommend one, but let them see all of them first.
+   Ask light/dark preference and hard brand constraints (existing logo, locked
+   colors) too.
 3. **How much wireframe detail is wanted?** Structure-only (screens, hierarchy,
    primary action — fast, low-commitment) vs **fully detailed** (every
-   section/component named, states, spacing/hierarchy notes, and the *why*
-   behind each screen's layout — see §3). Default to structure-only for `quick`/
-   `lite`; ask explicitly for `full`.
+   section/component named, states, interactions, spacing/hierarchy notes, and
+   the *why* behind each screen's layout — see §3). Default to structure-only
+   for `quick`/`lite`; ask explicitly for `full`.
 
 Record the answers (a one-line summary at the top of `04-ux-design.md`) before
 moving on — this is what §1's principles are *derived from*, not decided fresh.
+**Then check in again after each flow** (§3) — direction confirmed once at the
+start doesn't mean the rest gets designed unsupervised in one silent batch.
 
 ## 1. Design principles & direction
 A short north star for the look/feel tied to the brand and audience (e.g.
@@ -85,25 +88,50 @@ code):
 These map directly to a theme in code (CSS variables / Tailwind config /
 `stack-conventions`' design layer) — hand off tokens, not one-off hex values.
 
-## 3. Key screens & flows (wireframes — depth per §0's answer)
+## 3. Key screens & flows — index-first, one file per flow
+
 For each main user journey (reuse the sequence diagrams from `to-diagrams`), lay
-out the key screens. Keep domain terms from `00-context.md` in the labels.
+out the key screens. **Past a handful of flows, one giant section in
+`04-ux-design.md` becomes unfindable** — the same failure mode topic-scoping
+already fixes for `changes/`/`decisions/`/`memory` elsewhere in this pack. So:
 
-- **Structure-only** (the default for `quick`/`lite`, or when §0 says light):
-  what's on the screen, visual hierarchy, primary action, navigation. Low-fi is
-  fine — structure and priority matter, not pixels.
-- **Fully detailed** (when §0 confirms it, typically `full`): every
-  section/component named (header, filters, list item anatomy, CTA placement,
-  …), explicit hierarchy/spacing notes tied to the §2 tokens, and — for
-  **each screen** — a short **"why"**: why this layout/hierarchy, why the
-  primary action is placed there, what alternative was considered and rejected
-  if one was. Same "explain what you decide" rule the rest of the pipeline
-  holds to (see the orchestrator) — a screen with no rationale is a screen the
-  next reader has to reverse-engineer.
+- **One file per flow** — `docs/sdd/ux-screens/<flow-slug>.md`, frontmatter
+  `description` (one line) + `priority` (`Must`/`Should`/`Could`, same vocabulary
+  `test-plan` uses for journeys). **`04-ux-design.md` §3 becomes a thin index**:
+  one row per flow — priority · description · file link — so a reader finds the
+  one flow they need without opening the other 19. **Read index-first** here too:
+  match the flow by its row, then open only that file.
+- **Priority is not decoration — it's what makes 50 screens navigable.** Sort the
+  index by priority; a reader (or the next agent) works Must flows first, and
+  can tell at a glance what's core versus rarely-used.
+- **Check in after each flow, not once at the end.** Draft one flow, confirm it
+  lands before moving to the next — don't produce all 20 flows in one silent
+  batch and surface them together (autopilot may batch more, per its usual
+  batched-confirmation rule; copilot checks in per flow).
 
-Whichever depth, never silently under- or over-deliver relative to what §0
-confirmed — if scope changed mid-design, say so and confirm again rather than
-assuming.
+**Per screen, whichever depth §0 confirmed:**
+- **Structure-only** (default for `quick`/`lite`): what's on the screen, visual
+  hierarchy, primary action, navigation. Low-fi is fine.
+- **Fully detailed** (typically `full`): every section/component named, hierarchy
+  tied to §2 tokens, **the *why*** (layout/hierarchy/primary-action reasoning,
+  alternative rejected if any — same "explain what you decide" rule the
+  orchestrator holds everywhere), and **interactions** — what happens on tap,
+  on validation, on the edge cases beyond the screen-level states in §5 (e.g.
+  "qty exceeds remaining quota → adjust or show alternate dates", not just
+  "there's an error state"). A screen with layout but no interaction spec is
+  only half-specified — the FE still has to invent the behavior.
+- **Plain language throughout** — the *why* and descriptions should read clearly
+  to someone outside design, not lean on unexplained jargon. If a term from
+  `00-context.md` is used, it's already defined there; anything else, explain
+  inline.
+
+Never silently under- or over-deliver relative to what §0 confirmed — if scope
+changed mid-design, say so and confirm again rather than assuming.
+
+Run `check-file-hygiene.mjs` (bundled with `spec-driven-development`) after
+writing/renaming a flow file — it checks the filename, `description`/`priority`
+frontmatter, and that every flow is actually indexed in §3, same backstop
+pattern used for `changes/`/`decisions/`/`memory`.
 
 ## 4. Component patterns
 Name the reusable patterns (forms, tables/lists, modals, empty states, cards)
@@ -123,10 +151,14 @@ order, keyboard operability, and how the layout reflows across breakpoints
 by a test later.
 
 ## Exit gate
-**Direction confirmed with the user (§0)** — not assumed; existing designs
-respected if present. Design tokens defined (palette passes contrast, type +
-spacing scales set); key screens wireframed at the confirmed depth — with a
-stated *why* per screen if "fully detailed" was asked for — and all four states;
-component patterns named; a11y + responsive addressed; tokens are handoff-ready
-for the FE to theme from. Then `to-fsd` picks up the states as behaviors and
-`implement` builds to the system.
+**Direction confirmed with the user via a concrete preview (§0)** — not assumed;
+existing designs respected if present. Design tokens defined (palette passes
+contrast, type + spacing scales set). **Flows are index-first**: one file per
+flow in `ux-screens/`, each tagged `Must`/`Should`/`Could`, indexed by
+`04-ux-design.md` §3 — never one undifferentiated mega-section. Screens
+wireframed at the confirmed depth — with a stated *why*, interaction spec, and
+plain language if "fully detailed" was asked for — and all four states;
+each flow was confirmed as it landed, not batch-surfaced at the end. Component
+patterns named; a11y + responsive addressed; tokens are handoff-ready for the FE
+to theme from. Then `to-fsd` picks up the states as behaviors and `implement`
+builds to the system.

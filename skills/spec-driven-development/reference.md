@@ -52,7 +52,9 @@ Every phase's exit gate is satisfiable with this pack alone. Pipeline skills:
 `to-fsd`, `arch-decision`, `stack-conventions`, `database-design`, `ux-design`,
 `threat-model`, `backlog-leveling`, `test-plan`, `code-standards`, `implement`,
 `code-review`, `debug`, `browser-qa`, `infra`, `coverage-check`, `documentation`.
-Cross-cutting:
+Multi-agent: `parallel-work` (worktree isolation, vertical-slice assignment,
+ticket claiming, merge order — for running several implementation agents on the
+same repo at once). Cross-cutting:
 `traceability`, `decision-log`, `project-memory`, `handoff`, `stakeholder-brief`,
 `git-workflow`. Maintenance (not a phase): `self-update`. External skills
 (mattpocock/skills, superpowers, an installed TDD/review/debug skill) are preferred

@@ -17,6 +17,7 @@
 - **Traces to:** FSD-0xx  · **Constrained by:** ADR-0xx
 - **Tier:** T1 | T2 | T3
 - **GitHub Issue:** _(only if mirroring was chosen — `#<n>`, filled in after `gh issue create`; leave blank/omit for local-only)_
+- **Claimed by:** _(only if running `parallel-work` — `<agent-id>, <worktree path>`; delete this line once merged)_
 - **Plain-language goal:** _(one sentence, no jargon)_
 - **Context an executor needs:** _(data shapes, where it lives in the arch, existing patterns to follow)_
 - **Steps (high level):**

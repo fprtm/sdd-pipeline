@@ -16,6 +16,11 @@
 //   5. Every decisions/*.md has frontmatter `status:` (proposed|decided|locked|superseded)
 //   6. docs/sdd/memory/*.md (excluding INDEX.md) has frontmatter `description:`
 //   7. Every memory note is referenced in memory/INDEX.md (by filename or [[slug]])
+//   8. docs/sdd/ux-screens/*.md filenames are kebab-slug: <flow-slug>.md
+//   9. Every ux-screens/*.md has frontmatter `description:` and `priority:`
+//      (Must|Should|Could)
+//  10. Every ux-screens/*.md is referenced by filename in 04-ux-design.md
+//      (no orphaned flow missing from the §3 index)
 // Exits 0 clean, 10 violations found, 2 nothing to check (no docs/sdd dir).
 
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
@@ -30,8 +35,10 @@ if (!existsSync(dir)) {
 
 const CHANGE_NAME_RE = /^\d{4}-\d{2}-\d{2}-[a-z0-9]+(-[a-z0-9]+)*\.md$/;
 const DECISION_NAME_RE = /^\d{4}-\d{2}-\d{2}-\d{4}-[a-z0-9]+(-[a-z0-9]+)*\.md$/;
+const SLUG_NAME_RE = /^[a-z0-9]+(-[a-z0-9]+)*\.md$/;
 const STATUS_RE = /^status:\s*(proposed|decided|locked|superseded)\s*$/m;
 const DESCRIPTION_RE = /^description:\s*.+$/m;
+const PRIORITY_RE = /^priority:\s*(Must|Should|Could)\s*$/m;
 
 const problems = [];
 const listMd = (sub) => {
@@ -91,6 +98,29 @@ for (const f of memoryFiles) {
 }
 if (memoryFiles.length && !existsSync(indexPath)) {
   problems.push(`docs/sdd/memory/ has notes but INDEX.md doesn't exist — no index`);
+}
+
+// --- ux-screens/ ---
+const uxFiles = listMd('ux-screens');
+const uxIndexPath = join(dir, '04-ux-design.md');
+const uxIndexText = existsSync(uxIndexPath) ? readFileSync(uxIndexPath, 'utf8') : '';
+for (const f of uxFiles) {
+  if (!SLUG_NAME_RE.test(f)) {
+    problems.push(`ux-screens/${f}: filename must be <flow-slug>.md (kebab, no date needed)`);
+  }
+  const fm = frontmatter(join(dir, 'ux-screens', f));
+  if (!DESCRIPTION_RE.test(fm)) {
+    problems.push(`ux-screens/${f}: missing frontmatter "description:" (the index relevance hook)`);
+  }
+  if (!PRIORITY_RE.test(fm)) {
+    problems.push(`ux-screens/${f}: missing/invalid frontmatter "priority:" (Must|Should|Could)`);
+  }
+  if (!uxIndexText.includes(f)) {
+    problems.push(`ux-screens/${f}: not referenced in 04-ux-design.md's §3 index — orphaned flow`);
+  }
+}
+if (uxFiles.length && !existsSync(uxIndexPath)) {
+  problems.push(`docs/sdd/ux-screens/ has files but 04-ux-design.md doesn't exist — no index`);
 }
 
 if (problems.length === 0) {

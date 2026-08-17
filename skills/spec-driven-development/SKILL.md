@@ -172,6 +172,7 @@ docs/
     01-prd.md 02-diagrams.md 03-fsd.md
     04-architecture.md 04-stack-guide.md 04-schema.md 04-ux-design.md   # design phase
     design-system/          # OPTIONAL — an external UI/UX skill's own SSOT output (e.g. ui-ux-pro-max's MASTER.md); redirect its --output-dir here, never let it land outside docs/sdd
+    ux-screens/             # ux-design: one index-first file per flow (docs/sdd/ux-screens/<flow-slug>.md, priority-tagged, not dated — flows aren't chronological); 04-ux-design.md §3 is the thin index
     05-threat-model.md 06-backlog.md 07-test-plan.md 08-delivery.md
     analytics.md            # analytics-design (metrics/events)
     decisions/              # decision-log — one timestamped file per decision
@@ -264,7 +265,10 @@ model/tool switch), `debug` (whenever something fails, phases 8/10), `git-workfl
 Phases 1→7 are mostly sequential. Where the runtime supports subagents, fan out
 **within** a phase (draft multiple FSD sections / ticket bodies in parallel), then
 reconcile IDs centrally — **reserve the ID range first**; never let two agents
-allocate the same ID.
+allocate the same ID. For running several agents on **implementation tickets**
+(phase 8) at the same time — worktree isolation, vertical-slice assignment,
+ticket claiming, merge order — see `parallel-work`; it's a distinct enough
+protocol to own its own skill rather than live here.
 
 ## Modes — three independent dials
 
@@ -357,6 +361,7 @@ like reaching for one tool:
 | **Commit / open a PR** | `git-workflow` |
 | **Record a decision** | `decision-log` |
 | **Remember something about the codebase** | `project-memory` |
+| **Split implementation across several agents at once** | `parallel-work` |
 | **Update this pack to the latest release** | `self-update` |
 
 Invoking one directly loses the automatic gating/traceability — the trade for
