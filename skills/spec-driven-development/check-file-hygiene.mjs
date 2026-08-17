@@ -21,10 +21,16 @@
 //      (Must|Should|Could)
 //  10. Every ux-screens/*.md is referenced by filename in 04-ux-design.md
 //      (no orphaned flow missing from the §3 index)
+//  11. If 04-ux-design.md exists (there's a UI), docs/user/ must exist with
+//      >=1 file — a user guide claimed "written" has to actually be there
+//  12. If 04-architecture.md exists (real build under way), docs/dev/ must
+//      exist with >=1 file — same for developer docs
+//  13. No stray *.md sitting directly in docs/ (outside sdd/user/dev) — a
+//      likely-misplaced doc that should be inside one of those three homes
 // Exits 0 clean, 10 violations found, 2 nothing to check (no docs/sdd dir).
 
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 
 const dir = process.argv[2] ?? 'docs/sdd';
 
@@ -121,6 +127,32 @@ for (const f of uxFiles) {
 }
 if (uxFiles.length && !existsSync(uxIndexPath)) {
   problems.push(`docs/sdd/ux-screens/ has files but 04-ux-design.md doesn't exist — no index`);
+}
+
+// --- docs/user/ and docs/dev/ (siblings of docs/sdd/, canonical homes) ---
+const docsRoot = resolve(dir, '..');
+const hasUxDesign = existsSync(join(dir, '04-ux-design.md'));
+const hasArchitecture = existsSync(join(dir, '04-architecture.md'));
+
+if (hasUxDesign) {
+  const userDir = join(docsRoot, 'user');
+  const userFiles = existsSync(userDir) ? readdirSync(userDir).filter((f) => f.endsWith('.md')) : [];
+  if (userFiles.length === 0) {
+    problems.push(`04-ux-design.md exists (there's a UI) but docs/user/ has no file — user guide missing from its canonical home`);
+  }
+}
+if (hasArchitecture) {
+  const devDir = join(docsRoot, 'dev');
+  const devFiles = existsSync(devDir) ? readdirSync(devDir).filter((f) => f.endsWith('.md')) : [];
+  if (devFiles.length === 0) {
+    problems.push(`04-architecture.md exists but docs/dev/ has no file — developer docs missing from their canonical home`);
+  }
+}
+if (existsSync(docsRoot)) {
+  const stray = readdirSync(docsRoot).filter((f) => f.endsWith('.md'));
+  for (const f of stray) {
+    problems.push(`docs/${f}: sitting directly in docs/ — canonical homes are docs/sdd/, docs/user/<feature>.md, docs/dev/ (move it, don't leave it loose)`);
+  }
 }
 
 if (problems.length === 0) {

@@ -97,4 +97,9 @@ For whoever *extends or maintains* it — including a cheaper model or a new dev
 `docs/user/<feature>.md` exists (a non-technical user can follow it), developer
 docs exist (public interfaces documented inline; API + architecture + run/test in
 `docs/dev/`), everything derives from and links to the specs, and nothing
-duplicates a fact that lives elsewhere.
+duplicates a fact that lives elsewhere. Run `check-file-hygiene.mjs` (bundled
+with `spec-driven-development`) — it verifies `docs/user/` and `docs/dev/`
+actually exist in their canonical location whenever there's a UI/a real build,
+and flags a stray doc file sitting loose in `docs/` instead of one of those
+homes. A gate board that says "user/developer guide written" isn't enough —
+the checker confirms it landed in the right place.

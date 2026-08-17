@@ -3,6 +3,31 @@
 All notable changes to SDD Pipeline. Versioning is [SemVer](https://semver.org/);
 pre-1.0, so minors may still move fast. Plain-language where possible.
 
+## [0.33.0] — 2026-08-14
+User caught a real gap: `docs/user/` and `docs/dev/` — canonical since early in
+this pack's life — didn't actually exist in xplorenusa, even though the gate
+board claimed "user/developer guide written." The content existed
+(`docs/user-guide.md`, `docs/developer-guide.md`), just at the wrong location —
+a self-check that only verified "does guide-shaped content exist somewhere"
+instead of the actual canonical path. Same probabilistic-instruction class of
+bug this pack has repeatedly closed with a script.
+### Added — `check-file-hygiene.mjs`: verifies docs/user/ and docs/dev/ actually exist
+- If `04-ux-design.md` exists (there's a UI), `docs/user/` must exist with ≥1
+  file. If `04-architecture.md` exists (a real build), `docs/dev/` must exist
+  with ≥1 file. Any stray `.md` sitting directly in `docs/` (outside
+  `sdd/`/`user/`/`dev/`) is flagged as likely misplaced.
+- Verified against xplorenusa's real state — correctly found all 7 real
+  problems (missing `docs/user/`, missing `docs/dev/`, and 5 stray files
+  including `docs/user-guide.md`/`docs/developer-guide.md` themselves) — and
+  against the wishlist example, which turned out to have the **same real gap**
+  (no `docs/dev/`) — fixed by dogfooding: added
+  `examples/wishlist/docs/dev/{README,architecture}.md`, pointing at the
+  existing `impl/README.md` and the ADRs rather than duplicating them.
+  Verified accurate against the actual `impl/src/` layout, not guessed.
+- `documentation`'s exit gate now says to run the checker — "the gate board
+  says it's written" isn't enough, the checker confirms it landed in the
+  canonical place.
+
 ## [0.32.0] — 2026-08-14
 User asked directly: is there really no technique to make `parallel-work`'s
 "which tickets are safe to parallelize" step automatic instead of eyeballing
@@ -1155,6 +1180,7 @@ Initial release.
 - Portable SKILL.md skills + templates + multi-agent installer + Claude Code plugin/marketplace manifests.
 - Worked example (`examples/wishlist/`): full spec set + a runnable, tested backend (zero-dep TypeScript on Node type-stripping, HTTP delivery, SSR shared page, infra-as-code; 50 tests, ~99%/96% coverage).
 
+[0.33.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.33.0
 [0.32.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.32.0
 [0.31.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.31.0
 [0.30.0]: https://github.com/fprtm/sdd-pipeline/releases/tag/v0.30.0

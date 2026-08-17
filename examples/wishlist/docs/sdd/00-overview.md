@@ -52,6 +52,7 @@ _States: ⬜ not started · 🟨 in progress · ✅ passed · ⛔ blocked_
 - [06 Backlog](06-backlog.md)
 - [07 Test plan](07-test-plan.md)
 - [Traceability matrix](traceability.md)
+- [Developer docs](../dev/README.md)
 
 ## ID registry (next free)
 | Prefix | Next free |
