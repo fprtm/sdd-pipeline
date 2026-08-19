@@ -65,8 +65,12 @@ copy_phase() {
       fi
       ;;
     orchestrator)
+      # cp the whole directory, not just SKILL.md — the orchestrator's own
+      # content references skills/orchestrator/composition.md as a
+      # companion file; copying SKILL.md alone silently breaks that
+      # reference on every --only install (was: cp of SKILL.md only).
       mkdir -p "$dest/orchestrator"
-      cp "$SKILLS_DIR/orchestrator/SKILL.md" "$dest/orchestrator/"
+      cp -r "$SKILLS_DIR/orchestrator"/* "$dest/orchestrator/"
       echo "  ✓ orchestrator"
       ;;
     security)
@@ -120,14 +124,28 @@ rewrite_skill_paths_in_file() {
 # Same rewrite, applied to every .md/.mjs file already copied under $dest —
 # i.e. the whole installed skill tree, correcting its internal cross-references
 # in place to match where it actually landed.
+#
+# Uses process substitution (< <(...)), not a `find | while` pipe: the loop
+# body needs `failed` to survive past the loop, which a pipe's subshell
+# would silently discard. Each file's rewrite runs inside an `if !`, which
+# `set -e` treats as a tested condition rather than a failing command — so
+# one bad file logs a warning and the loop continues instead of aborting
+# the whole install mid-copy with no explanation.
 rewrite_skill_paths() {
   local dest="$1"
   local prefix="${dest%/}/"
-  find "$dest" -type f \( -name '*.md' -o -name '*.mjs' \) -print0 |
-    while IFS= read -r -d '' f; do
-      rewrite_skill_paths_in_file "$f" "$prefix"
-    done
-  echo "  ✓ internal skills/... references rewritten to point at $dest/"
+  local failed=0
+  while IFS= read -r -d '' f; do
+    if ! rewrite_skill_paths_in_file "$f" "$prefix"; then
+      echo "  ! warning: failed to rewrite path references in $f — left as-is" >&2
+      failed=$((failed + 1))
+    fi
+  done < <(find "$dest" -type f \( -name '*.md' -o -name '*.mjs' \) -print0)
+  if [ "$failed" -gt 0 ]; then
+    echo "  ! $failed file(s) could not be rewritten — see warnings above" >&2
+  else
+    echo "  ✓ internal skills/... references rewritten to point at $dest/"
+  fi
 }
 
 copy_agents_md() {
@@ -135,7 +153,9 @@ copy_agents_md() {
   local skills_prefix="${2:-}"   # what "skills/" becomes in the copied AGENTS.md, relative to $dest
   cp "$SCRIPT_DIR/AGENTS.md" "$dest/AGENTS.md"
   if [[ -n "$skills_prefix" ]]; then
-    rewrite_skill_paths_in_file "$dest/AGENTS.md" "$skills_prefix"
+    if ! rewrite_skill_paths_in_file "$dest/AGENTS.md" "$skills_prefix"; then
+      echo "  ! warning: failed to rewrite path references in $dest/AGENTS.md — left as-is" >&2
+    fi
   fi
   echo "AGENTS.md copied to $dest"
 }
