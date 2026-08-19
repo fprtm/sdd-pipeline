@@ -16,7 +16,7 @@ Targets:
   claude-proj  Install for Claude Code (project scope: .claude/commands/)
   codex        Install for Codex CLI (.agents/skills/ + AGENTS.md)
   opencode     Install for OpenCode (.opencode/skills/)
-  cursor       Install for Cursor (.cursor/rules/, orchestrator only — see --help notes)
+  cursor       Install for Cursor (.cursor/skills/sdd/ — Agent Skills, since Jan 2026)
   generic      Install to custom directory (requires --dest)
 
 Options:
@@ -103,6 +103,21 @@ copy_agents_md() {
   local dest="$1"
   cp "$SCRIPT_DIR/AGENTS.md" "$dest/AGENTS.md"
   echo "AGENTS.md copied to $dest"
+}
+
+# skills/orchestrator/SKILL.md's folder is named "orchestrator" but its own
+# frontmatter says `name: sdd`. Claude Code doesn't care (it registers by
+# path via plugin.json), but OpenCode/Codex/Cursor's native Agent Skills
+# scanners all require the immediate parent folder name to match the
+# frontmatter `name:` field — so as installed, the orchestrator fails their
+# discovery validation on all three. This adds one extra copy at the
+# container root (whose folder name already matches "sdd") so it validates,
+# without renaming the canonical skills/orchestrator/ path everything else
+# (this repo's own cross-references, .claude-plugin/plugin.json) depends on.
+install_orchestrator_alias() {
+  local dest="$1"
+  cp "$SKILLS_DIR/orchestrator/SKILL.md" "$dest/SKILL.md"
+  echo "  ✓ orchestrator aliased to $dest/SKILL.md (folder name matches its own 'name: sdd' frontmatter)"
 }
 
 install_hooks() {
@@ -195,7 +210,7 @@ resolve_dest() {
     claude-proj) echo "${DEST:-.claude/commands/sdd}" ;;
     codex)       echo "${DEST:-.agents/skills/sdd}" ;;
     opencode)    echo "${DEST:-.opencode/skills/sdd}" ;;
-    cursor)      echo "${DEST:-.cursor/rules}" ;;
+    cursor)      echo "${DEST:-.cursor/skills/sdd}" ;;
     generic)
       if [[ -z "$DEST" ]]; then
         echo "Error: --dest required for generic install" >&2
@@ -259,6 +274,10 @@ if [ "$DO_UPDATE" = true ]; then
       copy_all_skills "$TARGET_DEST"
     fi
 
+    case "$AGENT" in
+      codex|opencode|cursor) install_orchestrator_alias "$TARGET_DEST" ;;
+    esac
+
     # Update hooks if installed
     if [ -f ".git/hooks/pre-commit" ] && grep -q "SDD Pipeline" .git/hooks/pre-commit 2>/dev/null; then
       install_hooks
@@ -302,12 +321,15 @@ case "$AGENT" in
     echo "Skills available as /sdd commands in this project."
     ;;
   codex)
+    install_orchestrator_alias "$TARGET_DEST"
     copy_agents_md "."
     echo ""
     echo "SDD Pipeline installed for Codex CLI."
     echo "AGENTS.md updated. Skills in $TARGET_DEST/"
+    echo "Manually pick a skill anytime with /skills, or \$name to mention one directly."
     ;;
   opencode)
+    install_orchestrator_alias "$TARGET_DEST"
     copy_agents_md "."
     echo ""
     echo "SDD Pipeline installed for OpenCode."
@@ -315,18 +337,14 @@ case "$AGENT" in
     echo "Use subagent patterns from skills/agents/subagent-patterns/ for multi-agent simulation."
     ;;
   cursor)
-    mkdir -p "$TARGET_DEST"
-    cp "$SKILLS_DIR/orchestrator/SKILL.md" "$TARGET_DEST/sdd-orchestrator.md"
+    install_orchestrator_alias "$TARGET_DEST"
     copy_agents_md "."
     echo ""
     echo "SDD Pipeline installed for Cursor."
-    echo "Orchestrator in $TARGET_DEST/sdd-orchestrator.md"
-    echo "Full skills available via AGENTS.md reference."
-    echo "Note: this installer only copies the orchestrator as a rules file. Cursor's own"
-    echo "Agent Skills (since Jan 2026) can discover the full skill tree via .agents/skills/ —"
-    echo "same path the 'codex' target installs into — so a codex install in this repo is"
-    echo "already Cursor-discoverable too. This target hasn't been updated to install into"
-    echo ".agents/skills/ or .cursor/skills/ directly; see docs/ARCHITECTURE.md §13."
+    echo "Skills in $TARGET_DEST/ — discoverable via Cursor's native Agent Skills (Jan 2026+)."
+    echo "Manually pick one with / in Agent chat, or check Customize > Skills > Agent Decides."
+    echo "Note: if this project ALSO has a codex install (.agents/skills/sdd/), Cursor picks"
+    echo "that up too, since it scans .agents/skills/ as a compatibility path — no extra step."
     ;;
   generic)
     copy_agents_md "$(dirname "$TARGET_DEST")"

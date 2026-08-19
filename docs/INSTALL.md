@@ -38,12 +38,12 @@ cd sdd
 | Claude Code (this project only) | `./install/install.sh --agent claude-proj` | `.claude/commands/sdd/` |
 | Codex CLI | `./install/install.sh --agent codex` | `.agents/skills/sdd/` + `AGENTS.md` |
 | OpenCode | `./install/install.sh --agent opencode` | `.opencode/skills/sdd/` + `AGENTS.md` |
-| Cursor | `./install/install.sh --agent cursor` | `.cursor/rules/` (orchestrator only — see note below) |
+| Cursor | `./install/install.sh --agent cursor` | `.cursor/skills/sdd/` + `AGENTS.md` |
 | Any other agent | `./install/install.sh --agent generic --dest <dir>` | `<dir>` you choose |
 
 Run this **from inside the project you want SDD Pipeline to guard**, not from the `sdd/` clone itself — unless you're installing user-wide (`--agent claude`), in which case it doesn't matter.
 
-> **Cursor note**: this installer's `cursor` target only copies the orchestrator as a single rules file — that limitation is on the installer, not on Cursor anymore. Since Cursor's January 2026 Agent Skills release, Cursor natively discovers the same `SKILL.md` + frontmatter format used here, scanning `.cursor/skills/` and `.agents/skills/` (project) among other paths. In practice: if this project already has a `codex` install (`.agents/skills/sdd/`), Cursor can discover those same skills with zero extra steps — no need to wait for a dedicated Cursor install path. See `docs/ARCHITECTURE.md` §13 for the full cross-agent discovery comparison.
+> **Cursor note**: since Cursor's January 2026 Agent Skills release, Cursor natively discovers the same `SKILL.md` + frontmatter format used here, so `--agent cursor` installs into `.cursor/skills/sdd/` — the same shape as the `codex`/`opencode` targets, not a stripped-down orchestrator-only copy. If this project already has a `codex` install (`.agents/skills/sdd/`), Cursor discovers that too with zero extra steps, since it also scans `.agents/skills/` as a compatibility path. See `docs/ARCHITECTURE.md` §13 for the full cross-agent discovery comparison, including a note on the orchestrator's folder-name-vs-frontmatter alias this installer adds for OpenCode/Codex/Cursor discovery.
 
 ### Step 3 — Add project files (recommended)
 
