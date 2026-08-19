@@ -43,7 +43,7 @@ cd sdd
 
 Run this **from inside the project you want SDD Pipeline to guard**, not from the `sdd/` clone itself — unless you're installing user-wide (`--agent claude`), in which case it doesn't matter.
 
-> **Cursor note**: Cursor has limited skill support, so only the orchestrator is copied as a single rules file. For full SDD Pipeline (all 48 skills, 7 commands), use Claude Code or Codex.
+> **Cursor note**: this installer's `cursor` target only copies the orchestrator as a single rules file — that limitation is on the installer, not on Cursor anymore. Since Cursor's January 2026 Agent Skills release, Cursor natively discovers the same `SKILL.md` + frontmatter format used here, scanning `.cursor/skills/` and `.agents/skills/` (project) among other paths. In practice: if this project already has a `codex` install (`.agents/skills/sdd/`), Cursor can discover those same skills with zero extra steps — no need to wait for a dedicated Cursor install path. See `docs/ARCHITECTURE.md` §13 for the full cross-agent discovery comparison.
 
 ### Step 3 — Add project files (recommended)
 

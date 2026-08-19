@@ -16,7 +16,7 @@ Targets:
   claude-proj  Install for Claude Code (project scope: .claude/commands/)
   codex        Install for Codex CLI (.agents/skills/ + AGENTS.md)
   opencode     Install for OpenCode (.opencode/skills/)
-  cursor       Install for Cursor (.cursor/rules/)
+  cursor       Install for Cursor (.cursor/rules/, orchestrator only — see --help notes)
   generic      Install to custom directory (requires --dest)
 
 Options:
@@ -322,7 +322,11 @@ case "$AGENT" in
     echo "SDD Pipeline installed for Cursor."
     echo "Orchestrator in $TARGET_DEST/sdd-orchestrator.md"
     echo "Full skills available via AGENTS.md reference."
-    echo "Note: Cursor has limited skill support. Consider Claude Code or Codex for full SDD Pipeline."
+    echo "Note: this installer only copies the orchestrator as a rules file. Cursor's own"
+    echo "Agent Skills (since Jan 2026) can discover the full skill tree via .agents/skills/ —"
+    echo "same path the 'codex' target installs into — so a codex install in this repo is"
+    echo "already Cursor-discoverable too. This target hasn't been updated to install into"
+    echo ".agents/skills/ or .cursor/skills/ directly; see docs/ARCHITECTURE.md §13."
     ;;
   generic)
     copy_agents_md "$(dirname "$TARGET_DEST")"
