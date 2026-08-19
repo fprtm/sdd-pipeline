@@ -77,7 +77,12 @@ An objection that lands doesn't kill the decision — it either reshapes it or g
 
 ## Facts vs Decisions
 
-Finding *facts* (what's in the codebase, what pattern is already in use, how many adapters currently exist) is SDD Pipeline's job — dispatch a sub-agent to look it up, never ask the user for something the environment already knows. Facts don't block the rest of the round; only questions genuinely downstream of that lookup wait.
+Finding *facts* is SDD Pipeline's job — never ask the user for something that can be looked up. Both kinds:
+
+- **Internal facts** (what's in the codebase, what pattern is already in use, how many adapters currently exist, git history) — dispatch a sub-agent to scan the repo.
+- **External facts** (does a library for this exist, what can framework X actually do in its current version, how do existing products solve this, what do the official docs say) — research them: web search, or a docs tool like context7 when available. A grill round that asks the user "is there a library for this?" is asking the user to do the agent's research.
+
+Facts don't block the rest of the round; only questions genuinely downstream of that lookup wait. Findings come back *into* the round — cited, so a recommendation grounded in research is distinguishable from one grounded in memory.
 
 The *decisions* are always the user's. Put each to them, wait for the answer.
 

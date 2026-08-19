@@ -18,7 +18,7 @@ Recommendations come from SDD Pipeline's own judgment engines, not generic reaso
 - Complexity questions → `skills/think/complexity-analyzer/`
 - Security questions → `skills/constraints/[domain]/`
 
-Facts the environment already knows (existing patterns, git history) are looked up by the agent, never asked of the user. Only real decisions go to the user.
+Facts are looked up by the agent, never asked of the user — internal (existing patterns, git history, codebase scans) AND external (does a library exist, current framework capabilities, prior art — via web search / docs tools). Research findings come back into the round, cited. Only real decisions go to the user. Consequential decisions get the full council/devil's advocate pass before closing (see grill's Council section).
 
 ## Output
 
