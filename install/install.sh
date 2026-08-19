@@ -99,9 +99,44 @@ copy_selective() {
   done
 }
 
+# Every skill file cross-references its siblings with a literal path like
+# `skills/think/grill/SKILL.md`, written assuming skills/ sits at the
+# project root — true only when running straight out of this repo. Once
+# copied to a nested destination (.agents/skills/sdd/, .cursor/skills/sdd/,
+# ~/.claude/commands/sdd/, ...), that literal text no longer resolves to a
+# real file. This rewrites every "skills/" prefix found in a single file to
+# the given replacement, so the reference points at wherever this install
+# actually put things.
+rewrite_skill_paths_in_file() {
+  local file="$1"
+  local prefix="$2"
+  local escaped
+  escaped=$(printf '%s' "$prefix" | sed -e 's/[&|\]/\\&/g')
+  # -i.bak works identically on GNU and BSD/macOS sed; -i alone does not
+  # (BSD requires a suffix argument). Drop the backup right after.
+  sed -i.bak "s|skills/|${escaped}|g" "$file" && rm -f "$file.bak"
+}
+
+# Same rewrite, applied to every .md/.mjs file already copied under $dest —
+# i.e. the whole installed skill tree, correcting its internal cross-references
+# in place to match where it actually landed.
+rewrite_skill_paths() {
+  local dest="$1"
+  local prefix="${dest%/}/"
+  find "$dest" -type f \( -name '*.md' -o -name '*.mjs' \) -print0 |
+    while IFS= read -r -d '' f; do
+      rewrite_skill_paths_in_file "$f" "$prefix"
+    done
+  echo "  ✓ internal skills/... references rewritten to point at $dest/"
+}
+
 copy_agents_md() {
   local dest="$1"
+  local skills_prefix="${2:-}"   # what "skills/" becomes in the copied AGENTS.md, relative to $dest
   cp "$SCRIPT_DIR/AGENTS.md" "$dest/AGENTS.md"
+  if [[ -n "$skills_prefix" ]]; then
+    rewrite_skill_paths_in_file "$dest/AGENTS.md" "$skills_prefix"
+  fi
   echo "AGENTS.md copied to $dest"
 }
 
@@ -114,9 +149,11 @@ copy_agents_md() {
 # container root (whose folder name already matches "sdd") so it validates,
 # without renaming the canonical skills/orchestrator/ path everything else
 # (this repo's own cross-references, .claude-plugin/plugin.json) depends on.
+# Copies from the already-copied-and-rewritten $dest/orchestrator/SKILL.md
+# (not from source) so the alias carries the same corrected references.
 install_orchestrator_alias() {
   local dest="$1"
-  cp "$SKILLS_DIR/orchestrator/SKILL.md" "$dest/SKILL.md"
+  cp "$dest/orchestrator/SKILL.md" "$dest/SKILL.md"
   echo "  ✓ orchestrator aliased to $dest/SKILL.md (folder name matches its own 'name: sdd' frontmatter)"
 }
 
@@ -273,6 +310,7 @@ if [ "$DO_UPDATE" = true ]; then
     else
       copy_all_skills "$TARGET_DEST"
     fi
+    rewrite_skill_paths "$TARGET_DEST"
 
     case "$AGENT" in
       codex|opencode|cursor) install_orchestrator_alias "$TARGET_DEST" ;;
@@ -307,6 +345,7 @@ if [[ -n "$ONLY" ]]; then
 else
   copy_all_skills "$TARGET_DEST"
 fi
+rewrite_skill_paths "$TARGET_DEST"
 
 # Agent-specific setup
 case "$AGENT" in
@@ -322,7 +361,7 @@ case "$AGENT" in
     ;;
   codex)
     install_orchestrator_alias "$TARGET_DEST"
-    copy_agents_md "."
+    copy_agents_md "." "$TARGET_DEST/"
     echo ""
     echo "SDD Pipeline installed for Codex CLI."
     echo "AGENTS.md updated. Skills in $TARGET_DEST/"
@@ -330,15 +369,15 @@ case "$AGENT" in
     ;;
   opencode)
     install_orchestrator_alias "$TARGET_DEST"
-    copy_agents_md "."
+    copy_agents_md "." "$TARGET_DEST/"
     echo ""
     echo "SDD Pipeline installed for OpenCode."
     echo "Skills in $TARGET_DEST/"
-    echo "Use subagent patterns from skills/agents/subagent-patterns/ for multi-agent simulation."
+    echo "Use subagent patterns from $TARGET_DEST/agents/subagent-patterns/ for multi-agent simulation."
     ;;
   cursor)
     install_orchestrator_alias "$TARGET_DEST"
-    copy_agents_md "."
+    copy_agents_md "." "$TARGET_DEST/"
     echo ""
     echo "SDD Pipeline installed for Cursor."
     echo "Skills in $TARGET_DEST/ — discoverable via Cursor's native Agent Skills (Jan 2026+)."
@@ -347,7 +386,7 @@ case "$AGENT" in
     echo "that up too, since it scans .agents/skills/ as a compatibility path — no extra step."
     ;;
   generic)
-    copy_agents_md "$(dirname "$TARGET_DEST")"
+    copy_agents_md "$(dirname "$TARGET_DEST")" "$(basename "$TARGET_DEST")/"
     echo ""
     echo "SDD Pipeline installed to $TARGET_DEST"
     ;;
