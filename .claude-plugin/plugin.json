@@ -1,7 +1,7 @@
 {
   "name": "sdd-pipeline",
-  "version": "0.33.0",
-  "description": "Spec-Driven Development pipeline: a full delivery team as gated, traceable skills — discovery→PRD→diagrams→FSD→architecture→security→backlog→test-plan→implement→infra→verify→ship. Autopilot & copilot modes; SSOT/DRY/YAGNI code bar. Multi-agent, stack-neutral, dev + non-dev friendly.",
+  "version": "2.0.0",
+  "description": "SDD Pipeline — spec in front, judgment behind. Control over and trust in AI-generated code: THINK, BUILD, PROVE. Adaptive-depth pipeline (ask → spec → plan → build → check), AI-output judgment gate, traceability spine (REQ→FSD→SEC→TICKET→TEST), design-phase threat modeling, coverage gate, mechanical enforcement scripts, multi-agent orchestration.",
   "author": {
     "name": "ferryaguspratama"
   },
@@ -11,30 +11,29 @@
   "keywords": [
     "spec-driven-development",
     "sdd",
+    "ai-code-review",
+    "judgment-gate",
+    "traceability",
+    "threat-modeling",
+    "ssdlc",
+    "test-coverage",
     "prd",
     "fsd",
     "tdd",
-    "code-review",
-    "code-standards",
-    "threat-modeling",
-    "ssdlc",
-    "clean-architecture",
-    "brownfield",
-    "best-practices",
-    "framework-conventions",
-    "ssot",
-    "dry",
-    "yagni",
-    "traceability",
-    "test-coverage",
-    "documentation",
-    "jsdoc",
     "decision-log",
-    "estimation",
-    "debugging",
-    "autopilot",
-    "copilot",
-    "ci-cd",
-    "infrastructure"
+    "vertical-slice",
+    "multi-agent",
+    "guardrails",
+    "brownfield",
+    "yagni",
+    "comprehension-debt"
+  ],
+  "skills": [
+    "./skills/orchestrator",
+    "./skills/commands/brainstorm",
+    "./skills/commands/discover",
+    "./skills/commands/design",
+    "./skills/commands/implement",
+    "./skills/commands/check"
   ]
 }

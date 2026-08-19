@@ -1,402 +1,147 @@
 # SDD Pipeline
 
-A **Spec-Driven Development** skill pack for AI coding agents. It turns "here's a
-rough idea" into shipped, tested, secured, fully-traceable code by running a
-**gated pipeline** — and it works across **many agents** (Claude Code, Codex,
-Cursor, Gemini CLI, Copilot CLI, OpenCode, …).
+**Spec in front, judgment behind.**
 
-It's designed for the way people build with AI now: spec first, diagrams matter,
-tests matter, security is designed in (not bolted on), and the backlog is broken
-down so a junior dev — or a cheap model — can execute the easy parts safely.
+A skill framework that gives you control over — and trust in — AI-generated code. Works with Claude Code, Codex, OpenCode, Cursor, and any agent that reads Markdown.
 
-> **📖 New here or forgot how it works? Read the [Usage Guide](docs/GUIDE.md)** —
-> how to use it, the 3 dials (size / mode / stop-point), every skill, and
-> copy-paste recipes for common jobs.
+## The Problem
 
-## Start here — what do you want to do?
+AI codes 5–10x faster than you can review. Without a system, you end up stacking code you don't fully understand — and "all tests pass" doesn't make you feel safe, because it shouldn't:
 
-You don't need to learn 30 skills. There are two ways in:
+| Research finding (2025–2026) | What it means |
+|------------------------------|---------------|
+| AI code carries ~1.7x more defects than human code (XSS 2.74x, password mishandling 1.88x) | Security-sensitive AI output needs *harder* scrutiny, not equal |
+| ~45% of AI-generated code contains at least one vulnerability | "It passed tests" is not "it's safe" |
+| Developers using AI write less secure code while feeling *more* confident | Confidence after AI assistance is a bias signal, not evidence |
+| AI output is syntactically clean — the exact surface reviewers use as merge confidence | Neatness must be explicitly discounted as evidence of correctness |
+| AI generates 140–200 lines/min vs. a fraction of that in human review capacity | Unthrottled generation turns review into theater |
+| Comprehension debt: the gap between code in the repo and code the team understands | Every merged change no one can explain is debt, working or not |
 
-**🟢 Just want it built or fixed? (great for non-developers too)** — describe
-what you want and let **`spec-driven-development`** handle everything. It
-**right-sizes itself**, so it's *never* too much: a typo gets zero ceremony, a
-feature gets one file, a whole app gets the full treatment.
-> *"build me a booking app"* · *"add CSV export to the reports page"* · *"fix the date bug"*
+SDD Pipeline attacks this from both ends:
 
-**🔧 A developer who wants to drive one step at a time?** Reach for the single
-skill that matches your need — like picking one tool off the shelf:
+- **Spec in front** — know *what* you're building before the agent runs: a fixed ask → spec → plan sequence, a Definition of Done on every task, stable IDs linking requirement → spec → security control → ticket → test.
+- **Judgment behind** — judge what got built after it runs: a research-grounded judgment gate (every report names its weakest point), security escalation for AI output in risky zones even when checks pass, a coverage gate with honesty checks, and a traceability matrix that is not allowed to lie.
 
-| I just want to… | Reach for |
-|---|---|
-| Build/change something, end to end | **`spec-driven-development`** (right-sizes — fine for a 1-line fix too) |
-| Brainstorm / pressure-test an idea | **`discovery`** (or a grilling skill) |
-| Understand an unfamiliar repo | **`map-codebase`** |
-| Write requirements (PRD) | **`to-prd`** |
-| Write the functional spec | **`to-fsd`** |
-| Decide architecture / stack / folder structure | **`arch-decision`** |
-| Design the database schema | **`database-design`** |
-| Design the UI / design system | **`ux-design`** |
-| Threat-model a flow | **`threat-model`** |
-| Break work into tickets + estimate | **`backlog-leveling`** |
-| Write the test plan | **`test-plan`** |
-| Implement a ticket, test-first | **`implement`** |
-| Fix a bug | **`debug`** |
-| Review a diff | **`code-review`** |
-| Commit / open a PR | **`git-workflow`** |
-
-Everything else in the pack — traceability, coverage checks, the code-quality
-bar, decision log, project memory, CI setup — is **machinery the pipeline runs
-for you**. You rarely invoke it directly; it's there so the results stay
-tested, traceable, and predictable.
-
-## What makes it different
-
-| Principle | What it means |
-|-----------|---------------|
-| **Traceable** | `REQ → FSD → ADR/SEC → TICKET → TEST`, all linked in one matrix. A requirement with no test is a visible red row, not a silent gap. |
-| **Gated** | No code before architecture + security are decided. No ship before coverage ≥ 80% and the matrix is green. Gates *block*. |
-| **Stack-neutral** | The agent asks; you decide. If you defer, it picks the most robust/scalable/maintainable option **and tells you why**. |
-| **Full-stack aware** | Architecture covers frontend, backend, and topology: fullstack, FE/BE separate, BE-only, FE-only, or monorepo. |
-| **Two audiences** | Every doc opens with a plain-language summary for non-devs, then technical detail for devs/agents. |
-| **Cost-aware backlog** | Tickets are tiered T1/T2/T3 so trivial work goes to a junior/cheap model, hard work to a senior/strong model. |
-| **Secure by design (SSDLC)** | A lightweight STRIDE threat model runs on the data-flow diagram before implementation; controls are tracked to tests. |
-
-## The pipeline
+## How It Works
 
 ```
-0 Discover ─▶ 1 PRD ─▶ 2 Diagrams ─▶ 3 FSD ─▶ 4 Architecture ─▶ 5 Security ┐
- (deep needs                          (REQ↔FSD,   (style/stack/    (STRIDE,   │
-  collection)                          errors)     topology)        SSDLC)    ▼
-                                                                          6 Backlog
-                                                                          (tiered)
-                                                                              │
-  11 Ship ◀─ 10 Verify ◀─ 9 Infra ◀─ 8 Implement ◀─ 7 Test plan ◀───────────┘
- (deployed,   (cov≥80%,   (CI/CD,IaC, (TDD, ticket   (happy/regression/
-  matrix       review,     secrets,    by ticket)     edge/e2e, ≥80%)
-  green)       threats)    observ.)
+THINK                  BUILD                  PROVE
+├ Elicitation          ├ Ticket Decomposition ├ Verification
+├ Context Loading      ├ Doc Generator        ├ Adversarial Testing
+├ Scope Guard          ├ Test Plan            ├ Security Check
+├ Complexity Analysis  ├ Constraints          ├ Coverage Gate
+├ SDLC Detection       ├ Anti-Patterns        ├ Browser QA (UI)
+├ Architecture         ├ Change Plan          ├ Performance Check
+├ Threat Model         ├ Git Workflow         └ Report + JUDGMENT GATE
+└ SDD Grill            └ Execution Guard
 ```
 
-Each box is a skill in `skills/`. The orchestrator is
-[`spec-driven-development`](skills/spec-driven-development/SKILL.md) — start
-there and it routes the rest. On existing code, a **pre-0 `map-codebase`** step
-runs first (brownfield). For small work the whole thing collapses — see the size
-dial below.
+The sequence is **fixed** — ask → spec → plan → build → check, every time — and only the *depth* adapts to task size. A typo gets zero ceremony; a new payment system gets the full evidence trail. Skipping a step is always announced, never silent.
 
-## Skills in this pack (full reference)
+## What Makes It Different
 
-The complete list, for when you want the map — but you don't need to memorize
-it. Most rows are machinery the orchestrator runs for you; see **[Start here](#start-here--what-do-you-want-to-do)**
-above for the handful you actually reach for.
+- **AI-output judgment gate** — verification proves the code *runs*; judgment proves a human *understands and accepts* it. Every judged report names its weakest point and hallucination-risk zones; AI-generated changes touching auth/input/crypto/SQL get flagged for human eyes **even when all automated checks pass**; generation is throttled to review capacity so comprehension debt doesn't pile up.
+- **Plan before code, DoD always** — a plan file is written and (per mode) approved before BUILD; every task small+ gets a Definition of Done checklist. "Done" is never whatever the agent felt like stopping at.
+- **Traceability spine with a ship gate** — stable IDs (`REQ → FSD → ADR/SEC → TICKET → TEST`) in a matrix that makes gaps visible: an untested requirement is a red row, not a hidden one. Large/full builds may not ship while a Must/Should row is red — and the gate is never quietly downgraded.
+- **Mechanical enforcement, not just prose** — three zero-dependency scripts catch what markdown instructions can't guarantee: `check-traceability.mjs` (drift, broken refs, freelance tickets/tests), `check-file-hygiene.mjs` (docs-tree conventions), `check-parallel-safety.mjs` (file-overlap before parallel agents spawn). All CI-wireable.
+- **Security shifted left AND checked right** — a lightweight STRIDE threat model at design time (SEC-xxx controls with owners), re-verified by the post-code security checklist and required tests for every High/Critical control.
+- **A coverage gate that can't be gamed** — ≥80% line+branch is necessary but not sufficient: every FSD error flow tested, every High/Critical SEC control tested, no skipped/`.only`/always-true fake passes, and UI Must-journeys verified in a real browser. Never rounds a fail up to a pass.
+- **Hard safety stops** — tests and browser QA run against **local/disposable targets only**; anything pointing at production (or unclear) is a full stop, not a guess. Provisioning/deploying/spending always requires explicit human confirmation, in every mode.
 
-| Skill | Role in the "team" | Phase |
-|-------|--------------------|-------|
-| `spec-driven-development` | orchestrator + gates + routing + modes | all |
-| `map-codebase` | understand an EXISTING codebase before changing it (brownfield) | pre-0 |
-| `discovery` | deep requirement collection (dev + non-dev) | 0 |
-| `to-prd` | Product Requirements (REQ-xxx) | 1 |
-| `analytics-design` | success metrics/KPIs + event taxonomy (data analyst) | 1 |
-| `to-diagrams` | context / DFD / sequence / ERD (Mermaid) | 2 |
-| `to-fsd` | Functional Spec (FSD-xxx) | 3 |
-| `arch-decision` | architecture + stack + topology gate (ADR) | 4 |
-| `stack-conventions` | official best practices of the chosen stack, as rules | 4 |
-| `database-design` | data model / schema — normalization, no crowded tables, indexing, safe migrations | 4·8 |
-| `ux-design` | UI/UX — design system, color palette, wireframes, states, a11y | 4 |
-| `threat-model` | SSDLC security gate (SEC-xxx, STRIDE) | 5 |
-| `backlog-leveling` | tiered, executor-friendly backlog + effort/cost estimate | 6 |
-| `test-plan` | happy/regression/edge/e2e + coverage target | 7 |
-| `code-standards` | the SSOT/DRY/YAGNI/deep-module code bar | 8·10 |
-| `implement` | the coding phase, test-first, ticket-by-ticket | 8 |
-| `debug` | systematic root-cause debugging + regression test | 8·10 |
-| `browser-qa` | drive a real browser to verify Must-priority UI journeys (e2e) | 10 |
-| `parallel-work` | run several agents on the same repo at once — worktrees, vertical-slice assignment, ticket claiming | 8 |
-| `git-workflow` | commit/branch/PR conventions tied to the backlog + traceability | 8·11 |
-| `infra` | CI/CD, IaC, envs, secrets, observability, deploy | 9 |
-| `code-review` | Standards + Spec review | 10 |
-| `coverage-check` | verify-gate coverage enforcement | 10 |
-| `documentation` | user guide + developer docs (JSDoc/API/README) | 11 |
-| `traceability` | the single-source-of-truth matrix | all |
-| `decision-log` | timestamped record of every decision + what's locked (folder) | any |
-| `project-memory` | Obsidian-style codebase knowledge graph — cheap to re-read next session | any |
-| `stakeholder-brief` | plain-language brief + sign-off for non-IT | any |
-| `handoff` | resumable snapshot for another agent / cheaper model | any |
-| `self-update` | check the remote and update the installed pack (no manual updating) | any |
+## Supporting Machinery
 
-30 skills. The pipeline is **self-sufficient** — every phase's gate is
-satisfiable with this pack alone, nothing else required (`self-update` is a
-maintenance helper, not a phase). If you also have other skills installed for
-planning, worktrees, grilling, TDD, review, or debugging, this pack prefers
-those when present; otherwise its own versions run the phase completely.
+- **5 modes** — prototype / vibe / standard / strict / emergency, auto-detected, each dialing ceremony up or down without ever dropping a gate silently.
+- **Adaptive depth + evidence gates by size** — micro/small/medium/large each get a defined set of active gates (documented in the orchestrator), so a bugfix never drowns in ceremony and a product never ships unproven.
+- **SDD Grill** — a frontier/round interview that interrogates consequential decisions *before* they lock in, backed by the framework's own judgment engines.
+- **Architecture analysis** — pattern detection, deletion test, adapter-count rule, design-it-twice for high-stakes calls; proposals always pin down the actual directory tree and the FE↔BE contract per endpoint.
+- **Vertical-slice tickets, tiered T1/T2/T3** — independently demoable slices with computed blocking edges; tiers route trivial work to cheap models and risky work to strong ones. Local ticket files are the SSOT; mirroring to GitHub Issues is optional (asked, never assumed).
+- **Parallel work on one repo** — git worktree isolation, a deterministic file-overlap check, ticket claiming, dependency-ordered merges. Always confirmed before spawning; hard cap 6 agents.
+- **SDLC awareness, decision log (rule-of-three), domain glossary, project memory, session persistence, stats** — the context machinery that keeps the pipeline consistent across a whole session and a whole team.
+- **UX design as process** — direction confirmed with concrete previews, design tokens as SSOT (WCAG AA), index-first flow files, and empty/loading/error/success states required per screen (they become FSD error flows, then tests).
+- **Database design, stack conventions, infra, analytics** — the schema designed before it's built (additive-first migrations), the stack's official conventions version-pinned into an enforceable guide, CI/IaC/observability wired to the same gates, and product metrics tied to requirements instead of vanity.
 
-### Tidy by design (predictable file placement)
+## Slash Commands
 
-Every artifact has one canonical home, so runs never scatter files: the spec trail
-in `docs/sdd/`, user docs in `docs/user/`, developer docs in `docs/dev/`, and
-code/tests/CI/IaC in their normal repo locations. The orchestrator documents this
-layout as the single source of truth for *where things live*.
+Most of the time the orchestrator works invisibly — describe the work and it runs the fixed sequence at the right depth. Reach for a command to *start* at a specific phase:
 
-### Code-quality bar (SSOT · DRY · YAGNI · deep modules)
+| Command | When | What it does |
+|---------|------|---------------|
+| `/sdd-pipeline:brainstorm` | Idea is still fog | Open conversation + research to ripen a vague idea. Pipeline stays off. |
+| `/sdd-pipeline:discover` | Decisions forming | Interrogates a decision before it locks in — frontier/round interview + council/devil's advocate |
+| `/sdd-pipeline:design` | Solution shaping | Architecture analysis and/or specs; auto-splits large work into tickets. Design-only is a complete deliverable — it stops there honestly. |
+| `/sdd-pipeline:implement` | Time to build | Executes an existing plan/spec/ticket with build-time guardrails |
+| `/sdd-pipeline:check` | Prove it | Adaptive QA: verifies a fresh change, audits the codebase otherwise — ends with the impact summary |
 
-Everything the pipeline writes must clear `code-standards`: one source of truth
-per fact (types inferred from a single schema, named constants, ubiquitous
-naming), knowledge-level DRY (no premature abstraction — rule of three), YAGNI
-(only what a requirement needs; no dead code), and deep modules (simple interfaces
-hiding real complexity, logic in the domain layer). `implement` writes to it;
-`code-review` enforces it.
+## Project File Structure
 
-### Stack-aware (reads the docs, writes idiomatic code)
-
-`code-standards` is stack-neutral. On top of it, `stack-conventions` reads the
-**official docs** of whatever stack `arch-decision` picked (using a docs tool like
-Context7 if available, else the official sites) and writes version-pinned rules to
-`04-stack-guide.md` — e.g. TypeScript `strict` + `noUncheckedIndexedAccess` and
-no `any`; Laravel Form-Request validation, Eloquent conventions, and mass-assignment
-guarding. `implement` follows it and `infra` wires the config (tsconfig, linters)
-into CI, so the code is idiomatic to the framework, not generic.
-
-### It represents a full team
-
-Each phase plays a role — PM, analyst, architect, security, delivery lead, QA,
-engineer, DevOps/SRE, reviewer, tech writer — so one agent covers the whole org.
-In **copilot** the human is the senior in the loop; in **autopilot** the agent
-plays every seat and records what each role would have signed off. The agent
-announces which role it's "wearing" as it moves through phases, so a non-technical
-user can follow along.
-
-## How to run it — three independent dials
-
-You (or the agent) set three dials. They're **separate and combine freely** — e.g.
-`autopilot + quick + full-build`, or `copilot + full + docs-only`. If you say
-nothing, the agent infers them and tells you its choice so you can correct it. Full
-detail + copy-paste recipes are in the **[Usage Guide](docs/GUIDE.md)**.
-
-**Dial 1 · Mode — who drives**
-- **Autopilot** — the agent runs the whole thing itself; collects requirements up
-  front; picks robust defaults where you don't decide; stops only for blockers or
-  irreversible actions (deploy, spend, delete). Good for non-devs, or when you
-  trust it to just go.
-- **Copilot** — same rigor, but **pauses at each gate** for you to review/approve
-  and defers technical calls to you. Good for developers who want control.
-
-**Dial 2 · Size — how much ceremony/documentation**
-- **quick** — tiny change → understand, fix test-first, done. **No docs.**
-- **lite** — a feature/bugfix → one topic-scoped `docs/sdd/changes/<topic>.md`
-  (never appended to the shared numbered trail — that's how those files balloon).
-- **full** — new product/subsystem → the whole `docs/sdd/` trail (~11 files).
-- Quality never drops with size — a test is always written; only the paperwork
-  shrinks. Over-ceremony (15 docs for a one-liner) is treated as a failure mode.
-
-**Dial 3 · Stop-point — how far it goes**
-- **docs-only** — phases 0–7, a complete spec with **zero code**. For brainstorming
-  or handing a plan to someone else.
-- **spec+review** — spec, then it asks before writing any code.
-- **full-build** — all the way to implement, verify, ship (default for "build this").
-
-Or ignore the pipeline and use any skill **modularly** (`to-prd`, `threat-model`,
-`map-codebase`, …) — you just give up the automatic gating and traceability wiring.
-
-### Brownfield: works on existing code, not just new projects
-
-Not a dial — it's auto-detected. When there's already a codebase, the pipeline
-starts with **`map-codebase`** (learns the stack, module map, conventions, tests,
-and risky areas *before* touching anything). Then `arch-decision` runs in
-**respect-existing** mode (it won't re-pick your stack), changes are framed as
-changes, and `implement` adds **characterization tests** to legacy code before
-altering it — so it can prove it didn't break what worked.
+```
+docs/sdd/
+├── index.md              # Lightweight relationship graph — read this first
+├── config.md             # Project settings, mode, SDLC, constraints
+├── memory.md             # Saved decisions · glossary.md — domain terms
+├── traceability.md       # REQ→FSD→SEC→TICKET→TEST matrix + ID counters (large/full)
+├── changes/              # Small/medium work: ONE dated self-contained file per topic
+├── decisions/            # One file per decision (rule-of-three gated) — 005-x.md IS ADR-005
+├── design/               # FSD/SDD/PRD/threat models/UX (numbered — file number IS the spine ID)
+├── ux-screens/           # One priority-tagged file per UI flow
+├── tickets/              # Vertical-slice tickets with global TICKET-xxx ids
+├── test-plans/ dod/ erd/ plans/ reports/ stats/
+```
 
 ## Install
 
-**Not committed by default.** A project-scoped install (`claude-proj`, `opencode`,
-`codex`, or `generic --dest` inside a repo) automatically adds its destination to
-`.gitignore` — it's tooling, not your app's code, and committing it means every
-pack update becomes an unrelated diff in your project's history. Pass `--vendor`
-if you deliberately want it committed instead (e.g. a team pinning an exact
-methodology version across every teammate/CI run, like a lockfile). If the folder
-was already tracked before this existed, the installer tells you the exact
-`git rm -r --cached` command to stop that.
+Fastest path, inside Claude Code:
 
-### Claude Code (plugin)
-
-```bash
-# straight from GitHub — no clone needed
+```
 /plugin marketplace add fprtm/sdd-pipeline
-/plugin install sdd-pipeline@sdd-pipeline
+/plugin install sdd-pipeline
 ```
 
-Or, if you already have a local clone:
+For Codex/OpenCode/Cursor, project-scoped installs, partial installs (`--only`), enforcement hooks, CI, updating, or uninstalling — see **[docs/INSTALL.md](docs/INSTALL.md)**.
+
+Project configuration:
 
 ```bash
-# from inside the clone, register it as a local marketplace
-/plugin marketplace add .
-/plugin install sdd-pipeline@sdd-pipeline
+./install/install.sh --agent claude --with-templates
+# or manually: mkdir -p docs/sdd && cp templates/sdd.config.md docs/sdd/config.md
 ```
 
-`sdd-pipeline@sdd-pipeline` is `<plugin-name>@<marketplace-name>` — both happen to
-be named "sdd-pipeline" in the manifests, not a GitHub account.
-
-Or copy skills into your project/user scope with the installer:
+Validate the skill files:
 
 ```bash
-./install/install.sh claude-proj   # -> ./.claude/skills
-./install/install.sh claude        # -> ~/.claude/skills (all projects)
+./scripts/validate-skills.sh
 ```
 
-If a skill name here also exists in another installed pack, Claude Code's
-documented precedence applies: enterprise > personal (`~/.claude/skills`) >
-project (`./.claude/skills`) > bundled — deterministic, unlike some other
-tools' plain folder-scan.
+## Examples
 
-### OpenCode
+See `docs/examples/` for step-by-step walkthroughs:
+- [Building a Feature](docs/examples/build-feature.md) — standard mode, medium task
+- [Fixing a Bug](docs/examples/fix-bug.md) — lightweight pipeline for bug fixes
+- [Starting a New Project](docs/examples/new-project.md) — architecture proposal + full doc suite
+- [Strict Mode](docs/examples/strict-mode.md) — production payment code with checkpoints
 
-> A previous version of this doc recommended `{ "plugin": ["sdd-pipeline@git+..."] }`
-> in `opencode.json`. That's wrong for this pack and has been corrected — see
-> [CHANGELOG.md](CHANGELOG.md) for why. OpenCode's `plugin` array installs
-> npm-style packages with real JS/TS code (that's how
-> [superpowers](https://github.com/obra/superpowers) works — it ships an actual
-> `.opencode/plugins/superpowers.js` runtime). This pack has no such code — it's
-> plain `SKILL.md` files — so that mechanism doesn't apply here.
+## Skill Composition
 
-What OpenCode natively supports for a markdown-only pack like this one is its
-**skills folder scan**: any `<name>/SKILL.md` under `~/.config/opencode/skills/`
-(global) or `.opencode/skills/`, `.claude/skills/`, `.agents/skills/`
-(project-local, walking up to the git worktree root) is auto-discovered — no
-config file needed. Clone the repo, then:
+SDD Pipeline detects when a task needs capabilities beyond engineering guardrails and recommends external skills (aesthetics → Taste/design skills; TDD → mattpocock-skills:tdd; live docs → context7; browser automation → playwright). The rule: **SDD Pipeline yields on aesthetics and workflow preferences, wins on safety and engineering correctness.**
 
-```bash
-git clone https://github.com/fprtm/sdd-pipeline.git
-cd sdd-pipeline
-./install/install.sh generic --dest ~/.config/opencode/skills   # global, all projects
-# or: ./install/install.sh opencode                             # -> ./.opencode/skills, this project only
-```
+## What SDD Pipeline Does NOT Do
 
-Then **restart OpenCode** (skills load at startup). Bonus: OpenCode also scans
-`~/.claude/skills/` and `~/.agents/skills/`, so if you already installed this
-pack for Claude Code or Codex, OpenCode picks it up automatically with no
-extra step.
+- **No aesthetic judgment** — compose with a design skill (it will recommend one)
+- **No communication style** — compose with persona skills
+- **No role-based team enforcement** — shared config via committed `docs/sdd/config.md`, nothing more
 
-**Option B — point OpenCode at the clone instead of copying** (verified
-against `opencode.ai/v2/docs/skills`; update with `git pull`, no re-copy):
+## Philosophy
 
-```bash
-git clone https://github.com/fprtm/sdd-pipeline.git ~/sdd-pipeline
-```
-```json
-// in opencode.json (global or project)
-{ "skills": ["~/sdd-pipeline/skills"] }
-```
-Untested caveat, stated plainly: this points the scanner directly at the
-clone's `skills/` folder, bypassing `install.sh` — so it's unconfirmed whether
-skills that reference `templates/`/`tools/` (siblings of `skills/`, one level
-up) resolve correctly this way. Prefer the copy-based method above unless you
-specifically want git-pull-only updates and can verify it yourself.
+> Human at the beginning (direction). Agent in the middle (execution). Human at the end (judgment). The spec makes the middle controllable; the judgment gate makes the end trustworthy.
 
-One real caveat, not yet resolved: OpenCode resolves skills by folder name with
-no documented namespacing, so a name this pack shares with another installed
-pack (e.g. `code-review`) can collide — whichever is scanned last wins,
-non-deterministically. Renaming this pack's more generic skill names is on the
-table if this turns out to bite in practice.
+## v2 — A New Engine
 
-### Cursor
+v2.0.0 is a full engine replacement, not an upgrade: the adaptive-depth, judgment-first machine (developed as "Reins") with the strongest parts of the original gated pipeline absorbed into it — the traceability spine, design-phase threat modeling, the honest coverage gate, LOCAL-only safety stops, and the mechanical checkers. v0.33.0 was the last release of the old 11-phase architecture; it remains available in git history.
 
-Cursor has no per-skill discovery mechanism — verified against
-[cursor.com/docs/rules](https://cursor.com/docs/rules): a plain `.md` file
-under `.cursor/rules` is explicitly **ignored** (Cursor only reads its own
-`.mdc` Rules format there). Cursor's own documented plain-markdown fallback is
-`AGENTS.md`, so that's what this pack targets:
+## Acknowledgments
 
-```bash
-./install/install.sh cursor        # points ./AGENTS.md at the pack
-```
-
-### Codex CLI
-
-Codex auto-discovers `SKILL.md` under `.agents/skills` — verified against
-[developers.openai.com/codex/skills](https://learn.chatgpt.com/docs/build-skills)
-— walking up from your working directory to the repo root (project) or
-`~/.agents/skills` (global, all projects):
-
-```bash
-./install/install.sh codex                          # -> ./.agents/skills (+ AGENTS.md pointer)
-./install/install.sh generic --dest ~/.agents/skills # global — also covers OpenCode, see above
-```
-
-### Other agents (generic clone-and-copy)
-
-```bash
-./install/install.sh opencode      # -> ./.opencode/skills (project scope; use --dest for global)
-./install/install.sh generic --dest /path/to/agent/skills
-```
-
-Every `copy`-based target also copies `templates/` and `tools/` alongside the
-skills (several skills reference them). Because this is a **copy, not a
-symlink**, re-run the installer after every `git pull` to pick up updates.
-
-For agents that read a single rules file, add `--bundle` to also emit
-`sdd-pipeline.bundle.md` (all skills concatenated in order):
-
-```bash
-./install/install.sh generic --dest /path/to/agent/skills --bundle
-```
-
-Then, in any agent: **"use spec-driven-development to \<do X\>"**. It picks the
-three dials (mode / size / stop-point) and tells you, or you can say them up front:
-e.g. *"…copilot, lite"* or *"…docs-only, just a plan"*. See the
-[Usage Guide](docs/GUIDE.md) for recipes.
-
-## Updating
-
-**Easiest: just ask the agent to "update sdd-pipeline".** The `self-update` skill
-checks the remote, tells you if a newer release exists, and runs (or hands you)
-the right update commands for your install method — so you don't track releases
-by hand. What it does under the hood, by method:
-
-| Install method | Update |
-|---|---|
-| Claude Code `/plugin install` | `/plugin marketplace update` then `/plugin update sdd-pipeline@sdd-pipeline`. **This only works if `plugin.json`'s `version` was bumped** — Claude Code pins to that field and reports "already at the latest version" otherwise (verified against `code.claude.com/docs/en/plugins-reference`). This repo bumps it every release; see [CHANGELOG.md](CHANGELOG.md). |
-| `install.sh claude` / `claude-proj` / `opencode` / `codex` / `generic` | These copy files — there's no live link. `git pull` in your clone, then re-run the same `install.sh` command. |
-| OpenCode Option B (`skills` array pointing at your clone) | `git pull` is enough — OpenCode reads live from the clone, no re-run needed. |
-| Cursor (`AGENTS.md` pointer) | `git pull` in your clone — Cursor reads the pointed-at content fresh each session. |
-
-## See it in action
-
-A full worked run lives in [`examples/wishlist/`](examples/wishlist/) — the
-"Wishlist + shareable link" feature taken from idea to a spec-complete, secured,
-fully-traceable plan (PRD, diagrams, FSD, ADRs, threat model, tiered backlog,
-test plan, honest traceability matrix) **plus a runnable, tested backend** in
-[`examples/wishlist/impl/`](examples/wishlist/impl/) (zero-dependency TypeScript,
-54 tests, ~99% coverage, HTTP + SSR + infra-as-code). It also includes a
-brownfield change ([`changes/2026-08-09-clear-wishlist.md`](examples/wishlist/docs/sdd/changes/2026-08-09-clear-wishlist.md))
-showing lite mode on existing code.
-
-## Repo layout
-
-```
-sdd-pipeline/
-├─ README.md
-├─ AGENTS.md                # entry point for non-Claude agents
-├─ CHANGELOG.md             # version history
-├─ .claude-plugin/          # Claude Code plugin + marketplace manifests
-├─ docs/GUIDE.md            # the usage manual
-├─ skills/                  # 27 SKILL.md files, each bundling its own template
-│                            #   or script (e.g. skills/traceability/check-traceability.mjs)
-├─ templates/               # a few reference-only templates (no skill hard-codes these paths)
-├─ examples/wishlist/       # a complete worked run (+ runnable, tested impl)
-└─ install/install.sh       # multi-agent installer
-```
-
-## Status
-
-**v0.33.0** — usable end to end; 30 skills (self-sufficient pipeline + a
-`self-update` maintainer); a worked example with a runnable, tested backend
-(54 tests); a self-sufficiency audit and a token-usage pass behind it. Pre-1.0,
-so things may still move. See [CHANGELOG.md](CHANGELOG.md).
-Contributions/adjustments welcome — the skills are plain Markdown, so fork and
-adapt to your own conventions.
-
-Trigger accuracy (does the right skill fire from natural phrasing) is **not yet
-independently verified** — it needs the pack genuinely installed in a real agent
-session to test honestly. If you try it and something doesn't trigger the way
-you'd expect, that's exactly the kind of report that improves it — open an issue.
+Several interaction patterns — the frontier/round interview mechanic (SDD Grill), the rule-of-three decision gate, durable spec formatting, and architecture judgment heuristics (deletion test, adapter-count rule) — were adapted from design patterns in [mattpocock-skills](https://github.com/mattpocock) (grilling, domain-modeling, codebase-design, to-spec). Reimplemented natively with SDD Pipeline's own judgment engines behind the recommendations, not forked.
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT

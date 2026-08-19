@@ -3,13 +3,13 @@
   "owner": {
     "name": "ferryaguspratama"
   },
-  "description": "Spec-Driven Development pipeline for AI coding agents.",
-  "version": "0.33.0",
+  "description": "SDD Pipeline — spec in front, judgment behind. Control over and trust in AI-generated code.",
+  "version": "2.0.0",
   "plugins": [
     {
       "name": "sdd-pipeline",
       "source": "./",
-      "description": "A full delivery team as gated, traceable skills: discovery → PRD → diagrams → FSD → architecture → security (SSDLC) → tiered backlog → test plan → implement → infra → verify (≥80% coverage, code-review) → ship. Autopilot & copilot modes; SSOT/DRY/YAGNI code bar. Stack-neutral; friendly to developers and non-developers."
+      "description": "SDD Pipeline v2 — spec in front, judgment behind. THINK, BUILD, PROVE: adaptive-depth pipeline (ask → spec → plan → build → check), AI-output judgment gate grounded in research on AI code defects, traceability spine REQ→FSD→SEC→TICKET→TEST with a mechanical checker, design-phase threat modeling (STRIDE), coverage gate with honesty checks, git worktree parallel work, 5 modes, SDLC awareness. Stack-neutral; friendly to developers and non-developers."
     }
   ]
 }

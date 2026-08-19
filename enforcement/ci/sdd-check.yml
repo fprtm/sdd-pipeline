@@ -1,0 +1,141 @@
+name: SDD Pipeline Quality Check
+
+on:
+  pull_request:
+    branches: [main, master, develop]
+  push:
+    branches: [main, master]
+
+jobs:
+  sdd-check:
+    name: SDD Pipeline Quality Gates
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get changed files
+        id: changed
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }}..HEAD)
+          else
+            FILES=$(git diff --name-only HEAD~1..HEAD)
+          fi
+          FILE_COUNT=$(echo "$FILES" | grep -c '.' || true)
+          echo "count=$FILE_COUNT" >> $GITHUB_OUTPUT
+          echo "files<<EOF" >> $GITHUB_OUTPUT
+          echo "$FILES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Check for hardcoded secrets
+        run: |
+          PATTERNS=(
+            'AKIA[0-9A-Z]{16}'
+            'sk-[a-zA-Z0-9]{20,}'
+            'ghp_[a-zA-Z0-9]{36}'
+            'gho_[a-zA-Z0-9]{36}'
+            'glpat-[a-zA-Z0-9\-]{20}'
+            'xox[bpoas]-[a-zA-Z0-9\-]+'
+            'sk_live_[a-zA-Z0-9]+'
+          )
+          FOUND=0
+          while IFS= read -r file; do
+            [ -f "$file" ] || continue
+            [[ "$file" == *.md ]] && continue
+            [[ "$file" == *.lock ]] && continue
+            for pattern in "${PATTERNS[@]}"; do
+              if grep -qE "$pattern" "$file" 2>/dev/null; then
+                echo "::error file=$file::Possible secret detected (pattern: ${pattern:0:20}...)"
+                FOUND=1
+              fi
+            done
+          done <<< "${{ steps.changed.outputs.files }}"
+          if [ "$FOUND" -eq 1 ]; then
+            echo "::error::Hardcoded secrets detected. Remove before merging."
+            exit 1
+          fi
+
+      - name: Check secret file types
+        run: |
+          BLOCKED=0
+          while IFS= read -r file; do
+            case "$file" in
+              *.env|*.env.*|.env)
+                echo "::error file=$file::Environment file should not be committed"
+                BLOCKED=1 ;;
+              *.pem|*.key|*.p12|*.pfx)
+                echo "::error file=$file::Private key file should not be committed"
+                BLOCKED=1 ;;
+            esac
+          done <<< "${{ steps.changed.outputs.files }}"
+          [ "$BLOCKED" -eq 0 ] || exit 1
+
+      - name: Check scope declaration for large changes
+        if: steps.changed.outputs.count > 10
+        run: |
+          if [ ! -f "docs/sdd/plans/current.md" ] && [ -z "$(find docs/sdd/plans/archive -name '*.md' 2>/dev/null | head -1)" ]; then
+            echo "::warning::Large change (${{ steps.changed.outputs.count }} files) without SDD Pipeline plan documentation"
+          fi
+
+      - name: Check test coverage for source changes
+        run: |
+          SRC_CHANGED=false
+          TEST_CHANGED=false
+          while IFS= read -r file; do
+            case "$file" in
+              *test*|*spec*|*__tests__*) TEST_CHANGED=true ;;
+              *.ts|*.tsx|*.js|*.jsx|*.py|*.go|*.rs|*.java|*.rb)
+                [[ "$file" != *test* ]] && [[ "$file" != *spec* ]] && SRC_CHANGED=true ;;
+            esac
+          done <<< "${{ steps.changed.outputs.files }}"
+          if [ "$SRC_CHANGED" = true ] && [ "$TEST_CHANGED" = false ]; then
+            echo "::warning::Source code changed without corresponding test changes"
+          fi
+
+      - name: Check for auth/payment security review
+        run: |
+          AUTH_FILES=false
+          while IFS= read -r file; do
+            case "$file" in
+              *auth*|*login*|*password*|*session*|*token*|*payment*|*checkout*|*billing*)
+                AUTH_FILES=true
+                echo "::notice file=$file::Security-sensitive file changed — ensure SDD Pipeline security review completed"
+                ;;
+            esac
+          done <<< "${{ steps.changed.outputs.files }}"
+
+      - name: Summary
+        run: |
+          echo "### SDD Pipeline Quality Check" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- Files changed: ${{ steps.changed.outputs.count }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Secrets check: ✅ Passed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "_Checked by [SDD Pipeline](https://github.com/fprtm/sdd-pipeline) v2.0.0_" >> $GITHUB_STEP_SUMMARY
+
+  evidence-spine:
+    name: Traceability + docs-tree hygiene
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      # Both checkers are zero-dependency and exit 0 when docs/sdd is absent,
+      # so this job is safe to enable before the docs tree exists.
+      - name: Traceability matrix consistent
+        run: |
+          if [ -f tools/check-traceability.mjs ]; then
+            node tools/check-traceability.mjs docs/sdd
+          else
+            echo "tools/check-traceability.mjs not present — copy it from the sdd-pipeline traceability skill to enable this gate"
+          fi
+      - name: Docs tree follows conventions
+        run: |
+          if [ -f tools/check-file-hygiene.mjs ]; then
+            node tools/check-file-hygiene.mjs docs/sdd
+          else
+            echo "tools/check-file-hygiene.mjs not present — copy it from the sdd-pipeline health-check skill to enable this gate"
+          fi

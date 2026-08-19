@@ -1,6 +1,6 @@
-# CI for the SDD Pipeline repo. Runs the worked example's test suite with the
-# coverage gate — the same gate the `coverage-check` skill enforces (>= 80%).
-# This is TICKET-019 realized for the example.
+# CI for the SDD Pipeline repo itself: validates skill structure and
+# syntax-checks the bundled enforcement scripts. (Projects that USE the
+# pipeline get their own CI gates via enforcement/ci/sdd-check.yml.)
 name: CI
 
 on:
@@ -9,41 +9,29 @@ on:
   pull_request:
 
 jobs:
-  wishlist-example:
-    name: Wishlist example — tests + coverage gate
+  validate-skills:
+    name: Skill structure valid
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: examples/wishlist/impl
     steps:
       - uses: actions/checkout@v4
+      - name: Validate skills
+        run: bash scripts/validate-skills.sh
 
-      - name: Use Node.js (type-stripping capable)
-        uses: actions/setup-node@v4
-        with:
-          node-version: "24"
-
-      # The project is zero-dependency, so there is nothing to install. A real
-      # project would `npm ci` and run a scanner here:
-      #   - npm ci
-      #   - npm audit --audit-level=high
-      #   - trivy fs . / a SAST step
-      - name: Test with coverage gate (>= 80% line & branch)
-        run: npm run test:ci
-
-      - name: Secret scan (basic)
-        run: |
-          if grep -rInE '(AKIA[0-9A-Z]{16}|-----BEGIN [A-Z ]*PRIVATE KEY-----)' src; then
-            echo "Potential secret committed"; exit 1
-          fi
-
-  traceability:
-    name: Traceability matrix is consistent
+  scripts-syntax:
+    name: Enforcement scripts parse
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: "24"
-      - name: Check the example's traceability matrix
-        run: node skills/traceability/check-traceability.mjs examples/wishlist/docs/sdd
+      - name: Syntax-check bundled .mjs scripts
+        run: |
+          set -e
+          found=0
+          while IFS= read -r f; do
+            found=1
+            node --check "$f"
+            echo "OK: $f"
+          done < <(find skills -name '*.mjs' -type f)
+          if [ "$found" -eq 0 ]; then echo "No .mjs scripts found"; fi

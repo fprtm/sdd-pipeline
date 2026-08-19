@@ -3,6 +3,55 @@
 All notable changes to SDD Pipeline. Versioning is [SemVer](https://semver.org/);
 pre-1.0, so minors may still move fast. Plain-language where possible.
 
+## [2.0.0] — 2026-08-19
+**Engine transplant.** v2 is a new machine, not an upgrade: the adaptive-depth,
+judgment-first engine developed as **Reins** (v0.4.0, 49 skills + 5 commands)
+replaces the old 11-phase gated architecture wholesale. v0.33.0 was the last
+release of the old generation; it lives on in git history. Positioning:
+**spec in front, judgment behind** — control over, and trust in, AI-generated
+code that lands faster than you can review it.
+### The new engine (from Reins)
+- Fixed sequence ask → spec → plan → build → check; depth adapts to task size
+  (micro/small/medium/large), never the order. DoD floor for every small+ task.
+- AI-output **judgment gate** (research-grounded): weakest point named in every
+  report, hallucination-risk zones, security escalation for AI code in risky
+  zones even when checks pass, review-capacity throttle.
+- 5 modes (prototype/vibe/standard/strict/emergency), SDLC detection,
+  arch-analyzer (deletion test, adapter-count, design-it-twice), SDD Grill,
+  rule-of-three decision log, glossary, numbered docs with required Mermaid,
+  session persistence, multi-agent orchestration (hard cap 6), 5 slash commands
+  (`/sdd-pipeline:brainstorm|discover|design|implement|check`).
+### Absorbed from the old pipeline (the audit's 16 ABSORB items)
+- **ID spine (hybrid)** — numbered doc files ARE their spine IDs (FSD-003 =
+  `003-x-fsd.md`, decisions 005 = ADR-005); REQ/SEC/TICKET/TEST stay item-level
+  global; sub-IDs (FSD-003.2) for fine links.
+- **Traceability** — matrix + ship gate, size-gated (full at large/full, lite
+  inline at medium), `check-traceability.mjs` rewritten for the v2 tree
+  (recursive, filename-based definitions, sub-ID resolution).
+- **Threat model** (THINK-phase STRIDE, SEC-xxx controls) paired with the
+  existing PROVE security checklist; **coverage gate** ≥80% + honesty checks;
+  **test plan** with 5 classes and the **LOCAL-only hard stop** (never run
+  tests/browser QA against anything that might be production); **browser-qa**;
+  **git-workflow** (traceable commits/PRs, always English).
+- **parallel-work** — worktree isolation + `check-parallel-safety.mjs`
+  (retargeted to the tickets/ tree) + always-confirm-before-spawn; ticket
+  format gains Tier/Status/Dependencies/Files-likely-touched/Claimed-by and a
+  durability exemption (tickets carry real paths; FSD/SDD/PRD stay path-free).
+- **`check-file-hygiene.mjs` rewritten** for the v2 tree (+ `changes/` — one
+  dated self-contained file per small/medium topic — and `ux-screens/`).
+- New skills: infra (CI gates incl. both checkers), database-design,
+  stack-conventions, ux-design (process, not taste), analytics-design, handoff.
+- Absorbed rules: tickets local-first with optional GitHub Issues mirror
+  (asked, never assumed) · docs follow the user's language, code artifacts
+  English · index-first reading · design-only as a complete honest stop point ·
+  arch proposals pin the real directory tree + FE↔BE contracts · docs/user vs
+  docs/dev split with doc-as-you-go.
+### Removed
+- The old 30-skill/11-phase pack (11 redundant vs the new engine, 3 skipped:
+  self-update, old installer, stakeholder-brief), the wishlist example, and the
+  old repo CI that depended on them (replaced with validate-skills + script
+  syntax checks).
+
 ## [0.33.0] — 2026-08-14
 User caught a real gap: `docs/user/` and `docs/dev/` — canonical since early in
 this pack's life — didn't actually exist in xplorenusa, even though the gate

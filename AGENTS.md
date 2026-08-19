@@ -1,213 +1,80 @@
-# SDD Pipeline — agent instructions
+# SDD Pipeline v2.0.0 — Spec in Front, Judgment Behind
 
-This repo is a **portable skill pack** for AI coding agents. It installs a
-gated, traceable **Spec-Driven Development** workflow. It is written to be usable
-by any agent that can read Markdown instructions — Claude Code, Codex, Cursor,
-Gemini CLI, GitHub Copilot CLI, OpenCode, and others.
+You are operating under SDD Pipeline. Read `skills/orchestrator/SKILL.md` for full instructions.
 
-## How different agents load these skills
+## Quick Reference
 
-- **Claude Code** — install as a plugin (see README). Skills in `skills/*/SKILL.md`
-  are auto-discovered and invoked by name; subagents are used for parallel work.
-- **Codex / Cursor / Gemini / Copilot / generic** — these read `AGENTS.md`
-  (or an equivalent rules file). Point your agent at this file. Each skill is a
-  self-contained `skills/<name>/SKILL.md` you can open on demand. The installer
-  can also concatenate them into your agent's rules file.
+SDD Pipeline gives humans control over — and trust in — AI-generated code through three phases:
 
-Every skill file is plain Markdown with YAML frontmatter (`name`, `description`)
-followed by instructions — no agent-specific syntax, no tool bindings. That is
-what makes them portable.
-
-## The workflow (invoke `spec-driven-development` first)
-
-`spec-driven-development` is the orchestrator. It runs these phases with **hard
-gates** and keeps a **traceability matrix** linking every requirement to a test:
-
-| Phase | Skill | Output |
-|-------|-------|--------|
-| pre-0 (brownfield) | `map-codebase` | `docs/sdd/00-codebase-map.md` — run first when code already exists |
-| 0 Discover | `discovery` | `docs/sdd/00-context.md` + discovery brief (deep needs) |
-| 1 Product spec | `to-prd` (+ `analytics-design` for success metrics) | `docs/sdd/01-prd.md` (REQ-xxx) + `analytics.md` (KPIs/events) |
-| 2 Visual models | `to-diagrams` | `docs/sdd/02-diagrams.md` (context, DFD, sequence) |
-| 3 Functional spec | `to-fsd` | `docs/sdd/03-fsd.md` (FSD-xxx) |
-| 4 Architecture & Design gate | `arch-decision` → `stack-conventions` → `database-design` (mandatory if data persisted) → `ux-design` (if there's a UI) | `04-architecture.md` (ADRs) + `04-stack-guide.md` + `04-schema.md` (data model) + `04-ux-design.md` (design system/screens) |
-| 5 Security gate (SSDLC) | `threat-model` | `docs/sdd/05-threat-model.md` (SEC-xxx) |
-| 6 Backlog | `backlog-leveling` | `06-backlog.md` (tiered TICKET-xxx) + `ESTIMATE.md` (effort/cost) |
-| 7 Test plan | `test-plan` | `docs/sdd/07-test-plan.md` (TEST-xxx, ≥80% target) |
-| 8 Implement | `implement` + `code-standards` (+ `debug`) + `git-workflow` per commit (+ `parallel-work` if running several agents on the backlog at once) | tested code clearing the SSOT/DRY/YAGNI bar |
-| 9 Infra & delivery | `infra` | CI/CD, IaC, envs, secrets, observability, deploy |
-| 10 Verify gate | `coverage-check` + `code-review` + `threat-model` re-check + `browser-qa` (if UI) (+ `debug`) | proof — incl. Must UI journeys browser-verified |
-| 11 Ship | `documentation` + `git-workflow` (PR/changelog) + finish/`handoff` | deployed, docs written, matrix green |
-| any | `traceability` · `decision-log` · `stakeholder-brief` · `handoff` · `self-update` | matrix, decision "why", non-IT brief, snapshot, pack self-update |
-
-This pack is **self-sufficient** (30 skills; the pipeline runs end to end alone —
-`self-update` is a maintenance helper that keeps the installed pack current from
-the remote, not a phase). For planning,
-git worktrees, and grilling, **defer to skills you already have** (mattpocock/
-skills, superpowers); prefer an installed TDD / code-review / debugging skill over
-`implement` / `code-review` / `debug` if present.
-
-## Tidy output layout (canonical — one home per artifact)
-
-Spec trail → `docs/sdd/` (00–08 incl. `04-schema.md`/`04-ux-design.md`, plus
-`analytics.md`, `ESTIMATE.md`, `STAKEHOLDER-BRIEF.md`, `HANDOFF.md`,
-`traceability.md`, a `changes/` folder of **dated, self-contained per-topic
-files** (`YYYY-MM-DD-<topic>.md`) indexed by a **thin `00-overview.md`**, a
-`decisions/` folder of timestamped decision files, and a `memory/` Obsidian-style
-knowledge graph); user docs → `docs/user/`; developer
-docs → `docs/dev/` (+ inline JSDoc/docstrings); code, tests, CI, IaC in their
-normal repo locations. Never scatter files — if it isn't in this layout, give it
-a home here first.
-
-**Stack-aware:** `stack-conventions` (phase 4) reads the chosen stack's official
-docs (via a docs tool like Context7 if available, else the official sites) and
-writes version-pinned rules to `04-stack-guide.md` — TS strict, Laravel/Eloquent
-conventions, framework idioms — which `implement` follows and `code-review` checks.
-
-## Code-quality bar
-
-All code (phase 8) and review (phase 10) must clear `code-standards`: **SSOT**
-(one authoritative source per fact; types inferred from one schema; named
-constants; ubiquitous naming), **DRY** (knowledge, not keystrokes; rule of three),
-**YAGNI** (only what a requirement needs; no dead code), **deep modules** (simple
-interfaces hiding complexity; logic in the domain layer). This is the output
-contract, not a nicety.
-
-## It represents a full team
-
-Each phase = a role (PM, data analyst, business analyst, architect, DBA, UI/UX
-designer, security, delivery lead, QA, engineer, DevOps/SRE, reviewer, tech
-writer). One agent covers the whole org; it announces which role it's "wearing"
-per phase so non-technical users can follow.
-
-## Project setup (once per project)
-
-First time you engage here: (1) ensure this repo's `AGENTS.md`/`CLAUDE.md`
-points the agent at `spec-driven-development` and at reading
-`docs/sdd/memory/INDEX.md` first — add a short pointer if missing (mandatory;
-it's what makes the pipeline get used every session). (2) Read the memory graph
-first if it exists — cheaper than re-scanning the repo. When you propose or
-decide something the user didn't specify, say briefly **what**, **why**, and the
-**main alternative rejected** — never let a decision pass unexplained.
-
-## Stay in this mode for the whole conversation
-
-Skills aren't automatically "sticky" across turns in most runtimes — once
-`spec-driven-development` triggers, deliberately keep governing every later
-message, not just the first, until the user changes topic or ends the session.
-It also re-engages on **every new dev request mid-session**, not just the
-first — a plain "now add X" is enough. Your first response must include a
-one-line cheat-sheet (mode/size/stop-point options); state your current phase
-when there's ambiguity instead of drifting back to generic answers; log
-decisions as you go even in `quick`/`lite` (inline in the `changes/<topic>.md`, not a
-separate file — that's `full`-mode only), proactively, not only when asked.
-
-## Read state, then ask — don't guess
-
-Before doing anything, **check whether `docs/sdd/` already exists** and read
-`00-overview.md`/`traceability.md`/`decisions/`/`memory/INDEX.md` if so — resume
-from the real state, don't restart or re-ask what's already answered. **Also read
-the actual
-code for whatever specific area is under discussion right now** — not just
-`map-codebase`'s initial (deliberately shallow) pass; go deeper every time a
-new topic/file/feature comes up. Docs and your own earlier summary can both
-drift from what the code actually does — the code is the ground truth. For
-anything consequential that state doesn't already answer, **ask rather than
-assume** (always in copilot; in autopilot, for anything blocking/irreversible —
-routine unknowns still get batched into a recorded default). **Whenever you ask,
-brainstorm, or seek confirmation, use your host's native structured question tool**
-(quick-select UI), not a plain-text question — fall back to plain text only when
-the runtime has none.
+**THINK** (before coding): Clarify requirements, load context, define scope, detect complexity, detect SDLC methodology, analyze architecture, threat-model sensitive flows, design the schema/UX when relevant, offer SDD Grill for casual decisions before they lock in.
+**BUILD** (during coding): Decompose large tasks into vertical-slice tickets (tiered T1/T2/T3, global TICKET-xxx ids), write the test plan, generate docs (FSD/SDD/PRD/ERD/DoD), apply constraints, enforce change plan, detect anti-patterns, guard execution, commit traceably (git-workflow).
+**PROVE** (after coding): Verify correctness (types/tests/lint/spec-conformance), test adversarially, check security against SEC-xxx controls, run the coverage gate honestly, browser-verify UI Must-journeys, report with blind spots — then the judgment gate: weakest point named, hallucination-risk zones flagged, security escalation for risky zones even when checks pass, comprehension confirmed before the task closes.
 
 ## Modes
 
-- **Autopilot** — agent runs the whole pipeline autonomously as a full team;
-  collects requirements exhaustively up front (batched), picks robust defaults
-  where the user doesn't decide (recording assumptions), and stops only for
-  blockers or irreversible/outward actions (deploy, spend, delete, send). Works
-  for non-developers and developers.
-- **Copilot** — a real behavioral contract: produce **one phase (or one
-  decision) at a time, then STOP and wait** for the developer's reply; offer
-  options to pick, don't announce a done deal. Generating several phases in one
-  turn is autopilot behavior — a bug in copilot. The difference must be *felt*
-  each turn, not just stated once.
-- **Modular** — invoke any single skill directly, without the orchestrator (the
-  nicest way for a focused job; the most reliable way on a weaker/cheaper model).
+- **prototype**: Speed-first. Minimal guardrails. No plan file, no grill.
+- **vibe**: Invisible guardrails. Plan written silently, auto-approved. Stats footer shown.
+- **standard**: Balanced. Default. Plan shown, user approves before build. Grill auto-suggested for architecture decisions.
+- **strict**: Maximum control. Plan MUST be approved. Checkpoints at every decision. Promotes evidence gates one size-level.
+- **emergency**: Fix-first. For outages and urgent bugs. No grill, no plan; gates deferred to the post-fix follow-up.
 
-Size is orthogonal — match ceremony to the work, don't reflexively go full:
-**quick** (tiny change → fix test-first, no doc tree), **lite** (a feature → one
-collapsed `changes/<topic>.md`), **full** (new product/subsystem → the whole trail).
+## Pipeline Flow
 
-**Brownfield:** if code already exists, run `map-codebase` first, then
-`arch-decision` in respect-existing mode, frame work as changes, and add
-characterization tests before altering legacy. Don't run the "choose a stack"
-flow on a repo that already has one.
+```
+1. Detect mode, task size, domain, SDLC, architecture
+2. Run THINK phase (parallel: elicitation + context + scope + complexity + SDLC
+   + architecture; threat-model per the gates table)
+3. Check skill composition (recommend external skills if needed)
+4. Offer SDD Grill if a consequential decision is about to lock in casually
+5. Write plan to docs/sdd/plans/current.md → approval per mode
+   (large tasks: decompose into vertical-slice tickets first, work the frontier)
+6. Run BUILD phase (test plan + doc generator + constraints + anti-patterns
+   + change plan + execution + traceable commits)
+7. Run PROVE phase (parallel: verification + adversarial + security + coverage
+   + performance; browser QA for UI)
+8. Update traceability where it applies, generate report, run the judgment gate,
+   log decisions (rule-of-three gated), update glossary, record stats, update index
+```
 
-**Stop-point** is another orthogonal choice — how far to run:
-- **`docs-only`** — phases 0–7 only (discovery → PRD → diagrams → FSD →
-  architecture → security → backlog+estimate → test plan), **no code written**.
-  The right choice for brainstorming, spec'ing something for another team, or
-  getting buy-in before committing engineering time.
-- **`spec+review`** — phases 0–7, then a human checkpoint before phase 8.
-- **`full-build`** (default when the request is "build/ship this") — all phases
-  0–11 through implementation and deploy.
+## The Fixed Sequence
 
-If the request sounds like planning rather than building, default to
-`docs-only` and say so.
-Neither mode nor size ever removes a gate or reduces requirement collection.
+Every execution request follows the same order — only depth adapts to size: **ASK** (elicitation/grill per size) → **SPEC** (small: minimal spec + DoD; large: full suite — DoD always exists for small+) → **PLAN** (approval per mode) → **BUILD** → **CHECK**. Never skip from request straight to build. A question ("gimana kalau...?") is discussion, not an execution signal — building starts only on an actual instruction.
 
-## Principles baked in
+## Evidence Gates by Size
 
-- **Traceability is the point** — REQ → FSD → ADR/SEC → TICKET → TEST, always
-  linked; gaps are surfaced, never hidden.
-- **Gates block** — no implementation before architecture + security are
-  decided; no ship before coverage ≥ target and the matrix is green.
-- **Stack-neutral** — the agent asks; the user decides. If the user defers, the
-  agent picks the most robust/scalable/maintainable option and justifies it.
-- **FE + BE + topology** — architecture covers frontend, backend, and their
-  relationship (fullstack, separate, be-only, fe-only, or monorepo).
-- **Two-layer docs** — every artifact opens with a plain-language summary for
-  non-developers, then technical detail for developers/agents.
-- **Executor-friendly backlog** — tickets are tiered so trivial work can go to a
-  junior dev or a cheap model, complex work to a senior/strong model.
-- **Tests run against LOCAL DB only** — before running any suite, confirm the
-  target is a local/disposable test DB (`NODE_ENV=test`, `localhost`/`*_test`/
-  in-memory, from `.env.test`). If anything points at production or a non-local
-  host, or you can't tell, **STOP and ask** — never run tests against real data.
-- **In scope + readable + surgical** — the smallest change that satisfies the
-  ticket, held to the SSOT/DRY/YAGNI bar, in every mode/size (quick/lite reduce
-  ceremony, never code quality or scope). A refactor of working code is its own
-  decision, not a silent diff-balloon.
-- **Efficiency is first-class** — context window and tokens are a resource:
-  read the minimum (memory INDEX + relevant notes + targeted code, not
-  whole-repo scans), don't re-read, right-size output, use `handoff` on long
-  runs. This is a framework for agentic development, not a one-off skill.
-- **Ease of use is a feature** — two clear doors (just-build-it vs
-  drive-step-by-step), light first turn, feels like a teammate not a form.
-- **Write for the next reader** — a later session or cheaper model reads these
-  cold: split by topic (never one giant file), scannable sections with stable
-  IDs, to the point, each file self-contained. Could a fresh session act on it in
-  a minute? If not, tighten it.
-- **Definition of Done, always explicit** — each phase's exit gate is its DoD;
-  each ticket's DoD = acceptance criteria + tests green + traceability + docs.
-  Nothing is "done" until its DoD is checked, `quick`/`lite` included.
-- **Keep a live to-do list** in the host's native tool, updated **the moment
-  state actually changes** (ticket started/criterion green/ticket done/new work
-  found) — not batched to end-of-turn. A stale entry is worse than none.
-- **Foundation first, then one vertical slice at a time** for multi-operation
-  features (CRUD and similar) — finish one operation fully (route→service→
-  domain→tests→docs) before starting the next; don't layer-slice across all
-  operations at once. Easier to track, and keeps the to-do list honest.
-- **One topic = one dated, self-contained file** (`changes/YYYY-MM-DD-<topic>.md`,
-  its own mini board + IDs + decisions); `00-overview.md` is a **thin index** (one
-  row per topic: date · file · one-line description · status · branch) + global
-  ID registry — never a place to append every topic's brief/board (that's what
-  conflicts and balloons). **Read index-first:** match the task to a row/note by
-  its description, then open only the relevant file. Frontmatter `description` on
-  every artifact.
-- **Docs: check, then update or create** — before done, look for existing user +
-  developer docs for the touched area; update if behavior changed, create if
-  missing (a missing doc is a create, not a skip). Part of the DoD.
-- **Code artifacts are English; docs follow the user.** Identifiers, JSDoc (kept
-  simple), commit messages, and branch slugs are always English — even when specs
-  and user-facing docs are in the user's language.
+Traceability matrix + ship gate: large/full only (medium: inline lite trail; small/micro: skip, DoD still applies). Threat model: mandatory at large/full, zone-triggered otherwise. Coverage gate ≥80% + honesty checks: medium+. Test plan file: medium+. Full table in `skills/orchestrator/SKILL.md`. Whatever applies: announce what ran and what was skipped, with the reason.
+
+## Hard Stops (Every Mode)
+
+- Tests/browser QA run against **local/disposable targets only** — anything pointing at production or unclear: STOP and ask.
+- Provisioning, deploying to shared/prod, or anything that costs money: explicit human confirmation first.
+- Spawning parallel agents: run `check-parallel-safety.mjs`, confirm the plan with the user first.
+
+## Priority Rules
+
+1. Project CLAUDE.md/AGENTS.md rules override SDD Pipeline defaults.
+2. User overrides override constraints — inform of the risk, then comply; never refuse, never nag after acceptance.
+3. Emergency overrides everything.
+4. Non-coding tasks and pure discussion: skip SDD Pipeline entirely.
+
+## Language
+
+Specs, plans, and user-facing docs follow the user's language. Code-level artifacts are always English: identifiers, JSDoc/comments, commit messages, branch slugs.
+
+## Project Files
+
+All SDD Pipeline project artifacts live in `docs/sdd/` (tree + conventions in the orchestrator; mechanically enforced by `check-file-hygiene.mjs`):
+`index.md` (read first) · `config.md` · `glossary.md` · `memory.md` · `traceability.md` (matrix + ID counters) · `changes/` (one dated self-contained file per small/medium topic) · `decisions/` (005-x.md IS ADR-005) · `design/` (numbered FSD/SDD/PRD/threats/UX — file number IS the spine ID) · `ux-screens/` · `tickets/` · `test-plans/` · `dod/` · `erd/` · `plans/` · `reports/` · `stats/`
+
+## Skills Location
+
+All skills are in `skills/`, organized by phase:
+- `skills/orchestrator/` — main entry point (+ `composition.md`)
+- `skills/think/` — elicitation, context-loader, scope-guard, complexity-analyzer, sdlc-detector, arch-analyzer, grill, threat-model, database-design, ux-design, stack-conventions, analytics-design
+- `skills/build/` — constraints, anti-patterns, change-plan, execution-guard, model-router, doc-generator, ticket-decomposition, test-plan, git-workflow, infra
+- `skills/prove/` — verification, adversarial, security-check, performance-check, coverage-check, browser-qa, report, judgment
+- `skills/meta/` — decision-log, comprehension, insight, health-check (+ file-hygiene checker), memory, stats, glossary, traceability (+ checker), handoff
+- `skills/modes/` — prototype, vibe, standard, strict, emergency
+- `skills/constraints/` — universal, web, cli, mobile, library, api
+- `skills/agents/` — orchestration, parallel-work (+ safety checker), model-strategy, subagent-patterns
+- `skills/commands/` — the 5 standalone slash-command entry points (brainstorm, discover, design, implement, check)
