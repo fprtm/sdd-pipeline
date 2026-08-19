@@ -88,7 +88,7 @@ Run `skills/think/sdlc-detector/SKILL.md` to detect methodology:
 
 1. Check `docs/sdd/config.md` for declared SDLC
 2. Auto-detect from project signals (`.jira/`, `.linear/`, sprint labels, etc.)
-3. If undetected, ask once and save to `docs/sdd/memory.md`
+3. If undetected, ask once and save as a note in `docs/sdd/memory/`
 
 SDLC context is passed to all downstream skills. See sdlc-detector for behavior adaptation per methodology.
 
@@ -221,13 +221,13 @@ Once SDD Pipeline activates in a session (via the orchestrator, any `/sdd-pipeli
 
 Concretely:
 - Detected context (mode, domain, SDLC, architecture) carries forward between tasks — re-detect only when the project or an explicit signal changes, not on every prompt.
-- Answers the user already gave (via elicitation or grill) are remembered for the session and in `docs/sdd/memory.md` — never re-ask.
+- Answers the user already gave (via elicitation or grill) are remembered for the session and in `docs/sdd/memory/` — never re-ask.
 - If the user says "stop using sdd" / "sdd off", deactivate for the session and confirm. That's the only off-switch — context length or topic drift is not.
 
 ## Adaptive Behavior
 
 - **Rapid iteration detected** (3+ prompts in 2 minutes): reduce overhead. Skip elicitation, use last context, minimal verification.
-- **Repeated task type detected**: check `docs/sdd/memory.md` for saved decisions. Skip answered questions.
+- **Repeated task type detected**: check `docs/sdd/memory/INDEX.md` for saved decisions. Skip answered questions.
 - **Agent stuck**: execution-guard handles loop detection and escalation.
 - **SDLC-aware adaptation**: see sdlc-detector for per-methodology behavior changes.
 
@@ -239,7 +239,7 @@ SDD Pipeline uses these project-level files (created on first run if not present
 docs/sdd/
 ├── index.md              # Lightweight relationship graph — AI navigation
 ├── config.md             # Project settings, mode, constraints, SDLC override
-├── memory.md             # Saved decisions (max 50 entries, oldest pruned)
+├── memory/               # Knowledge graph: INDEX.md (map) + one linked note per durable fact
 ├── glossary.md           # Domain terms — canonical meaning + rejected synonyms
 ├── traceability.md       # REQ→FSD→SEC→TICKET→TEST matrix + global ID counters (large/full only)
 ├── decisions/            # 1 file per decision, gated by rule-of-three — 005-auth-strategy.md IS ADR-005

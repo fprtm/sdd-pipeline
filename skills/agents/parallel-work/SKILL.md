@@ -38,7 +38,7 @@ Before starting a ticket, the agent sets `**Claimed by:** <agent-id>, <worktree 
 ## 5. Roles — Who's Actually Concurrent
 
 - **Test plan is upstream, not a peer** — completed *before* implementation tickets are assigned; parallel agents execute test-first against an already-locked plan.
-- **Review is genuinely concurrent-compatible** — a review agent (or the human) reviews each ticket's branch as it opens, independent of the other agents' stage.
+- **Review is genuinely concurrent-compatible** — the ticket status flow is the coordination surface: an implementation agent flips its ticket to **🧪 testing/review** when the branch/PR opens, and a review agent (or the human) picks up 🧪 tickets independently of the other agents' 🔨 work. `node skills/agents/parallel-work/check-parallel-safety.mjs docs/sdd/tickets --board` shows the live kanban (⬜/🔨/🧪/⛔/✅ + who claimed what) — one glance answers "who's doing what" without opening every ticket file.
 - **Implementation agents** each own one claimed vertical slice, test-first, inside their own worktree — parallelism changes nothing about the code-quality bar, the LOCAL-only test rule, or scope discipline.
 
 ## 6. Merge Order — Trial-Merge in Its Own Worktree Too

@@ -29,8 +29,8 @@ import { join, relative, basename } from 'node:path';
 
 const dir = process.argv[2] ?? 'docs/sdd';
 const SLUG = '[a-z0-9][a-z0-9-]*';
-const ROOT_MD = new Set(['index.md', 'config.md', 'memory.md', 'glossary.md', 'traceability.md', 'HANDOFF.md', 'stack-guide.md', 'analytics.md']);
-const KNOWN_DIRS = new Set(['design', 'erd', 'dod', 'test-plans', 'tickets', 'plans', 'reports', 'decisions', 'changes', 'stats', 'ux-screens', 'design-system']);
+const ROOT_MD = new Set(['index.md', 'config.md', 'glossary.md', 'traceability.md', 'HANDOFF.md', 'stack-guide.md', 'analytics.md']);
+const KNOWN_DIRS = new Set(['design', 'erd', 'dod', 'test-plans', 'tickets', 'plans', 'reports', 'decisions', 'changes', 'stats', 'ux-screens', 'design-system', 'memory']);
 const DIR_RULES = {
   design: new RegExp(`^\\d{3}-${SLUG}-(fsd|sdd|prd|threats|ux)\\.md$`),
   erd: new RegExp(`^\\d{3}-${SLUG}-erd\\.md$`),
@@ -136,6 +136,24 @@ for (const feat of ls(join(dir, 'tickets'))) {
     if (!TICKET_FILE.test(e)) flag(`bad filename: tickets/${feat}/${e} — expected NN-slug.md`);
     const text = readFileSync(join(fp, e), 'utf8');
     if (!/TICKET-\d+/.test(text)) flag(`tickets/${feat}/${e}: no global TICKET-xxx id found in the file`);
+  }
+}
+
+// memory/ — knowledge graph: INDEX.md + kebab-slug notes with description
+// frontmatter, every note listed in INDEX.md (index-first is what makes the
+// graph cheap to read — an unindexed note is invisible).
+const memDir = join(dir, 'memory');
+if (existsSync(memDir)) {
+  const memIndexPath = join(memDir, 'INDEX.md');
+  const memIndex = existsSync(memIndexPath) ? readFileSync(memIndexPath, 'utf8') : null;
+  if (!memIndex) flag('memory/INDEX.md missing — the index is how the graph gets read cheaply');
+  for (const e of ls(memDir)) {
+    if (!e.endsWith('.md') || e === 'INDEX.md') continue;
+    if (!new RegExp(`^${SLUG}\\.md$`).test(e)) flag(`bad filename: memory/${e} — expected <slug>.md`);
+    const fm = readFileSync(join(memDir, e), 'utf8').match(/^---\n([\s\S]*?)\n---/);
+    if (!fm) flag(`memory/${e}: missing frontmatter (description/type)`);
+    else if (!/^description:/m.test(fm[1])) flag(`memory/${e}: frontmatter missing "description:"`);
+    if (memIndex && !memIndex.includes(e.replace(/\.md$/, ''))) flag(`orphan: memory/${e} not listed in memory/INDEX.md`);
   }
 }
 

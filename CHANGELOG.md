@@ -3,6 +3,39 @@
 All notable changes to SDD Pipeline. Versioning is [SemVer](https://semver.org/);
 pre-1.0, so minors may still move fast. Plain-language where possible.
 
+## [2.1.0] — 2026-08-19
+Three post-release upgrades from Ferry's review of v2.0.0, all aimed at agent
+speed (cheap orientation, clear coordination) rather than new gates.
+### Changed — memory is a knowledge graph, not a flat list
+- `docs/sdd/memory.md` (flat, max-50) → `docs/sdd/memory/` — Obsidian-style
+  linked notes + `INDEX.md` map, restoring the old pack's `project-memory`
+  structure (the one audit call that deserved reversing: the *function* was
+  redundant, the *structure* was superior). One durable fact per note,
+  `[[wikilinks]]`, index-first reads: a session orients from a few hundred
+  tokens instead of a full repo re-scan. Both memory jobs merged: codebase
+  knowledge (modules/concepts/gotchas) AND answered-question notes
+  (conventions/preferences/overrides) live in one graph.
+- `templates/index.md` now mandates the row format (`file — one-line
+  description · status`) that makes index-first matching actually work.
+- `check-file-hygiene.mjs` verifies the graph: note naming, `description:`
+  frontmatter, every note listed in `memory/INDEX.md` (unindexed = invisible).
+### Added — ticket kanban + board view
+- Ticket `Status` is now a real kanban: `⬜ todo → 🔨 in progress → 🧪
+  testing/review → ✅ done` (+ `⛔ blocked`, with a reason). 🧪 is the
+  multi-agent handoff state: implementation agents flip to it when the PR
+  opens; a review agent picks 🧪 tickets up concurrently.
+- `check-parallel-safety.mjs --board` prints the live board (lanes, titles,
+  who claimed what, deps on todo items) — one glance answers "who's doing
+  what" without opening every ticket file.
+- GitHub Issues mirror sync specified: status labels updated in the same
+  breath as the local edit; issue closes when the ticket hits ✅. Local files
+  stay the SSOT.
+### Added — Deliverables manifest in tickets
+- New `## Deliverables` section in the ticket format: `file → function/
+  component born there` — the what-will-exist manifest at a glance, no
+  implementation code, complementing `Files likely touched:` (which feeds the
+  parallel-safety check) and the FSD (which stays path-free).
+
 ## [2.0.0] — 2026-08-19
 **Engine transplant.** v2 is a new machine, not an upgrade: the adaptive-depth,
 judgment-first engine developed as **Reins** (v0.4.0, 49 skills + 5 commands)

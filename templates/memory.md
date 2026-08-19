@@ -1,15 +1,19 @@
-# SDD Pipeline Project Memory
+# Memory Index — Read This First
 
-Saved decisions from previous tasks. SDD Pipeline checks this before asking questions.
+The map of the project knowledge graph (`docs/sdd/memory/`). One line per note: `- [[slug]] — hook` (the hook = the note's frontmatter `description`). Match your task to a note by its hook, then open **only** those notes — never the whole vault.
 
-## Conventions
+## Notes
 
-<!-- Saved conventions will be added here -->
+_No notes yet. The first context-loading pass on this project seeds the graph; every session that learns something durable adds or fixes a note._
 
-## Preferences
+<!--
+Note format (docs/sdd/memory/<slug>.md):
 
-<!-- Saved preferences will be added here -->
-
-## Overrides
-
-<!-- Saved constraint overrides will be added here -->
+---
+description: <one-line hook — why a future session would open this note>
+type: module | concept | gotcha | how-to | convention | preference | override | pointer
+updated: YYYY-MM-DD
+---
+<One durable, non-obvious fact. Link related notes with [[slug]] — links to
+notes that don't exist yet are fine; they mark what's worth writing later.>
+-->

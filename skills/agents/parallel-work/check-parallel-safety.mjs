@@ -9,10 +9,13 @@
 //
 // Usage:
 //   node check-parallel-safety.mjs [docs/sdd/tickets | path/to/file.md]
+//   node check-parallel-safety.mjs [path] --board     # kanban view instead
 //
-// Output: eligible tickets; strict-safe clusters (zero file overlap — safe to
-// spawn one agent per cluster); near-safe pairs sharing 1-2 files (flagged for
-// human judgment, neither silently included nor excluded).
+// Default output: eligible tickets; strict-safe clusters (zero file overlap —
+// safe to spawn one agent per cluster); near-safe pairs sharing 1-2 files
+// (flagged for human judgment, neither silently included nor excluded).
+// --board: a kanban summary of every ticket grouped by status
+// (⬜ todo · 🔨 in progress · 🧪 testing/review · ✅ done · ⛔ blocked).
 // Exits 0 (ran fine — clusters may be empty), 2 (no tickets found).
 //
 // This is a PLAN, not an action: it never spawns anything. The agent still
@@ -21,7 +24,9 @@
 import { readFileSync, readdirSync, existsSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
-const path = process.argv[2] ?? 'docs/sdd/tickets';
+const args = process.argv.slice(2);
+const BOARD = args.includes('--board');
+const path = args.find((a) => !a.startsWith('--')) ?? 'docs/sdd/tickets';
 
 if (!existsSync(path)) {
   console.log(`Nothing at ${path} — no tickets to check.`);
@@ -55,7 +60,7 @@ if (statSync(path).isDirectory()) {
 }
 
 function parseTicket({ src, text }) {
-  const idMatch = text.match(/^#{1,6}\s+(TICKET-\d+)/m);
+  const idMatch = text.match(/^#{1,6}\s+(TICKET-\d+)(?:\s*[—-]\s*(.*))?/m);
   const filesMatch = text.match(/\*\*Files likely touched:\*\*(.*)/);
   const depsMatch = text.match(/\*\*Dependencies:?\*\*:?(.*)/);
   const statusMatch = text.match(/\*\*Status:?\*\*:?(.*)/);
@@ -64,10 +69,22 @@ function parseTicket({ src, text }) {
   const files = filesMatch ? [...filesMatch[1].matchAll(/`([^`]+)`/g)].map((m) => m[1]) : [];
   const deps = depsMatch ? [...depsMatch[1].matchAll(/TICKET-\d+/g)].map((m) => m[0]) : [];
   const status = statusMatch ? statusMatch[1].trim() : '';
-  const done = /✅/.test(status);
-  const claimed = !!(claimedMatch && claimedMatch[1].trim() && !/^_/.test(claimedMatch[1].trim()));
+  const lane =
+    /✅/.test(status) ? 'done' :
+    /🧪/.test(status) ? 'testing' :
+    /⛔/.test(status) ? 'blocked' :
+    /🔨/.test(status) ? 'in-progress' : 'todo';
+  const claimedBy = claimedMatch && claimedMatch[1].trim() && !/^_/.test(claimedMatch[1].trim())
+    ? claimedMatch[1].trim() : '';
 
-  return { id: idMatch ? idMatch[1] : undefined, src, files, deps, status, done, claimed };
+  return {
+    id: idMatch ? idMatch[1] : undefined,
+    title: idMatch && idMatch[2] ? idMatch[2].trim() : '',
+    src, files, deps, status, lane,
+    done: lane === 'done',
+    claimed: !!claimedBy,
+    claimedBy,
+  };
 }
 
 const tickets = blocks.map(parseTicket).filter((t) => t.id);
@@ -75,6 +92,30 @@ if (tickets.length === 0) {
   console.log(`No TICKET-xxx blocks found under ${path}.`);
   process.exit(2);
 }
+
+if (BOARD) {
+  const LANES = [
+    ['todo', '⬜ todo'],
+    ['in-progress', '🔨 in progress'],
+    ['testing', '🧪 testing/review'],
+    ['blocked', '⛔ blocked'],
+    ['done', '✅ done'],
+  ];
+  const counts = LANES.map(([key, label]) => `${label.split(' ')[0]} ${tickets.filter((t) => t.lane === key).length}`).join(' · ');
+  console.log(`Board — ${tickets.length} tickets (${counts})\n`);
+  for (const [key, label] of LANES) {
+    const lane = tickets.filter((t) => t.lane === key);
+    if (lane.length === 0) continue;
+    console.log(`${label} (${lane.length})`);
+    for (const t of lane) {
+      const bits = [t.title, t.claimedBy && `claimed: ${t.claimedBy}`, t.deps.length > 0 && key === 'todo' && `deps: ${t.deps.join(', ')}`].filter(Boolean);
+      console.log(`  ${t.id}${bits.length ? ' — ' + bits.join(' · ') : ''}`);
+    }
+    console.log();
+  }
+  process.exit(0);
+}
+
 const doneIds = new Set(tickets.filter((t) => t.done).map((t) => t.id));
 
 function depsMet(ticket) {

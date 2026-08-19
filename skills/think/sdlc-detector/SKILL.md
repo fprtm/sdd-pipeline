@@ -52,7 +52,7 @@ If no signals found:
 - Solo / None (no formal process)
 ```
 
-Save answer to `docs/sdd/memory.md`. Don't ask again.
+Save answer as a note in `docs/sdd/memory/` (update INDEX.md). Don't ask again.
 
 ## Behavior Adaptation
 

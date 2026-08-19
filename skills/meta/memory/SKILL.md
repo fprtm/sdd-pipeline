@@ -1,59 +1,71 @@
-# Project Memory
+# Project Memory — A Linked Knowledge Graph, Not a Flat List
 
-Save project decisions so SDD Pipeline doesn't ask the same questions twice.
+Re-reading a large codebase from scratch every session is slow and expensive, and re-asking questions the user already answered is a trust failure. This skill fixes both with one structure: a small, Obsidian-style graph of markdown notes capturing what's **durable and non-obvious** about the project, read index-first so the next session (or a cheaper model) gets oriented from a few hundred tokens instead of a full re-scan.
 
-## What to Save
+Lives in `docs/sdd/memory/`. Plain markdown + `[[wikilinks]]` — an LLM reads it natively, and the links form a navigable graph.
 
-When a user answers an elicitation question that's likely to apply to future tasks of the same type:
+## Structure
 
-- "CRUD endpoints in this project use Zod validation, JWT auth, cursor pagination"
-- "This project prefers Tailwind over CSS modules because the team knows Tailwind"
-- "User overrides 'no factory' constraint in the product module because there are 12 product types"
+```
+docs/sdd/memory/
+  INDEX.md            # one line per note — READ THIS FIRST (the map, and cheap)
+  <slug>.md           # one note per durable fact
+```
 
-## Storage
-
-Save to `docs/sdd/memory.md`:
+Each note: short frontmatter + a focused body linking to related notes:
 
 ```markdown
-## Project Memory
-
-### Conventions
-- [convention]: [detail] — saved [YYYY-MM-DD]
-
-### Preferences
-- [preference]: [detail] — saved [YYYY-MM-DD]
-
-### Overrides
-- Constraint [name] overridden in [context]: [reason] — saved [YYYY-MM-DD]
+---
+description: why concurrent checkouts serialize on the (variant,date) row-lock
+type: gotcha        # module | concept | gotcha | how-to | convention | preference | override | pointer
+updated: 2026-08-12
+---
+Reserving quota uses a row-lock (`SELECT … FOR UPDATE`) on the
+`(variant, date)` row. The invariant `sold + held ≤ quota` must hold atomically —
+see [[ordering-module]]. The lock is why concurrent checkouts serialize here;
+don't "optimize" it away. Source: ERD-002 quota table, FSD-007.
 ```
+
+## What Belongs Here (Two Jobs, One Graph)
+
+**Codebase knowledge** (so the agent doesn't full-scan):
+- What each module does + where it lives + its public interface
+- Domain concepts and their real meaning; **gotchas** (non-obvious traps, "why it's like this")
+- Recurring how-tos; pointers to where important things live in the code
+
+**Answered questions** (so the user is never re-asked):
+- Conventions ("CRUD endpoints here use Zod validation, JWT auth, cursor pagination")
+- Preferences ("Tailwind over CSS modules — the team knows Tailwind")
+- Constraint overrides ("'no factory' overridden in the product module: 12 product types") — always dated, with the reason
+
+**Not here**: the spec (that's `docs/sdd/`), anything obvious from a quick read, git history, a blow-by-blow of changes. Memory earns its keep by holding what you'd otherwise have to *rediscover or re-ask*.
+
+## Rules (Keep It Cheap)
+
+- **One durable fact per note**, short. A note growing into several topics gets split — small notes link better and load cheaper.
+- **Link liberally** with `[[slug]]` — a link to a note that doesn't exist yet is fine; it marks something worth writing later. The links ARE the graph.
+- **`INDEX.md` is the map**: one line per note — `- [[slug]] — <the note's description>` — always current. Read it first, match the task to a note by its hook, **open only those few notes**. Never load the whole vault; that defeats the point.
+- **Update a note when it's wrong; delete when obsolete.** Stale memory is worse than none.
+- **Seed on brownfield, grow as you go.** The first context-loading pass on an existing repo seeds it; every session that learns something durable adds or fixes a note.
+- Only save what's likely to be **repeated**. One-off choices don't need memory.
+- `check-file-hygiene.mjs` verifies the structure mechanically (note naming, frontmatter, every note indexed).
 
 ## How It's Used
 
-1. Before elicitation: check memory for previously answered questions.
-2. If memory has the answer: use it silently. Don't re-ask.
-3. Before constraint check: check for saved overrides. Don't re-flag overridden constraints in the same context.
-
-## Escape Hatch
-
-If user says "this is different" or "not this time" or "ignore that" for a memorized decision:
-- Skip the memory for THIS task only.
-- Do NOT delete the memory entry (it may apply to the next task).
-
-## Rules
-
-1. Memory is per-project (stored in project directory).
-2. Users can manually edit `docs/sdd/memory.md`.
-3. Only save decisions likely to be REPEATED. One-off choices don't need memory.
-4. Include dates so stale memories can be identified.
-5. **Max 50 entries**. When exceeding 50, prune oldest entries that haven't been referenced in 30+ days.
-6. After saving, update `docs/sdd/index.md` if memory affects architecture or key conventions.
+1. **Session start / task start**: read `INDEX.md`, open the notes relevant to the area being touched. That plus a targeted code read replaces a full re-scan. The project's `CLAUDE.md`/`AGENTS.md` should point here so it happens every session.
+2. **Before elicitation**: check for previously answered questions — if memory has the answer, use it silently, don't re-ask.
+3. **Before constraint checks**: check for saved overrides — don't re-flag an overridden constraint in the same context.
+4. **Escape hatch**: user says "this is different / not this time" → skip the note for THIS task only; don't delete it.
 
 ## Mode Behavior
 
 | Mode | Behavior |
 |------|----------|
 | prototype | Don't save (prototype decisions aren't meant to last) |
-| vibe | Save automatically |
-| standard | Save automatically |
+| vibe / standard | Save automatically |
 | strict | Save with detailed context |
-| emergency | Don't save |
+| emergency | Don't save during the fix; capture durable learnings in the post-fix follow-up |
+
+## Exit
+
+`INDEX.md` reflects every note; each note is one focused, linked fact; the next session can get oriented from memory + a targeted read instead of a full re-scan. What this session learned that's durable is written down, not lost.

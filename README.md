@@ -78,7 +78,7 @@ Most of the time the orchestrator works invisibly — describe the work and it r
 docs/sdd/
 ├── index.md              # Lightweight relationship graph — read this first
 ├── config.md             # Project settings, mode, SDLC, constraints
-├── memory.md             # Saved decisions · glossary.md — domain terms
+├── memory/               # Knowledge graph: INDEX.md + linked notes · glossary.md — domain terms
 ├── traceability.md       # REQ→FSD→SEC→TICKET→TEST matrix + ID counters (large/full)
 ├── changes/              # Small/medium work: ONE dated self-contained file per topic
 ├── decisions/            # One file per decision (rule-of-three gated) — 005-x.md IS ADR-005

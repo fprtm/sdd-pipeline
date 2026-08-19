@@ -9,7 +9,7 @@ Read context in this order. Stop when you have enough to work:
 1. **CLAUDE.md / AGENTS.md** — project-level instructions. These ALWAYS override SDD Pipeline defaults.
 2. **docs/ directory** — architecture docs, design docs, API docs, ADRs.
 3. **docs/sdd/config.md** — SDD Pipeline project overrides and saved decisions.
-4. **docs/sdd/memory.md** — saved project decisions from previous tasks.
+4. **docs/sdd/memory/INDEX.md** — the project knowledge graph map: match the task to notes by their one-line hooks, open only those notes (never the whole vault).
 5. **Code scan** — infer from existing code when documentation is absent.
 
 ## Code Scan (Bare Project Fallback)

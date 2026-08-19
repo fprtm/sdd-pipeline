@@ -81,7 +81,7 @@ Wait for confirmation before writing ticket files. This is a judgment call (how 
 **Feature**: [parent feature/epic, if any]
 **Refs**: FSD-003 [, SEC-004 if this implements a security control]
 **Tier**: T1 | T2 | T3
-**Status**: ⬜ todo | 🔨 in progress | ✅ done
+**Status**: ⬜ todo | 🔨 in progress | 🧪 testing/review | ✅ done | ⛔ blocked
 **Dependencies**: TICKET-011 [global IDs that must land first, or "none"]
 **Files likely touched:** `src/routes/order.ts`, `src/services/order.ts`
 **Claimed by:** _(empty until an agent claims it — `<agent-id>, <worktree path>`; delete when merged)_
@@ -89,6 +89,13 @@ Wait for confirmation before writing ticket files. This is a judgment call (how 
 ## What to Build
 [End-to-end behavior this ticket delivers. Not layer-by-layer — describe the
 complete slice: what the user/caller can do once this ticket is done.]
+
+## Deliverables
+[One glance = what this ticket will create/change — file → the function/component
+born there. No implementation code, just the manifest:]
+- `src/services/order.ts` → `createOrder()` (new)
+- `src/routes/order.ts` → `POST /orders` route wired to it (new)
+- `src/services/order.test.ts` → TEST-030, TEST-031 (new)
 
 ## Acceptance Criteria (Given/When/Then — test-plan maps these 1:1 to TEST-xxx)
 - [ ] Given [precondition], when [action], then [observable outcome]
@@ -117,12 +124,20 @@ Tier by the ticket's **intrinsic difficulty and blast radius**, not its size in 
 
 Summarize the tier split at the top of the breakdown (counts per tier) so the user can plan cost/staffing. When asked "how long / how much", derive a transparent estimate from the tiers — **always ranges with stated assumptions, never false precision** — and re-estimate when the tickets change.
 
-## Working the Tickets
+## Working the Tickets — The Status Flow Is a Kanban
 
-1. Claim the next frontier ticket (all blockers resolved).
+```
+⬜ todo → 🔨 in progress → 🧪 testing/review → ✅ done      (⛔ blocked from anywhere)
+```
+
+1. Claim the next frontier ticket (all blockers resolved) → set 🔨.
 2. Run it through the normal SDD pipeline (THINK/BUILD/PROVE) as its own task.
-3. On completion, mark it done, recompute the frontier — newly-unblocked tickets become available.
-4. Never work more than one ticket at a time per agent session, unless tickets are explicitly parallel-safe (no shared files, no blocking edge) and multi-agent dispatch is available.
+3. When the code + tests are written and the branch/PR is open → set 🧪. **This is the handoff state**: a review agent (or the human) picks up 🧪 tickets — the PROVE pass and review happen here, concurrent with other agents' 🔨 work.
+4. Review + gates pass and the branch merges → set ✅, recompute the frontier — newly-unblocked tickets become available. Hit a real blocker → set ⛔ with a one-line reason next to it, don't sit on 🔨 silently.
+5. **Update the status the moment it changes, not batched at the end** — the board (see `check-parallel-safety.mjs --board`) is only trustworthy if statuses are live. Also update the feature's status counts row in `index.md`.
+6. Never work more than one ticket at a time per agent session, unless tickets are explicitly parallel-safe (no shared files, no blocking edge) and multi-agent dispatch is available.
+
+**If mirrored to GitHub Issues**, sync status on every local change: apply a status label (`status:in-progress` / `status:testing` / `status:blocked`) and close the issue when the ticket hits ✅ (the `Closes #42` commit does this automatically at merge). The local file stays the SSOT — the labels are a mirror, updated in the same breath as the local edit, never a substitute.
 
 ## Mode Behavior
 

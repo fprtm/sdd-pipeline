@@ -1,30 +1,37 @@
 # SDD Pipeline Project Index
 
-Lightweight relationship graph for AI navigation. Updated automatically by SDD Pipeline after each task.
+Lightweight relationship graph for AI navigation — **read this first**, match the task to a row by its one-line description, open only that file. Updated automatically after each task; a doc without an index row is invisible (`check-file-hygiene.mjs` flags it).
+
+**Row format (every entry, every section):** `- [file](path) — one-line description · status`
+The description is the hook a future session matches against — write it for that reader, not as a title repeat.
 
 ## Active
 
 _No active plan._
 
-## Recent Activity
+## Changes
 
-_No tasks processed yet._
-
-## Decisions
-
-_No decisions logged yet._
+_No change topics yet. One row per `changes/` file._
 
 ## Documents
 
-_No documents generated yet._
+_No documents generated yet. One row per `design/`, `erd/`, `test-plans/` file._
+
+## Decisions
+
+_No decisions logged yet. One row per `decisions/` file (ADR-NNN — what was decided)._
+
+## Tickets
+
+_No large tasks decomposed yet. One row per feature: link + status counts (e.g. 3 todo · 1 in progress · 1 testing · 2 done)._
+
+## Memory
+
+_See [memory/INDEX.md](memory/INDEX.md) — the knowledge-graph map lives there, not here._
 
 ## Glossary
 
 _No domain terms pinned down yet. See [glossary.md](glossary.md) once created._
-
-## Tickets
-
-_No large tasks decomposed into tickets yet._
 
 ## Architecture
 

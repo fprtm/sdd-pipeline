@@ -40,8 +40,8 @@ const ROW_DEF = new RegExp(`^\\s*\\|\\s*((?:${TYPES})-\\d+(?:\\.\\d+)?)\\b`);
 const SPINE = new Set(['REQ-NF', 'REQ', 'FSD', 'SEC']); // must appear in the matrix
 const UPSTREAM = new Set(['REQ-NF', 'REQ', 'FSD', 'SEC', 'ADR']); // valid parents
 // Files/dirs that cite ids but never define them (reports, plans, indexes).
-const NON_DEFINING_FILES = new Set([MATRIX, 'index.md', 'memory.md', 'glossary.md', 'config.md']);
-const NON_DEFINING_DIRS = new Set(['plans', 'reports', 'stats', 'dod']);
+const NON_DEFINING_FILES = new Set([MATRIX, 'index.md', 'glossary.md', 'config.md', 'HANDOFF.md']);
+const NON_DEFINING_DIRS = new Set(['plans', 'reports', 'stats', 'dod', 'memory']);
 // Filename -> file-level ID definitions.
 const FILE_ID_RULES = [
   { dir: 'design', re: /^(\d{3})-.+-(fsd|sdd|prd)\.md$/, type: (m) => m[2].toUpperCase() },

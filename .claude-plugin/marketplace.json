@@ -4,7 +4,7 @@
     "name": "ferryaguspratama"
   },
   "description": "SDD Pipeline — spec in front, judgment behind. Control over and trust in AI-generated code.",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "plugins": [
     {
       "name": "sdd-pipeline",
