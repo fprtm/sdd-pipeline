@@ -5,7 +5,7 @@ pre-1.0, so minors may still move fast. Plain-language where possible.
 
 ## [2.1.1] — 2026-08-19
 ### Fixed
-- Plugin/marketplace author credit: `ferryaguspratama` → `FerryPratama`.
+- Plugin/marketplace author credit: `ferryaguspratama` → `ferrypratama`.
 
 ## [2.1.0] — 2026-08-19
 Three post-release upgrades from Ferry's review of v2.0.0, all aimed at agent
