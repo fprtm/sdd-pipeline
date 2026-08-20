@@ -199,7 +199,10 @@ install_ci() {
 install_templates() {
   mkdir -p docs/sdd/{decisions,plans/archive,tickets,reports,design,test-plans,dod,stats,erd,changes,ux-screens,memory}
   cp "$SCRIPT_DIR/templates/sdd.config.md" docs/sdd/config.md 2>/dev/null || true
-  cp "$SCRIPT_DIR/templates/decisions.md" docs/sdd/decisions/.gitkeep 2>/dev/null || true
+  # decisions/ holds one file per decision (see skills/meta/decision-log/) —
+  # there's no single "decisions doc" to template. This is a plain git-tracking
+  # placeholder for the empty directory, nothing more.
+  touch docs/sdd/decisions/.gitkeep
   cp "$SCRIPT_DIR/templates/memory.md" docs/sdd/memory/INDEX.md 2>/dev/null || true
   cp "$SCRIPT_DIR/templates/index.md" docs/sdd/index.md 2>/dev/null || true
   cp "$SCRIPT_DIR/templates/glossary.md" docs/sdd/glossary.md 2>/dev/null || true

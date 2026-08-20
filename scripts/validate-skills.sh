@@ -259,7 +259,7 @@ echo ""
 # --- Check 8: Templates ---
 echo "## Checking templates..."
 
-for file in templates/sdd.config.md templates/decisions.md templates/memory.md templates/index.md templates/glossary.md templates/plan.md; do
+for file in templates/sdd.config.md templates/memory.md templates/index.md templates/glossary.md templates/plan.md; do
   if [ -f "$SCRIPT_DIR/$file" ]; then
     log_ok "$file exists"
   else
