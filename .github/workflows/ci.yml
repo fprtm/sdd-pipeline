@@ -35,3 +35,14 @@ jobs:
             echo "OK: $f"
           done < <(find skills -name '*.mjs' -type f)
           if [ "$found" -eq 0 ]; then echo "No .mjs scripts found"; fi
+
+  checker-behavior:
+    name: Mechanical checkers behave as documented
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: Run behavioral test suites (check-file-hygiene, check-traceability, check-parallel-safety)
+        run: bash scripts/test-checkers.sh
