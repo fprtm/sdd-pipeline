@@ -3,6 +3,24 @@
 All notable changes to SDD Pipeline. Versioning is [SemVer](https://semver.org/).
 Plain-language where possible.
 
+## [3.0.1] — 2026-08-20
+### Fixed
+- User-reported: after `/sdd-pipeline:discover`, the agent suggested
+  `/sdd-pipeline:implement` next instead of `/sdd-pipeline:design` —
+  skipping the step where a settled decision actually becomes a spec/FSD/
+  tickets. Root cause: `discover/SKILL.md`'s own hand-off text named
+  `/sdd-pipeline:implement` directly, and `grill/SKILL.md` (which discover
+  delegates to, and which also fires mid-session on a regular task) had
+  the identical gap — both contradicted the documented command flow
+  (`discover → design → implement`) and the orchestrator's fixed sequence
+  (ASK → SPEC → PLAN → BUILD → CHECK; grilling is ASK, design is SPEC).
+  Fixed the hand-off in both to point at `/sdd-pipeline:design` next.
+  Also: `implement/SKILL.md` no longer lists discover as a valid direct
+  input (it produces no plan/spec/ticket on its own); `design/SKILL.md`
+  now explicitly acknowledges receiving a hand-off from a just-completed
+  discover/grill session and builds from what was already settled instead
+  of re-analyzing from scratch.
+
 ## [3.0.0] — 2026-08-20
 
 Readiness-audit fix pass. A 5-batch review council (100 checkpoints) plus a
