@@ -4,16 +4,16 @@ Force explicit human judgment on AI-generated output. Verification (types/tests/
 
 ## Why This Exists — The Evidence
 
-Research on AI-generated code (2025-2026) establishes concrete priors:
+Cited findings on AI-generated code (same sources as `README.md`'s problem statement — kept in sync, don't restate the numbers without the citation):
 
-| Finding | Implication for judgment |
-|---------|--------------------------|
-| AI code carries ~1.7x more defects than human code; XSS 2.74x, password mishandling 1.88x more likely | Security-sensitive AI output needs *harder* scrutiny than human code, not equal |
-| ~45% of AI-generated code contains at least one vulnerability | "It passed tests" is not "it's safe" |
-| Developers using AI assistants write less secure code while feeling *more* confident ("false sense of security") | Confidence after AI assistance is a bias signal, not an evidence signal |
-| AI output is syntactically clean and well-formatted — the exact surface signals reviewers historically used as merge confidence | **Plausibility trap**: neatness must be explicitly discounted as evidence of correctness |
-| AI generates 140-200 lines/min vs. human review capacity of a fraction of that | Generation speed must be throttled to review capacity, or review becomes theater |
-| Comprehension debt: the gap between code in the repo and code the team actually understands | Every merged change a human can't explain is debt, regardless of whether it works |
+| Finding | Source | Implication for judgment |
+|---|---|---|
+| AI-generated code carries ~1.7x more defects per pull request than human-written code | [GitClear, 2025](https://www.gitclear.com/ai_assistant_code_quality_2025_research) | Security-sensitive AI output needs *harder* scrutiny than human code, not equal |
+| AI-generated code contains ~2.74x more vulnerabilities than human-written code, XSS the worst category | [Veracode, 2025 GenAI Code Security Report](https://www.veracode.com/resources/analyst-reports/2025-genai-code-security-report/) | Some vulnerability classes need a dedicated, named check |
+| ~45% of AI-generated code samples contained at least one exploitable vulnerability | [Veracode, 2025 GenAI Code Security Report](https://www.veracode.com/resources/analyst-reports/2025-genai-code-security-report/) | "It passed tests" is not "it's safe" |
+| Developers using AI assistants wrote measurably less secure code while reporting *higher* confidence in its security | [Perry et al., Stanford, 2023](https://arxiv.org/pdf/2211.03622) | Confidence after AI assistance is a bias signal, not an evidence signal |
+
+Two further observations this gate is built around, without a single cited figure behind them: AI output is syntactically clean and well-formatted — the exact surface signal reviewers historically used as merge confidence, so it must be explicitly discounted as evidence of correctness (the **plausibility trap**) — and AI generates code far faster than a human reviews it, so generation has to be throttled to review capacity or review becomes theater. Comprehension debt — the gap between code in the repo and code the team actually understands — compounds with every merged change nobody can explain, working or not.
 
 ## The Judgment Gate
 
