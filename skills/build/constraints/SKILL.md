@@ -6,7 +6,9 @@ Default rules that prevent common AI coding failures. Every rule is a GUIDELINE 
 
 1. Load **universal constraints** (below).
 2. Load **domain-specific constraints** from `skills/constraints/[domain]/SKILL.md`.
-3. Load **project overrides** from `docs/sdd/config.md` if it exists.
+3. Load from `docs/sdd/config.md` if it exists — two distinct blocks, don't conflate them:
+   - `overrides:` — disables or adjusts an EXISTING rule (e.g. raises the dependency-limit constraint's default value, or disables no-premature-abstraction inside `src/plugins/`). Applied as a modification to the rule it names.
+   - `custom-constraints:` — ADDS entirely new project-specific rules on top of universal+domain, each with its own `rule`, `rationale`, and `check: mechanical | judgment` (same tag `skills/build/model-router/` and `skills/agents/model-strategy/` already route on — a custom constraint isn't exempt from that routing just because it's project-defined). Treat each one exactly like a universal/domain rule for the rest of this skill: checked before implementation, flagged/self-corrected the same way, loggable as an override if the user pushes back on it.
 4. **Project CLAUDE.md/AGENTS.md rules ALWAYS override SDD Pipeline defaults.**
 5. Check constraints BEFORE implementation.
 6. If violated during implementation: self-correct (vibe) or flag (standard/strict).

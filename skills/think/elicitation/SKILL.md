@@ -4,7 +4,7 @@ Adaptive questioning before coding starts. Ask the right number of questions bas
 
 ## Rules
 
-1. Check `docs/sdd/memory/INDEX.md` FIRST (open only the matching notes). If a saved decision answers a question, use it silently.
+1. Check `docs/sdd/memory/INDEX.md` FIRST (open only the matching notes). If a saved decision answers a question, use it silently — unless `docs/sdd/config.md` sets `team.shared-memory: false`, in which case surface it as a prior answer and confirm it still applies instead of reusing it silently (see orchestrator's "Team Support").
 2. Determine task size from the orchestrator's assessment.
 3. Ask the number of questions appropriate for that size.
 4. If user answers "I don't know" or "you decide" to any question: fall back to building the simplest viable version and iterating from feedback.

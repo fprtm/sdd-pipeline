@@ -15,7 +15,9 @@ Most bad AI-agent outcomes trace back to a decision made casually in conversatio
 - Scope that sounds large/irreversible ("rewrite the whole...", "migrate to...")
 - A choice arch-analyzer or complexity-analyzer would flag as risky if it were already in a plan
 
-When detected, SDD Pipeline asks once: *"This sounds like an architecture-level decision. Want to grill it first before we build?"* — user can decline, and SDD Pipeline proceeds straight to plan-writing without complaint.
+Before offering, check `docs/sdd/config.md` for a `grill:` block with `auto-suggest: false` — if set, skip the offer entirely for this project (manual invocation via "grill this" etc. still always works regardless of this setting; only the unprompted offer is what the config turns off). No `grill:` block, or `auto-suggest: true`, means the default behavior below applies.
+
+When auto-suggest is active and a trigger is detected, SDD Pipeline asks once: *"This sounds like an architecture-level decision. Want to grill it first before we build?"* — user can decline, and SDD Pipeline proceeds straight to plan-writing without complaint.
 
 **Never auto-runs.** Grilling always requires explicit user engagement — it's an interview, not a silent gate.
 

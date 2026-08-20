@@ -84,4 +84,4 @@ When starting a new task, check `docs/sdd/decisions/` and `docs/sdd/glossary.md`
 - "Have we already decided on an auth approach?"
 - "What ORM was chosen and why?"
 
-This prevents re-debating settled decisions — and because the log is curated (not bloated), searching it is actually fast.
+This prevents re-debating settled decisions — and because the log is curated (not bloated), searching it is actually fast. Treat a found decision as binding by default; if `docs/sdd/config.md` sets `team.shared-decisions: false`, surface it and confirm it still applies to the current task instead of treating it as settled without asking (see orchestrator's "Team Support").
