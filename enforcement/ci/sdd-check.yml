@@ -89,6 +89,32 @@ jobs:
             echo "::warning::Large change (${{ steps.changed.outputs.count }} files) without SDD Pipeline plan documentation"
           fi
 
+      - name: Check every source change has some record
+        env:
+          CHANGED_FILES: ${{ steps.changed.outputs.files }}
+        run: |
+          # CI-side mirror of the pre-commit hook's Change Record gate — the
+          # hook is opt-in (--with-hooks) and skippable (--no-verify); this
+          # runs regardless, so a change with genuinely no trace (docs/sdd/
+          # changes, plans, decisions, design, or tickets) is still caught
+          # at PR time even if nothing local ever checked it. Same size
+          # gate as the hook: skip on a trivial diff so micro fixes stay
+          # zero-ceremony.
+          HAS_RECORD=false
+          SRC_FILE_COUNT=0
+          while IFS= read -r file; do
+            [ -z "$file" ] && continue
+            case "$file" in
+              docs/sdd/changes/*|docs/sdd/plans/*|docs/sdd/decisions/*|docs/sdd/design/*|docs/sdd/tickets/*)
+                HAS_RECORD=true ;;
+              *.js|*.jsx|*.ts|*.tsx|*.py|*.go|*.rs|*.java|*.rb|*.php|*.c|*.cpp|*.h|*.hpp|*.cs|*.swift|*.kt)
+                [[ "$file" != *test* ]] && [[ "$file" != *spec* ]] && SRC_FILE_COUNT=$((SRC_FILE_COUNT + 1)) ;;
+            esac
+          done <<< "$CHANGED_FILES"
+          if [ "$SRC_FILE_COUNT" -gt 1 ] && [ "$HAS_RECORD" = false ]; then
+            echo "::warning::$SRC_FILE_COUNT source file(s) changed with no docs/sdd/{changes,plans,decisions,design,tickets} file in this PR — even a small change should leave some trace."
+          fi
+
       - name: Check test coverage for source changes
         env:
           CHANGED_FILES: ${{ steps.changed.outputs.files }}

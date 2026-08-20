@@ -165,6 +165,42 @@ check_decision_log() {
   fi
 }
 
+# --- Gate 7: Change Record ---
+# Neither "the agent usually writes a changes/ file" nor "the developer
+# usually remembers" is a guarantee — this runs at the git level, so it
+# fires the same way whether an agent following SDD Pipeline committed this
+# or a human bypassed it entirely and committed by hand. Deliberately a
+# WARNING and deliberately size-gated on real source-code volume (not file
+# count): a true micro fix (a real typo, a couple of lines) stays
+# zero-ceremony per SDD Pipeline's own size tiers — this only speaks up once
+# a change is big enough that "no record at all" starts being a real gap,
+# not before. It doesn't demand a decisions/ entry (that stays Rule-of-Three
+# gated) — a one-line docs/sdd/changes/ file is enough to satisfy this.
+CODE_EXTENSIONS='\.(js|jsx|ts|tsx|py|go|rs|java|rb|php|c|cpp|h|hpp|cs|swift|kt)$'
+check_change_record() {
+  local added_lines=0
+  local file
+  for file in "${STAGED_FILES[@]}"; do
+    [[ "$file" =~ $CODE_EXTENSIONS ]] || continue
+    [[ "$file" == *test* || "$file" == *spec* ]] && continue
+    local n
+    n=$(git diff --cached --numstat -- "$file" 2>/dev/null | awk '{print $1+0}')
+    added_lines=$((added_lines + n))
+  done
+  [ "$added_lines" -le 5 ] && return   # trivial diff — no nag, matches micro's zero-ceremony floor
+
+  local has_record=false
+  for file in "${STAGED_FILES[@]}"; do
+    case "$file" in
+      docs/sdd/changes/*|docs/sdd/plans/*|docs/sdd/decisions/*|docs/sdd/design/*|docs/sdd/tickets/*)
+        has_record=true ;;
+    esac
+  done
+  if [ "$has_record" = false ]; then
+    log_warn "$added_lines source line(s) changed with no docs/sdd/{changes,plans,decisions,design,tickets} file in this commit — even a small change should leave some trace. A one-line docs/sdd/changes/ entry is enough; this applies whether an agent or a human made the commit."
+  fi
+}
+
 # --- Run All Gates ---
 echo "SDD Pipeline Pre-Commit Check ($STAGED_COUNT files staged)"
 echo "================================================"
@@ -175,6 +211,7 @@ check_security
 check_antipatterns
 check_tests
 check_decision_log
+check_change_record
 
 echo "================================================"
 

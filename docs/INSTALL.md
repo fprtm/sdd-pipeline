@@ -59,7 +59,7 @@ Creates `docs/sdd/` in your project: `config.md`, `glossary.md`, `memory/INDEX.m
 ./install/install.sh --agent claude --with-hooks --with-ci
 ```
 
-- `--with-hooks` — installs a pre-commit hook (checks for secrets, missing scope declarations on large changes, security review on auth/payment code, oversized diffs, missing tests). Requires the current directory to be a git repo.
+- `--with-hooks` — installs a pre-commit hook (checks for secrets, missing scope declarations on large changes, security review on auth/payment code, oversized diffs, missing tests, missing decision log entry on large changes, and — regardless of whether a human or an agent is committing — any real source change with no accompanying `docs/sdd/{changes,plans,decisions,design,tickets}` record at all). Requires the current directory to be a git repo.
 - `--with-ci` — copies a GitHub Actions workflow to `.github/workflows/sdd-check.yml` that runs the same class of checks on every PR.
 
 You can combine every flag in one call:
