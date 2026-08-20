@@ -29,7 +29,7 @@ It parses the tickets (each ticket's `Files likely touched:` / `Dependencies:` /
 
 ## 3. Always Confirm the Plan Before Spawning — Every Mode, No Exception
 
-Spawning several background agents is a real commitment (time, tokens, a batch of real diffs to review). **Present the checker's plan (clusters, tickets, the near-safe calls) and get an explicit yes before spawning any agent — in every mode, autopilot or not.** This is deliberately stricter than the usual batch-routine-decisions default: it's a go/no-go on committing real resources to several parallel threads at once, and it's also the review-capacity throttle (`skills/prove/judgment/`) doing its job before the diffs exist.
+Spawning several background agents is a real commitment (time, tokens, a batch of real diffs to review). **Present the checker's plan (clusters, tickets, the near-safe calls) and get an explicit yes before spawning any agent — in every mode, autopilot or not.** Ask per `skills/think/elicitation/`'s "How to Ask" rule: native question tool first, plain text only as fallback. This is deliberately stricter than the usual batch-routine-decisions default: it's a go/no-go on committing real resources to several parallel threads at once, and it's also the review-capacity throttle (`skills/prove/judgment/`) doing its job before the diffs exist.
 
 ## 4. Claim Before Starting — Cheap, Prevents Silent Duplication
 

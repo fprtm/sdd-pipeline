@@ -42,7 +42,7 @@ Scan project for methodology indicators:
 
 ### 3. Ask Once, Save
 
-If no signals found:
+If no signals found, ask — per `skills/think/elicitation/`'s "How to Ask" rule: native question tool first, plain text only as fallback:
 
 ```
 "I couldn't detect your development methodology. Which do you use?"

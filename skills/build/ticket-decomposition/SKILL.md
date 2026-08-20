@@ -107,11 +107,11 @@ born there. No implementation code, just the manifest:]
 
 ## Where Do Tickets Live? Ask, Don't Assume
 
-Before writing ticket files, ask (native question tool where available): **local files only** (default — `docs/sdd/tickets/`, no external dependency) or **also mirror to GitHub Issues** (visible on the repo's board, assignable, commentable by the team).
+Before writing ticket files, ask — per `skills/think/elicitation/`'s "How to Ask" rule: native question tool first, plain text only as fallback: **local files only** (default — `docs/sdd/tickets/`, no external dependency) or **also mirror to GitHub Issues** (visible on the repo's board, assignable, commentable by the team).
 
 - **The local ticket files are always the traceability SSOT — GitHub Issues, if chosen, is a mirror, never a replacement.** The matrix and `Refs:` point at `TICKET-xxx`; an issue is an additional linked surface, not a second source of truth.
 - **Check the capability actually exists before promising it**: `gh auth status` and `gh repo view`. If either fails, say so and fall back to local-only — don't fake it.
-- **Creating issues is a visible, external action — confirm before doing it**: show what will be created (titles + count) and get a yes, especially for the first batch.
+- **Creating issues is a visible, external action — confirm before doing it** (same native-tool-first rule): show what will be created (titles + count) and get a yes, especially for the first batch.
 - Per mirrored ticket: `gh issue create` with the ticket's title, its **full self-contained body** (same content as the local file, so the issue alone is usable), a tier label (`T1`/`T2`/`T3`), and `Refs: TICKET-xxx, FSD-xxx` in the body. **Record the issue number back in the local ticket** (`GitHub Issue: #42`) — the link goes both ways, never dangles. Commits closing the ticket may then also say `Closes #42` (see `skills/build/git-workflow/`).
 
 ## Tiers — Allocate Skill and Cost Deliberately

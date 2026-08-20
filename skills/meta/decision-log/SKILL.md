@@ -75,7 +75,7 @@ Most entries should be 3-5 lines total. If it's growing past half a page, it's p
 | prototype | Skip entirely |
 | vibe | Apply rule-of-three silently. Log only what passes. |
 | standard | Apply rule-of-three. Reference logged decisions in verification report. |
-| strict | Apply rule-of-three strictly, but also require explicit sign-off on anything borderline (2 of 3 criteria met) — ask the user rather than silently skipping. |
+| strict | Apply rule-of-three strictly, but also require explicit sign-off on anything borderline (2 of 3 criteria met) — ask the user (native question tool first, per `skills/think/elicitation/`) rather than silently skipping. |
 | emergency | Log post-facto only if the fix itself was a hard-to-reverse call: "Emergency fix applied: [what] [why] [files touched]" |
 
 ## Searching Decisions

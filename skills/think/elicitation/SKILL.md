@@ -9,6 +9,17 @@ Adaptive questioning before coding starts. Ask the right number of questions bas
 3. Ask the number of questions appropriate for that size.
 4. If user answers "I don't know" or "you decide" to any question: fall back to building the simplest viable version and iterating from feedback.
 
+## How to Ask — Native Question Tool First
+
+This is the single source of truth for *how* a question reaches the user. Every other skill that asks something (`grill`, `ux-design`, `ticket-decomposition`, `sdlc-detector`, `agents/parallel-work`, `decision-log`) points back here instead of restating it — one rule, not seven near-duplicates that drift out of sync.
+
+Preference order, same pattern as `skills/prove/browser-qa/`'s tool fallback:
+
+1. **Native structured question/choice tool, if the environment has one** (e.g. `AskUserQuestion` in Claude Code) — this is the default, not an optional nicety. Structure each question as: the question itself, 2-4 concrete options (short label + one-line description each), framed per the Question Style rules below (plain language, a recommended option first). Batch multiple questions into one call where the tool supports it, up to its per-call limit.
+2. **No such tool available** — fall back to plain conversational text: same question, same recommendation-first framing. The absence of a tool is never an excuse to drop the recommendation or the option structure.
+
+Scope: this applies to discrete choices and confirmations — pick one of N, yes/no, approve/adjust. It does **not** apply to open-ended asks where the user has to explain something in their own words (e.g. the comprehension check in `skills/prove/judgment/`) — a multiple-choice tool is the wrong instrument there; stay conversational.
+
 ## Questions by Task Size
 
 ### Micro (0 questions)

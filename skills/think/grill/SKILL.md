@@ -31,6 +31,8 @@ Work the tree in **rounds**. The **frontier** is every question whose prerequisi
 ➡️ <SDD Pipeline's recommended answer>
 ```
 
+**How this reaches the user**: per `skills/think/elicitation/`'s "How to Ask" rule — native structured question tool first (e.g. `AskUserQuestion` in Claude Code), plain text fallback otherwise. Map each frontier question to one tool question, with the recommendation as the first option. If the tool caps how many questions fit in one call and the frontier has more than that, split the round across consecutive tool calls rather than dropping to plain text for the overflow — it's still one round (all frontier questions asked before any answer is acted on), just spread across calls.
+
 Each round's answers reshape the tree — settled decisions unblock the next frontier. Recompute and ask again. Session ends when the frontier is empty: every branch visited, nothing silently assumed.
 
 **A question whose answer depends on another still-open question belongs to a LATER round** — never ask it prematurely.

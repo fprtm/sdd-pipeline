@@ -8,7 +8,7 @@ Output: `docs/sdd/design/{NNN}-{slug}-ux.md` (the direction, tokens, and thin fl
 
 ## 0. Confirm Direction First — With a Concrete Preview, Not a Label
 
-Design direction is a consequential decision the user didn't necessarily specify — don't silently invent a style. Before writing anything, ask (native question tool where available):
+Design direction is a consequential decision the user didn't necessarily specify — don't silently invent a style. Before writing anything, ask — per `skills/think/elicitation/`'s "How to Ask" rule: native question tool first, plain text only as fallback:
 
 1. **Is there already a design to follow?** Brand guide, Figma, screenshots of a reference app, or a design system in the codebase. If yes — **respect-existing** (the same brownfield principle arch-analyzer uses): extract and document the *actual* tokens/patterns, don't invent new ones; only fill genuine gaps.
 2. **What direction, if starting fresh?** Present 2–3 candidates **with a concrete preview each** — a sample screen sketch or actual palette/type swatch, not just a label ("minimal vs expressive" with nothing to look at is picking blind). Recommend one. Ask light/dark preference and hard brand constraints.
