@@ -3,6 +3,154 @@
 All notable changes to SDD Pipeline. Versioning is [SemVer](https://semver.org/).
 Plain-language where possible.
 
+## [3.0.0] — 2026-08-20
+
+Readiness-audit fix pass. A 5-batch review council (100 checkpoints) plus a
+hands-on install simulation found 10 blockers and ~57 lower-severity issues
+across the install lifecycle, enforcement scripts, documentation, and the
+framework's own internal consistency. This release fixes all 10 blockers, a
+large share of the issues, and adds real behavioral test coverage for the
+mechanical checkers for the first time.
+
+### BREAKING
+
+- The **"SDD" document type** (Software Design Document) is renamed to
+  **SDS** (Software Design Specification) — the `-sdd.md` filename suffix is
+  now `-sds.md`, the `SDD-NNN` spine ID is now `SDS-NNN`. This resolves a
+  real collision: "SDD" was standing for both the framework's own name
+  (Spec-Driven Development / SDD Pipeline) and this one document type, in
+  the same sentences ("SDD Pipeline generates an SDD"). The product name
+  and "SDD Grill" are unaffected — only the document-type meaning changed.
+  **Migration**: rename any `docs/sdd/design/*-sdd.md` file in an existing
+  project to `*-sds.md`, and update any `SDD-NNN` citation (in
+  `docs/sdd/traceability.md` or elsewhere) to `SDS-NNN`. `check-file-
+  hygiene.mjs` and `check-traceability.mjs` no longer recognize the old
+  `sdd`/`SDD-NNN` forms — no backward-compatibility alias was added
+  (deliberate, to keep the checkers simple, not an oversight).
+
+### Fixed — install lifecycle (`install/install.sh`)
+
+- `--agent claude`/`claude-proj` installed to `~/.claude/commands/` /
+  `.claude/commands/` — Claude Code's slash-command directory, not where it
+  reads Agent Skills from. Fixed to `~/.claude/skills/`, `.claude/skills/`.
+- `--with-hooks` symlinked to a path only valid inside this repo's own
+  clone; in a real project the symlink dangled, `chmod` failed on it, and
+  the whole installer aborted mid-run under `set -e` — `--with-ci`/
+  `--with-templates` given in the same invocation silently never ran. Now a
+  plain copy.
+- `--update --only` corrupted every file outside the updated phases into a
+  double-prefixed path (`.agents/.agents/skills/sdd/sdd/...`) — the
+  path-rewrite prefix contains the literal substring `skills/`, so
+  re-running the rewrite over already-rewritten files matched it again.
+  Rewrite is now scoped to exactly the directories a `--only` invocation
+  actually re-copied.
+- `--uninstall` deleted `.github/workflows/sdd-check.yml` in any project
+  unconditionally, with no ownership check (unlike the pre-commit-hook path
+  a few lines above it). Added the same marker check.
+- `--only` with an invalid phase name left a partial orchestrator-only
+  install behind before exiting 1. Phase validation now runs before any
+  copying starts.
+- `orchestrator/SKILL.md`'s folder is named `orchestrator` but its own
+  frontmatter says `name: sdd` — OpenCode/Codex/Cursor/Claude Code's native
+  Agent Skills discovery all require the folder name to match, so the
+  orchestrator was failing discovery validation everywhere except the
+  plugin-marketplace path. The installer now aliases a copy at each
+  container's root.
+
+### Fixed — enforcement (pre-commit hook, CI, mechanical checkers)
+
+- Pre-commit's generic secret pattern (`[0-9a-zA-Z/+]{40}`) matched any
+  40-char hex string, including plain git commit SHAs — verified it blocked
+  this repo's own commit that added `check-traceability.mjs`. Dropped it;
+  the prefixed patterns (`AKIA`/`sk-`/`ghp_`/...) already cover real secret
+  formats without the false-positive rate.
+- Pre-commit's `for file in $STAGED_FILES` (unquoted) word-split on spaces,
+  silently skipping every gate on any staged filename containing one.
+  Rebuilt as a NUL-delimited array.
+- CI's `${{ steps.changed.outputs.files }}` was interpolated directly into
+  4 `run:` blocks — untrusted filenames become literal script text (a
+  script-injection surface). Moved to `env:` + a shell variable in all 4.
+- CI's changed-files diff had no fallback for a repo's first push
+  (`HEAD~1` doesn't exist yet) — the whole workflow failed on literally the
+  first push to a new project. Added an empty-tree fallback.
+- `check-file-hygiene.mjs`: `insights.md` wasn't in the root allowlist
+  despite `meta/insight/SKILL.md` documenting that it writes there — the
+  framework's own skill mechanically failed its own gate. Also fixed: CRLF
+  frontmatter false-positiving "missing frontmatter", uppercase `.MD`
+  silently skipping every check instead of being caught, a broken symlink
+  crashing the script outright.
+- `check-traceability.mjs`: the dead-link regex matched inside inline code
+  spans, so a doc illustrating markdown syntax itself (`templates/
+  index.md`'s row-format example) was flagged as a literal dead link —
+  verified this broke a stock `--with-templates` install's first CI run.
+  Also: orphan-checking ran even when `traceability.md` doesn't exist at
+  all, so every REQ/FSD in a small/medium project (which the matrix's own
+  size-tiering says can skip it entirely) was reported as an orphan.
+- New mechanical **Change Record** gate (pre-commit + CI): source code
+  changed beyond a trivial size with no `docs/sdd/{changes,plans,decisions,
+  design,tickets}` file in the same commit/PR → warning. Runs at the git
+  level regardless of whether an agent or a human is committing — closes
+  the gap where every other tracking mechanism was a prose instruction an
+  agent could skip or a human could bypass entirely.
+
+### Fixed — framework self-consistency
+
+- `orchestrator/SKILL.md` said in two places that a small+ task always gets
+  a `plans/current.md` file, and separately that `changes/` *replaces*
+  plan+report for small/medium — undefined which one actually applies.
+  Resolved: large/full get `plans/current.md`, small/medium get
+  `changes/{date}-{slug}.md`, never both.
+- Priority Rule 2 ("never refuse a user override") had no stated exception,
+  directly defeating the one constraint marked `OVERRIDE: none` (no
+  hardcoded secrets) — an insistent user could talk an agent into
+  committing a secret. Priority Rule 3 ("emergency overrides everything")
+  and `modes/emergency/SKILL.md`'s own tables had the same gap. All four
+  now agree: the non-negotiable floor survives every mode and every
+  override.
+- Stale references throughout: dead slash commands (`:verify`/`:audit`/
+  `:measure`/`:decompose`, replaced by `:check`/folded into `:design`) in
+  `docs/INSTALL.md` and two skill files; skill counts (`47`/`53` → the
+  actual `60`); `docs/INSTALL.md`'s clone-directory instructions (`cd sdd`
+  → `cd sdd-pipeline`); version drift (`AGENTS.md` said v2.1.0 while
+  `plugin.json` said 2.1.1).
+- `docs/examples/*.md` walkthroughs used doc filenames missing the
+  `{NNN}-` prefix the real convention requires (would fail the hygiene
+  checker if copied verbatim); `fix-bug.md` said a bug fix generates no
+  documents at all, contradicting "DoD checklist always exists for
+  small+" — rewritten to demonstrate the `changes/`-file convention
+  properly; `build-feature.md` never showed the judgment gate despite it
+  being the framework's flagship differentiator.
+- `README.md`'s research table cited zero sources for its headline
+  statistics; two claims were flatly false as written ("a coverage gate
+  that can't be gamed" directly contradicted `coverage-check/SKILL.md`'s
+  own "a coverage number is easy to game"; "a traceability matrix that is
+  not allowed to lie" overstated what the checker actually verifies).
+  Cited every number to its real source (Veracode, GitClear, Stanford),
+  rewrote both false absolutes, added a **Limitations** section.
+
+### Added
+
+- **Behavioral test suites** for the 3 mechanical checkers
+  (`check-file-hygiene.test.mjs`, `check-traceability.test.mjs`,
+  `check-parallel-safety.test.mjs`) — 44 tests total, zero dependencies
+  (`node:test`), wired into this repo's own CI. Previously these scripts
+  had zero behavioral coverage — only syntax-checked.
+- **4 previously-dead `config.md` options wired up**: `grill.auto-suggest`,
+  `disable:` (a skill-level kill switch, checked centrally by the
+  orchestrator before any dispatch), `custom-constraints:` (now
+  distinguished from `overrides:` and routed through the same mechanical/
+  judgment tagging as built-in constraints), `team.shared-decisions` /
+  `team.shared-memory` (stop auto-reusing saved answers/decisions without
+  confirming they still apply).
+- `CONTRIBUTING.md`, two issue templates (bug report / behavior-change
+  proposal).
+- A vetting note on the "Install now? (y/n)" third-party skill
+  recommendation flow — states plainly that an unreviewed skill is about
+  to run with full trust, instead of presenting it as a low-stakes
+  default.
+- README "vs. other spec-driven tools" comparison (spec-kit, BMAD-METHOD,
+  Agent OS, Kiro), sourced from each project's own public docs.
+
 ## [2.1.1] — 2026-08-19
 ### Fixed
 - Plugin/marketplace author credit: `ferryaguspratama` → `ferrypratama`.
