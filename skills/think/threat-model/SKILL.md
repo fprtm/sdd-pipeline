@@ -16,7 +16,7 @@ Write to `docs/sdd/design/{NNN}-{slug}-threats.md` using `threat-model.template.
 
 ## Step 1 — Enumerate Threats with STRIDE (Lightweight)
 
-Walk each element/flow of the data-flow picture (the FSD/SDD's Mermaid diagram, or sketch a quick DFD if none exists — each arrow crossing a trust boundary is a candidate):
+Walk each element/flow of the data-flow picture (the FSD/SDS's Mermaid diagram, or sketch a quick DFD if none exists — each arrow crossing a trust boundary is a candidate):
 
 | Letter | Threat | Ask |
 |--------|--------|-----|

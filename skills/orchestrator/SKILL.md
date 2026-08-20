@@ -270,7 +270,7 @@ docs/sdd/
 ├── tickets/               # Vertical-slice ticket breakdowns for large tasks
 │   └── {feature-slug}/{NN}-{ticket-slug}.md   # each carries a global TICKET-xxx id
 ├── reports/              # Verification reports per task
-├── design/               # FSD, SDD, PRD, threat models, UX direction per feature (file number = spine ID)
+├── design/               # FSD, SDS, PRD, threat models, UX direction per feature (file number = spine ID)
 ├── ux-screens/           # One priority-tagged flow file per user journey (skills/think/ux-design/)
 ├── design-system/        # Redirected output of an external UI/UX skill, if one is composed in
 ├── test-plans/           # Test plans per feature (TEST-xxx cases)

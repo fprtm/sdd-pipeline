@@ -32,7 +32,7 @@ Each decision is a separate file in `docs/sdd/decisions/`.
 
 **Filename**: `{NNN}-{slug}.md` (e.g., `005-postgres-over-mongo.md`)
 
-**ADR ID**: the file number doubles as the decision's spine ID — `decisions/005-postgres-over-mongo.md` **is** `ADR-005`. The traceability matrix, FSD/SDD cross-references, and commit messages cite it by that ID. This is why decisions are numbered sequentially and never renumbered.
+**ADR ID**: the file number doubles as the decision's spine ID — `decisions/005-postgres-over-mongo.md` **is** `ADR-005`. The traceability matrix, FSD/SDS cross-references, and commit messages cite it by that ID. This is why decisions are numbered sequentially and never renumbered.
 
 Keep it minimal — title + 1-3 sentences. Add optional sections only when they genuinely add value, not as boilerplate.
 
@@ -58,7 +58,7 @@ Keep it minimal — title + 1-3 sentences. Add optional sections only when they 
 [user overrode [constraint] because [reason]]
 ```
 
-Most entries should be 3-5 lines total. If it's growing past half a page, it's probably drifting into SDD territory — generate an SDD instead (`skills/build/doc-generator/`) and just reference it here.
+Most entries should be 3-5 lines total. If it's growing past half a page, it's probably drifting into SDS territory — generate an SDS instead (`skills/build/doc-generator/`) and just reference it here.
 
 ## Rules
 

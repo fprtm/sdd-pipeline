@@ -4,7 +4,7 @@
 
 A skill framework that gives you control over — and trust in — AI-generated code. Works with Claude Code, Codex, OpenCode, Cursor, and any agent that reads Markdown.
 
-> **Naming note**: "SDD" here is *Spec-Driven Development* — the framework's name. Confusingly, one of the document types the pipeline also generates is an **SDD = Software Design Document** (`docs/sdd/design/{NNN}-{slug}-sdd.md`, spine ID `SDD-003`). Same three letters, unrelated meaning, both intentional and both staying as-is — just worth knowing which "SDD" a given mention means before it causes a double-take.
+> **Naming note**: "SDD" here is *Spec-Driven Development* — the framework's name. One of the document types the pipeline generates used to also be called "SDD" (Software Design Document) — same three letters, unrelated meaning, a real collision. That document type is now called **SDS (Software Design Specification)** instead (`docs/sdd/design/{NNN}-{slug}-sds.md`, spine ID `SDS-003`) specifically to avoid it; "SDD" unqualified always means the framework from here on.
 
 ## The Problem
 
@@ -86,7 +86,7 @@ docs/sdd/
 ├── HANDOFF.md · stack-guide.md · analytics.md · insights.md
 ├── changes/              # Small/medium work: ONE dated self-contained file per topic
 ├── decisions/            # One file per decision (rule-of-three gated) — 005-x.md IS ADR-005
-├── design/               # FSD/SDD/PRD/threat models/UX (numbered — file number IS the spine ID)
+├── design/               # FSD/SDS/PRD/threat models/UX (numbered — file number IS the spine ID)
 ├── ux-screens/ design-system/
 ├── tickets/              # Vertical-slice tickets with global TICKET-xxx ids
 ├── test-plans/ dod/ erd/ plans/ reports/ stats/

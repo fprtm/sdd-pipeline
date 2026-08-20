@@ -14,7 +14,7 @@
 //   2. Only known subdirectories: design, erd, dod, test-plans, tickets,
 //      plans, reports, decisions, changes, stats, ux-screens, design-system,
 //      memory.
-//   3. design/   {NNN}-{slug}-(fsd|sdd|prd|threats|ux).md
+//   3. design/   {NNN}-{slug}-(fsd|sds|prd|threats|ux).md
 //   4. erd/      {NNN}-{slug}-erd.md · dod/ {NNN}-{slug}-dod.md ·
 //      test-plans/ {NNN}-{slug}-tests.md
 //   5. decisions/ {NNN}-{slug}.md
@@ -41,7 +41,7 @@ const SLUG = '[a-z0-9][a-z0-9-]*';
 const ROOT_MD = new Set(['index.md', 'config.md', 'glossary.md', 'traceability.md', 'HANDOFF.md', 'stack-guide.md', 'analytics.md', 'insights.md']);
 const KNOWN_DIRS = new Set(['design', 'erd', 'dod', 'test-plans', 'tickets', 'plans', 'reports', 'decisions', 'changes', 'stats', 'ux-screens', 'design-system', 'memory']);
 const DIR_RULES = {
-  design: new RegExp(`^\\d{3}-${SLUG}-(fsd|sdd|prd|threats|ux)\\.md$`),
+  design: new RegExp(`^\\d{3}-${SLUG}-(fsd|sds|prd|threats|ux)\\.md$`),
   erd: new RegExp(`^\\d{3}-${SLUG}-erd\\.md$`),
   dod: new RegExp(`^\\d{3}-${SLUG}-dod\\.md$`),
   'test-plans': new RegExp(`^\\d{3}-${SLUG}-tests\\.md$`),

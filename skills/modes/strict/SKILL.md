@@ -14,7 +14,7 @@ Maximum control. For production systems, fintech, healthcare, compliance-sensiti
 | Anti-patterns | Report each detection with explanation. Fix after acknowledgment. |
 | Plan file | Written to `docs/sdd/plans/current.md`. **MUST be explicitly approved before BUILD**. |
 | Change plan | Declare, approve EACH file, re-approve on ANY deviation. |
-| Doc generator | Generate full applicable suite (FSD, SDD, PRD, ERD, DoD, test plan). Require review of FSD/SDD before BUILD. |
+| Doc generator | Generate full applicable suite (FSD, SDS, PRD, ERD, DoD, test plan). Require review of FSD/SDS before BUILD. |
 | SDLC detector | Full adaptation + formal compliance checks. Scrum: require story reference. Waterfall: require traceability. |
 | Arch analyzer | Full analysis. Require architecture approval for new projects. Flag all inconsistencies. |
 | Stats | Track everything with maximum detail. Show full stats in report. |

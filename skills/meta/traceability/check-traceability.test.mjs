@@ -188,3 +188,12 @@ test('regression: Updated/Version/Status doc-header lines produce no phantom ids
   // header lines must contribute zero additional (phantom) ids.
   assert.match(out, /defined: 2/);
 });
+
+test('a -sds.md file defines SDS-NNN (Software Design Specification, not FSD/PRD)', () => {
+  const dir = scratch();
+  mkdirSync(join(dir, 'design'), { recursive: true });
+  writeFileSync(join(dir, 'design', '002-payment-sds.md'), '# SDS: Payment Refund\n\n**Date**: 2026-08-20\n');
+  const { code, out } = run(dir);
+  assert.equal(code, 0, out);
+  assert.match(out, /defined: 1/);
+});

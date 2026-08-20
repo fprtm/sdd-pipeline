@@ -18,7 +18,7 @@ Manual entry point that adaptively runs `skills/think/arch-analyzer/SKILL.md`, `
 ## Output
 
 - Architecture findings → `docs/sdd/design/` or, for multi-candidate decisions, a self-contained HTML report with confidence badges (Strong/Worth exploring/Speculative)
-- Specs → `docs/sdd/design/{NNN}-{slug}-fsd.md`, `-sdd.md`, or `-prd.md` as applicable — numbered, behavior-focused, each with a compact Mermaid diagram
+- Specs → `docs/sdd/design/{NNN}-{slug}-fsd.md`, `-sds.md`, or `-prd.md` as applicable — numbered, behavior-focused, each with a compact Mermaid diagram
 - Database-touching work → `docs/sdd/erd/{NNN}-{slug}-erd.md`
 - Large scope → tickets at `docs/sdd/tickets/{feature-slug}/` with a frontier work order, announced as: "Scope is large — split into N tickets, starting with the unblocked ones."
 

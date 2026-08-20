@@ -57,10 +57,10 @@ what prior art in the codebase to follow, what's explicitly NOT going to be test
 
 **Max length**: 1 page. If it's longer, it's over-specified. If you're tempted to add file paths for precision, that's a signal you need a code snippet instead, not a location pointer.
 
-### SDD — Software Design Document
+### SDS — Software Design Specification
 
 ```markdown
-# SDD: [Component/Change Name]
+# SDS: [Component/Change Name]
 
 **Task**: [one-line description]
 **Date**: [auto]
@@ -98,7 +98,7 @@ what prior art in the codebase to follow, what's explicitly NOT going to be test
 - [Risk 1]: [Mitigation]
 ```
 
-**Max length**: 1.5 pages. Same durability rule as FSD — describe modules and interfaces, not file paths. Key Decisions that pass the rule-of-three gate (`skills/meta/decision-log/`) should also get their own ADR file, with this SDD referenced from it.
+**Max length**: 1.5 pages. Same durability rule as FSD — describe modules and interfaces, not file paths. Key Decisions that pass the rule-of-three gate (`skills/meta/decision-log/`) should also get their own ADR file, with this SDS referenced from it.
 
 ### PRD — Product Requirements Document
 

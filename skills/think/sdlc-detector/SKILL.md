@@ -83,7 +83,7 @@ Save answer as a note in `docs/sdd/memory/` (update INDEX.md). Don't ask again.
 | **Scope Guard** | Formal change request awareness. Flag scope changes that need sign-off. |
 | **Elicitation** | Reference requirements documents. More formal questioning. |
 | **Change Plan** | Formal format. Include traceability to requirements. |
-| **Doc Generator** | Always generate SDD for architecture changes. Reference existing design docs. |
+| **Doc Generator** | Always generate SDS for architecture changes. Reference existing design docs. |
 | **Report** | Formal test report format. Map to test plan items. |
 | **Decision Log** | Include approval status. Flag decisions that need stakeholder sign-off. |
 

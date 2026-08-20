@@ -58,4 +58,4 @@ Plan is written to `docs/sdd/plans/current.md` automatically but NOT shown to us
 
 ## Document Handling
 
-Docs (FSD, SDD, etc.) are generated silently to `docs/sdd/design/`, `docs/sdd/erd/`, etc. Not mentioned to user unless they ask. Available for later review.
+Docs (FSD, SDS, etc.) are generated silently to `docs/sdd/design/`, `docs/sdd/erd/`, etc. Not mentioned to user unless they ask. Available for later review.

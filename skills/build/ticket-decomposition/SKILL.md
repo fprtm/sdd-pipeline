@@ -73,7 +73,7 @@ Wait for confirmation before writing ticket files. This is a judgment call (how 
 
 **IDs**: the `{NN}` in the filename orders tickets within the feature, but every ticket ALSO gets a **globally unique `TICKET-xxx`** in its heading (counter in `docs/sdd/traceability.md`) — the matrix, commits (`Refs:`), and tests point at that global ID, which must never collide across features.
 
-**Durability exemption**: tickets are exempt from the no-file-paths rule that governs FSD/SDD/PRD — like test plans and DoD checklists, a ticket is inherently tied to the current state of the code and dies at merge. Concrete paths are *required* here: `Files likely touched:` feeds `check-parallel-safety.mjs` (see `skills/agents/parallel-work/`), and naming exact files/functions is what makes a T1 ticket executable by a junior dev or cheap model without inventing anything. Describe *behavior* end-to-end, but *point* at real files.
+**Durability exemption**: tickets are exempt from the no-file-paths rule that governs FSD/SDS/PRD — like test plans and DoD checklists, a ticket is inherently tied to the current state of the code and dies at merge. Concrete paths are *required* here: `Files likely touched:` feeds `check-parallel-safety.mjs` (see `skills/agents/parallel-work/`), and naming exact files/functions is what makes a T1 ticket executable by a junior dev or cheap model without inventing anything. Describe *behavior* end-to-end, but *point* at real files.
 
 ```markdown
 # TICKET-012 — [Title]
@@ -155,6 +155,6 @@ Summarize the tier split at the top of the breakdown (counts per tier) so the us
 2. Every ticket must be independently demoable when done — if it isn't, it's not a real slice.
 3. Compute and show blocking edges explicitly — don't leave dependency order implicit.
 4. Confirm granularity with the user before writing ticket files — this is a judgment call, not a mechanical process.
-5. Tickets are **exempt** from the no-file-paths durability rule (they die at merge) — `Files likely touched:` is required, and steps should name real files/functions. FSD/SDD/PRD keep the rule.
+5. Tickets are **exempt** from the no-file-paths durability rule (they die at merge) — `Files likely touched:` is required, and steps should name real files/functions. FSD/SDS/PRD keep the rule.
 6. **Self-containment test**: could someone who never read the PRD finish this ticket from the ticket alone? Point at the exact spec sections that define every shape ("use the payload from FSD-003.2, don't invent it") — if executing the ticket would require guessing a field, a path, or a contract, it isn't ready.
 7. Every ticket traces upward (`Refs:` an FSD, SEC, or ADR) — no freelance tickets; `check-traceability.mjs` flags them.

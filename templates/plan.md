@@ -15,7 +15,7 @@
 [How the task will be implemented. 3-5 bullet points.]
 
 ## Documents to Generate
-- [FSD/SDD/PRD/ERD/DoD as applicable]
+- [FSD/SDS/PRD/ERD/DoD as applicable]
 
 ## Key Decisions (pre-declared)
 - [Decision 1]: [proposed choice] — [why]

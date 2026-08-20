@@ -108,7 +108,7 @@ SDD Pipeline: 0 anti-patterns | 0 security issues | 1 file changed | confidence:
 ## Key Takeaways
 
 1. Bug fix = lightweight pipeline. 0 questions asked.
-2. No FSD/SDD generated — a bug fix doesn't need a full spec — but a DoD checklist still exists, folded into the change file; that floor never drops for small+ tasks
+2. No FSD/SDS generated — a bug fix doesn't need a full spec — but a DoD checklist still exists, folded into the change file; that floor never drops for small+ tasks
 3. One `changes/` file, not a plan + a separate report — updated in place as the task moved from IN PROGRESS to DONE
 4. Root cause identified and explained in comprehension aid
 5. Tests added for the specific failure case

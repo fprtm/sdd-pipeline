@@ -6,7 +6,7 @@
 //
 // Understands the v2 hybrid ID spine:
 //   - FILE-level IDs from filenames: design/003-x-fsd.md defines FSD-003 (same
-//     for -sdd/-prd), erd/003-x-erd.md defines ERD-003, decisions/005-y.md
+//     for -sds/-prd), erd/003-x-erd.md defines ERD-003, decisions/005-y.md
 //     defines ADR-005.
 //   - ITEM-level IDs from headings/table rows: REQ/REQ-NF/SEC/TEST/TICKET, and
 //     sub-IDs like FSD-003.2 inside an FSD file.
@@ -28,7 +28,7 @@ import { join, dirname, resolve, relative, basename } from 'node:path';
 
 const dir = process.argv[2] ?? 'docs/sdd';
 const MATRIX = 'traceability.md';
-const TYPES = 'REQ-NF|REQ|FSD|SDD|PRD|ERD|ADR|SEC|TICKET|TEST';
+const TYPES = 'REQ-NF|REQ|FSD|SDS|PRD|ERD|ADR|SEC|TICKET|TEST';
 const ID_RE = new RegExp(`\\b(?:${TYPES})-\\d+(?:\\.\\d+)?\\b`, 'g');
 const typeOf = (id) => id.match(new RegExp(`^(${TYPES})`))[1];
 const parentOf = (id) => id.replace(/\.\d+$/, ''); // FSD-003.2 -> FSD-003
@@ -44,7 +44,7 @@ const NON_DEFINING_FILES = new Set([MATRIX, 'index.md', 'glossary.md', 'config.m
 const NON_DEFINING_DIRS = new Set(['plans', 'reports', 'stats', 'dod', 'memory']);
 // Filename -> file-level ID definitions.
 const FILE_ID_RULES = [
-  { dir: 'design', re: /^(\d{3})-.+-(fsd|sdd|prd)\.md$/, type: (m) => m[2].toUpperCase() },
+  { dir: 'design', re: /^(\d{3})-.+-(fsd|sds|prd)\.md$/, type: (m) => m[2].toUpperCase() },
   { dir: 'erd', re: /^(\d{3})-.+-erd\.md$/, type: () => 'ERD' },
   { dir: 'decisions', re: /^(\d{3})-.+\.md$/, type: () => 'ADR' },
 ];

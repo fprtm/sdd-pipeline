@@ -3,7 +3,7 @@
 > **Plain-language summary:** _what could go wrong security-wise and what we're
 > doing about it, in a few sentences._
 
-- **Based on:** FSD-NNN / SDD-NNN diagram (trust boundaries: <list>)
+- **Based on:** FSD-NNN / SDS-NNN diagram (trust boundaries: <list>)
 - **Scope:** <what's in / out>
 - **Related:** design/NNN-slug-fsd.md · test-plans/NNN-slug-tests.md · traceability.md
 

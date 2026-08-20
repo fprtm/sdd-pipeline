@@ -11,14 +11,14 @@ SDD Pipeline auto-determines which documents to generate. User can always skip o
 | Task Type | Documents Generated |
 |-----------|-------------------|
 | **New feature** | FSD (Functional Spec) + DoD |
-| **Architecture change** | SDD (Software Design Doc) + DoD |
+| **Architecture change** | SDS (Software Design Specification) + DoD |
 | **Product-facing feature** | PRD (Product Requirements) + FSD + DoD |
-| **Database changes** | ERD (Entity Relationship Diagram) + SDD + DoD |
+| **Database changes** | ERD (Entity Relationship Diagram) + SDS + DoD |
 | **API endpoint** | FSD + API contract + DoD |
 | **Bug fix** | Minimal spec (3-5 lines: symptom, root cause, fix approach) + DoD |
-| **Refactor** | SDD (if architectural) or minimal spec + DoD |
-| **Migration** | SDD + Migration plan + DoD |
-| **New project** | PRD + SDD + ERD (if DB) + FSD + DoD |
+| **Refactor** | SDS (if architectural) or minimal spec + DoD |
+| **Migration** | SDS + Migration plan + DoD |
+| **New project** | PRD + SDS + ERD (if DB) + FSD + DoD |
 | **Micro task** (typo, rename, 1-liner) | Nothing — announce "micro task, no docs" |
 
 ### Detection Signals
@@ -32,11 +32,11 @@ How SDD Pipeline detects task type:
 
 ## Document Formats
 
-All documents are short, focused, and actionable. NOT enterprise bloatware. Full per-document templates (FSD, SDD, PRD, ERD, DoD, Test Plan) live in the companion file `skills/build/doc-generator/formats.md` — read it when actually generating a doc.
+All documents are short, focused, and actionable. NOT enterprise bloatware. Full per-document templates (FSD, SDS, PRD, ERD, DoD, Test Plan) live in the companion file `skills/build/doc-generator/formats.md` — read it when actually generating a doc.
 
 Two rules that apply to every format, worth knowing before opening the templates:
-- **Durability**: never reference file paths or line numbers in FSD/SDD/PRD — describe behavior and interfaces. The one exception is a short snippet that precisely encodes a decision (a type signature, an example payload).
-- **Length**: FSD/PRD max 1 page, SDD max 1.5 pages. Longer means over-specified.
+- **Durability**: never reference file paths or line numbers in FSD/SDS/PRD — describe behavior and interfaces. The one exception is a short snippet that precisely encodes a decision (a type signature, an example payload).
+- **Length**: FSD/PRD max 1 page, SDS max 1.5 pages. Longer means over-specified.
 
 ## File Locations — Numbered, One Doc Per Feature, Never Append-Forever
 
@@ -45,7 +45,7 @@ All generated docs go to the structured docs/sdd/ directory, **with a sequence n
 | Doc Type | Location |
 |----------|----------|
 | FSD | `docs/sdd/design/{NNN}-{slug}-fsd.md` |
-| SDD | `docs/sdd/design/{NNN}-{slug}-sdd.md` |
+| SDS | `docs/sdd/design/{NNN}-{slug}-sds.md` |
 | PRD | `docs/sdd/design/{NNN}-{slug}-prd.md` |
 | ERD | `docs/sdd/erd/{NNN}-{slug}-erd.md` |
 | DoD | `docs/sdd/dod/{NNN}-{slug}-dod.md` |
@@ -63,7 +63,7 @@ All generated docs go to the structured docs/sdd/ directory, **with a sequence n
 
 After generating, update `docs/sdd/index.md` with links and relationships — the index is how anyone finds the right numbered doc without listing the directory.
 
-**Metadata header — every design doc, so revision state is readable without opening git log**: FSD/SDD/PRD/ERD/DoD/Test Plan all open with the same four bolded fields (exact shape in `formats.md`), read top-to-bottom before anything else:
+**Metadata header — every design doc, so revision state is readable without opening git log**: FSD/SDS/PRD/ERD/DoD/Test Plan all open with the same four bolded fields (exact shape in `formats.md`), read top-to-bottom before anything else:
 
 ```
 **Date**: [auto — set once, when the file is first created; never changes]
@@ -81,7 +81,7 @@ The numbered filenames double as the traceability spine (`skills/meta/traceabili
 | ID | What it names | Where it's defined |
 |----|---------------|--------------------|
 | `FSD-003` | The FSD *file* `design/003-{slug}-fsd.md` — the number IS the ID | Filename |
-| `SDD-003` / `PRD-003` / `ERD-003` | Same rule for SDD/PRD/ERD files | Filename |
+| `SDS-003` / `PRD-003` / `ERD-003` | Same rule for SDS/PRD/ERD files | Filename |
 | `FSD-003.2` | Flow/behavior #2 *inside* FSD-003 — use when the matrix needs a finer link | `### FSD-003.2 — …` heading in the file |
 | `ADR-005` | Decision file `decisions/005-{slug}.md` (see `skills/meta/decision-log/`) | Filename |
 | `REQ-001` / `REQ-NF-001` | A single requirement (item-level, global counter) | Table row in a PRD |
@@ -96,7 +96,7 @@ Rules:
 
 ## Product Documentation — Two Audiences, Same Change
 
-Pipeline docs (FSD/SDD/plans) describe the *work*; the product also needs docs about *itself*, split by audience:
+Pipeline docs (FSD/SDS/plans) describe the *work*; the product also needs docs about *itself*, split by audience:
 
 - **`docs/user/`** — for end users: plain language, a simple flow diagram where it helps, an FAQ for the sharp edges. No implementation talk.
 - **`docs/dev/`** — for developers: architecture notes, how to run/test, API reference. Plus **JSDoc/docstrings on every public interface** in the code itself.
@@ -107,12 +107,12 @@ Rules that make this real rather than aspirational:
 - **A missing doc is a create, not a skip.** If the touched area has no doc yet, the ticket creates one — "there was nothing to update" doesn't pass.
 - Behavior changed → update the user doc; interface changed → update the dev doc + JSDoc, same diff.
 
-## Mermaid Diagram — Required in Every FSD and SDD
+## Mermaid Diagram — Required in Every FSD and SDS
 
-Every FSD and SDD must include one compact Mermaid diagram giving the user a visual at a glance — most users grasp a 10-node flowchart faster than 10 paragraphs:
+Every FSD and SDS must include one compact Mermaid diagram giving the user a visual at a glance — most users grasp a 10-node flowchart faster than 10 paragraphs:
 
 - **FSD** → a `flowchart` of the user/data flow (what goes in, what happens, what comes out)
-- **SDD** → a component/`flowchart` diagram of module relationships, or a `sequenceDiagram` if the interesting part is the interaction order
+- **SDS** → a component/`flowchart` diagram of module relationships, or a `sequenceDiagram` if the interesting part is the interaction order
 - **ERD** → already Mermaid `erDiagram` (existing rule)
 
 Keep it small: if the diagram needs more than ~12 nodes, it's covering too much — split it or simplify. A diagram that needs a paragraph to explain should be redrawn, not explained.
@@ -124,7 +124,7 @@ Keep it small: if the diagram needs more than ~12 nodes, it's covering too much 
 | **prototype** | Skip all docs. Speed first. |
 | **vibe** | Generate docs silently. Don't show to user. Available in docs/sdd/ for later review. |
 | **standard** | Generate relevant docs. Show summary of what was created. |
-| **strict** | Generate all applicable docs. Require user review of FSD/SDD before BUILD proceeds. |
+| **strict** | Generate all applicable docs. Require user review of FSD/SDS before BUILD proceeds. |
 | **emergency** | Skip docs. Generate post-fix report only. |
 
 ## Rules
@@ -133,8 +133,8 @@ Keep it small: if the diagram needs more than ~12 nodes, it's covering too much 
 2. **Skip irrelevant docs** — Bug fix doesn't need a PRD. Don't generate for the sake of generating.
 3. **One numbered doc per feature** — same feature still in flight: update its file. New feature (even same area): new numbered file, mark the old one SUPERSEDED. See "File Locations" above — never let one filename become an ever-growing accretion.
 4. **User can always skip** — "skip docs" or "no docs for this" = comply immediately, but say that docs were skipped and why.
-5. **Mermaid for diagrams** — Use Mermaid syntax for all diagrams. FSD/SDD must each carry one compact diagram (see "Mermaid Diagram" section).
+5. **Mermaid for diagrams** — Use Mermaid syntax for all diagrams. FSD/SDS must each carry one compact diagram (see "Mermaid Diagram" section).
 6. **Elicitation answered = spec written** — if elicitation/grill questions were asked and answered, a spec (at minimum) MUST be generated before BUILD. Questions without a written spec is a broken contract: the user spent effort answering, the answers must land somewhere durable, not evaporate into the conversation.
 7. **Always announce what was (not) generated** — "Generated: 003-payment-refund-fsd.md, 002-payment-refund-dod.md" or "No docs — bug fix, report only." Never leave the user guessing why a doc did or didn't appear.
-6. **No file paths or line numbers in durable docs** (FSD, SDD, PRD) — they go stale before the doc does. Describe behavior and interfaces instead. Test plans and DoD checklists are exempt since they're inherently tied to the current state of the code.
+6. **No file paths or line numbers in durable docs** (FSD, SDS, PRD) — they go stale before the doc does. Describe behavior and interfaces instead. Test plans and DoD checklists are exempt since they're inherently tied to the current state of the code.
 7. **Use glossary terms** — reference `docs/sdd/glossary.md` (see `skills/meta/glossary/`) for canonical terminology. Don't introduce a new synonym for a term that's already defined.

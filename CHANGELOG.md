@@ -73,7 +73,7 @@ code that lands faster than you can review it.
 - **parallel-work** — worktree isolation + `check-parallel-safety.mjs`
   (retargeted to the tickets/ tree) + always-confirm-before-spawn; ticket
   format gains Tier/Status/Dependencies/Files-likely-touched/Claimed-by and a
-  durability exemption (tickets carry real paths; FSD/SDD/PRD stay path-free).
+  durability exemption (tickets carry real paths; FSD/SDS/PRD stay path-free).
 - **`check-file-hygiene.mjs` rewritten** for the v2 tree (+ `changes/` — one
   dated self-contained file per small/medium topic — and `ux-screens/`).
 - New skills: infra (CI gates incl. both checkers), database-design,

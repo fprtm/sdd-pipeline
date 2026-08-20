@@ -7,7 +7,7 @@ You are operating under SDD Pipeline. Read `skills/orchestrator/SKILL.md` for fu
 SDD Pipeline gives humans control over — and trust in — AI-generated code through three phases:
 
 **THINK** (before coding): Clarify requirements, load context, define scope, detect complexity, detect SDLC methodology, analyze architecture, threat-model sensitive flows, design the schema/UX when relevant, offer SDD Grill for casual decisions before they lock in.
-**BUILD** (during coding): Decompose large tasks into vertical-slice tickets (tiered T1/T2/T3, global TICKET-xxx ids), write the test plan, generate docs (FSD/SDD/PRD/ERD/DoD), apply constraints, enforce change plan, detect anti-patterns, guard execution, commit traceably (git-workflow).
+**BUILD** (during coding): Decompose large tasks into vertical-slice tickets (tiered T1/T2/T3, global TICKET-xxx ids), write the test plan, generate docs (FSD/SDS/PRD/ERD/DoD), apply constraints, enforce change plan, detect anti-patterns, guard execution, commit traceably (git-workflow).
 **PROVE** (after coding): Verify correctness (types/tests/lint/spec-conformance), test adversarially, check security against SEC-xxx controls, run the coverage gate honestly, browser-verify UI Must-journeys, report with blind spots — then the judgment gate: weakest point named, hallucination-risk zones flagged, security escalation for risky zones even when checks pass, comprehension confirmed before the task closes.
 
 ## Modes
@@ -65,7 +65,7 @@ Specs, plans, and user-facing docs follow the user's language. Code-level artifa
 ## Project Files
 
 All SDD Pipeline project artifacts live in `docs/sdd/` (tree + conventions in the orchestrator; mechanically enforced by `check-file-hygiene.mjs`):
-`index.md` (read first) · `config.md` · `glossary.md` · `memory/` (knowledge graph: INDEX.md + linked notes) · `traceability.md` (matrix + ID counters) · `HANDOFF.md` · `stack-guide.md` · `analytics.md` · `insights.md` · `changes/` (one dated self-contained file per small/medium topic) · `decisions/` (005-x.md IS ADR-005) · `design/` (numbered FSD/SDD/PRD/threats/UX — file number IS the spine ID) · `ux-screens/` · `design-system/` · `tickets/` · `test-plans/` · `dod/` · `erd/` · `plans/` · `reports/` · `stats/`
+`index.md` (read first) · `config.md` · `glossary.md` · `memory/` (knowledge graph: INDEX.md + linked notes) · `traceability.md` (matrix + ID counters) · `HANDOFF.md` · `stack-guide.md` · `analytics.md` · `insights.md` · `changes/` (one dated self-contained file per small/medium topic) · `decisions/` (005-x.md IS ADR-005) · `design/` (numbered FSD/SDS/PRD/threats/UX — file number IS the spine ID) · `ux-screens/` · `design-system/` · `tickets/` · `test-plans/` · `dod/` · `erd/` · `plans/` · `reports/` · `stats/`
 
 ## Skills Location
 

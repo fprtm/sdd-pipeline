@@ -68,7 +68,7 @@ Warning: Refund logic must handle Stripe webhook for async refund completion
 6. Idempotency key for refund requests (prevent double refund)
 
 ## Documents to Generate
-- FSD, SDD, ERD update, DoD, Test Plan
+- FSD, SDS, ERD update, DoD, Test Plan
 
 ## Key Decisions
 - Stripe Refund API (not manual balance adjustment) — auditable, reversible
@@ -101,16 +101,16 @@ User: "approved"
 
 **Doc Generator** creates full suite:
 - `docs/sdd/design/002-payment-refund-fsd.md`
-- `docs/sdd/design/002-payment-refund-sdd.md`
+- `docs/sdd/design/002-payment-refund-sds.md`
 - `docs/sdd/erd/002-payment-refund-erd.md` (ERD update with Refund entity)
 - `docs/sdd/dod/002-payment-refund-dod.md`
 - `docs/sdd/test-plans/002-payment-refund-tests.md`
 
 **Strict checkpoint 1** (before writing code):
 ```
-FSD and SDD generated. Please review:
+FSD and SDS generated. Please review:
 - docs/sdd/design/002-payment-refund-fsd.md
-- docs/sdd/design/002-payment-refund-sdd.md
+- docs/sdd/design/002-payment-refund-sds.md
 
 Proceed with implementation? (yes/no/modify)
 ```

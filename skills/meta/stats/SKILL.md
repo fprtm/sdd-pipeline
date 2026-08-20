@@ -12,7 +12,7 @@ Track what SDD Pipeline does per task. Powers vibe mode footer and historical st
 | `scope_deviations` | Times scope changed from declared plan |
 | `constraints_enforced` | Constraint rules that triggered |
 | `decisions_logged` | Number of decisions recorded |
-| `docs_generated` | Which docs were created (FSD, SDD, etc.) |
+| `docs_generated` | Which docs were created (FSD, SDS, etc.) |
 | `verification_result` | Pass/fail + confidence level |
 | `mode_used` | Which mode was active |
 | `task_size` | Detected task size (micro/small/medium/large) |
@@ -78,7 +78,7 @@ At end of each monthly file, maintain a running summary:
 | Most common anti-pattern | god function (9x) |
 | Most common security issue | missing validation (4x) |
 | Average confidence | HIGH (78%), MEDIUM (19%), LOW (3%) |
-| Docs generated | 12 FSD, 5 SDD, 3 PRD, 2 ERD |
+| Docs generated | 12 FSD, 5 SDS, 3 PRD, 2 ERD |
 ```
 
 ## Mode Behavior

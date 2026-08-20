@@ -91,7 +91,7 @@ Full plan with architecture, module breakdown, implementation phases.
 
 Documents to generate:
 - PRD (product requirements)
-- SDD (architecture + design)
+- SDS (architecture + design)
 - ERD (database schema)
 - FSD (per module, generated as each module is built)
 - DoD (project-level)
@@ -122,7 +122,7 @@ erDiagram
     ORDER ||--o| SHIPMENT : has
 ```
 
-**SDD** (`docs/sdd/design/001-ecommerce-api-sdd.md`):
+**SDS** (`docs/sdd/design/001-ecommerce-api-sds.md`):
 Architecture decisions, module boundaries, API design patterns.
 
 **DoD** (`docs/sdd/dod/001-ecommerce-api-dod.md`):
@@ -140,12 +140,12 @@ All artifacts linked in `docs/sdd/index.md`:
 ```
 ## Documents
 - [PRD: E-commerce API](design/001-ecommerce-api-prd.md)
-- [SDD: E-commerce API](design/001-ecommerce-api-sdd.md)
+- [SDS: E-commerce API](design/001-ecommerce-api-sds.md)
 - [ERD: E-commerce](erd/001-ecommerce-erd.md)
 - [DoD: E-commerce API](dod/001-ecommerce-api-dod.md)
 
 ## Decisions
-- [001: Modular Monolith](decisions/001-modular-monolith.md) → SDD
+- [001: Modular Monolith](decisions/001-modular-monolith.md) → SDS
 - [002: PostgreSQL](decisions/002-postgresql.md) → ERD
 - [003: Stripe Integration](decisions/003-stripe.md) → design/payments module
 ```
@@ -154,7 +154,7 @@ All artifacts linked in `docs/sdd/index.md`:
 
 1. New project triggers architecture proposal with clear reasoning
 2. Database recommendation based on domain requirements
-3. Full doc suite generated: PRD → SDD → ERD → DoD
+3. Full doc suite generated: PRD → SDS → ERD → DoD
 4. Hidden complexity identified upfront (payments, inventory race conditions)
 5. Everything connected in index.md for easy navigation
 6. Modular approach — can be built incrementally

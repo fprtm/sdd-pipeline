@@ -63,7 +63,7 @@ Updates happen **inline**, the moment a term is resolved — never batched into 
 
 - **SDD Grill** (`skills/think/grill/`): new terms surfacing during a grill session get written here live.
 - **Elicitation** (`skills/think/elicitation/`): check glossary before asking a question that hinges on a term — don't re-ask what's already pinned down.
-- **Doc Generator** (`skills/build/doc-generator/`): FSD/SDD/PRD documents should use glossary terms consistently, not synonyms.
+- **Doc Generator** (`skills/build/doc-generator/`): FSD/SDS/PRD documents should use glossary terms consistently, not synonyms.
 - **Decision Log** (`skills/meta/decision-log/`): decisions that define or change a term's meaning should update the glossary, not just the decision file.
 
 ## Rules

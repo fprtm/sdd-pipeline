@@ -117,7 +117,7 @@ flowchart TD
 | **complexity-analyzer** | Lookup table mapping surface prompts ("add search") to hidden sub-scope (indexing, ranking, pagination…); escalates task size when hidden complexity found | recommendation source for **grill** | nothing (inline) |
 | **sdlc-detector** | Detects Scrum/Kanban/Waterfall/Solo from `config.md` → project signals (`.jira/`, `.linear/`, `ROADMAP.md`…) → ask-once fallback; outputs an adaptation block consumed by scope-guard, elicitation, change-plan, report, decision-log | reads project signals, `docs/sdd/config.md` | a note in `docs/sdd/memory/` if it had to ask |
 | **arch-analyzer** | Detects 1 of 16 architecture patterns via directory/import/config signals + confidence scoring; Deletion Test + "1 adapter=hypothetical, 2=real" heuristics; consistency report for brownfield, decision matrix + proposed tree for greenfield; optional self-contained HTML visual report (temp dir only); "Design It Twice" multi-agent technique for high-stakes calls | `design-it-twice.md` (companion), `build/anti-patterns` (premature-abstraction xref), `docs/sdd/decisions/` (ADR-conflict check), `agents/orchestration` (spawn gate), hands off to **grill** | no fixed doc path (inline / temp-dir HTML) |
-| **threat-model** | STRIDE pass over the FSD/SDD's data-flow diagram at trust boundaries; rates Likelihood×Impact; writes SEC-xxx controls (Mitigate/Accept/Transfer/Avoid); OWASP-ish baseline always checked | `build/test-plan` (TEST-xxx per High/Critical control), `build/ticket-decomposition` (ticket per control), `prove/security-check` (PROVE-side pair via shared SEC-xxx), `prove/judgment`, `meta/traceability` | `docs/sdd/design/{NNN}-{slug}-threats.md` |
+| **threat-model** | STRIDE pass over the FSD/SDS's data-flow diagram at trust boundaries; rates Likelihood×Impact; writes SEC-xxx controls (Mitigate/Accept/Transfer/Avoid); OWASP-ish baseline always checked | `build/test-plan` (TEST-xxx per High/Critical control), `build/ticket-decomposition` (ticket per control), `prove/security-check` (PROVE-side pair via shared SEC-xxx), `prove/judgment`, `meta/traceability` | `docs/sdd/design/{NNN}-{slug}-threats.md` |
 | **database-design** | One-entity-one-responsibility schema modeling from the domain glossary; 3NF default; naming/FK/cascade/index rules; additive-first migrations | `build/doc-generator/formats.md` (ERD shape), `docs/sdd/glossary.md`, `think/stack-conventions`, `think/threat-model` (multi-tenant isolation) | `docs/sdd/erd/{NNN}-{slug}-erd.md` |
 | **ux-design** | Confirms direction with a concrete preview first (respects existing design system if present); design tokens (WCAG AA) as SSOT; index-first flow files; 4 states (empty/loading/error/success) per screen; yields to an external UI/UX skill on aesthetics if installed | `think/arch-analyzer` (process peer), `build/doc-generator`, `check-file-hygiene.mjs` | `docs/sdd/design/{NNN}-{slug}-ux.md` + one file per flow at `docs/sdd/ux-screens/<flow-slug>.md` |
 | **stack-conventions** | Reads official docs (context7/MCP/research skill) for the chosen stack+version, turns them into version-pinned, checkable rules; scaffolds config-as-code (`tsconfig.json`, ESLint, etc.) | `build/infra` (CI wiring), `think/threat-model` (security defaults), `constraints/` (stays stack-neutral layer beneath this) | `docs/sdd/stack-guide.md` + scaffolded config files |
@@ -135,7 +135,7 @@ flowchart TD
     subgraph BUILD["BUILD — skills/build/"]
         CONS["constraints\nuniversal → domain → project overrides"]
         CHG["change-plan\nCREATE/MODIFY/DELETE declaration"]
-        DOCGEN["doc-generator\nFSD/SDD/PRD/ERD/DoD/test-plan"]
+        DOCGEN["doc-generator\nFSD/SDS/PRD/ERD/DoD/test-plan"]
         ANTI["anti-patterns\n12 known AI failure modes"]
         EXEC["execution-guard\nloop detection, escalation"]
         GIT["git-workflow\ncommit/branch/PR shape"]
@@ -162,7 +162,7 @@ flowchart TD
 |---|---|---|---|
 | **constraints** | Loads universal (10 rules: YAGNI, dep limits, no premature abstraction…) → domain-specific → project overrides, in that order; secrets rule (#7) is non-negotiable | `constraints/[domain]/SKILL.md`, `docs/sdd/config.md`, `CLAUDE.md`/`AGENTS.md`, decision log on override | decision-log entry + memory on override |
 | **change-plan** | Requires a `CHANGE PLAN:` block (CREATE/MODIFY/DELETE + why) before code; tracks deviations live; produces a Planned-vs-Deviations-vs-Refactoring summary after | `docs/sdd/plans/current.md` | contributes to plan file / verification report |
-| **doc-generator** | Auto-decides which docs a task needs (feature→FSD+DoD, DB change→ERD+SDD+DoD…); DoD floor for small+; numbered per-feature files (never append-forever); owns the ID spine (`FSD-003`, `SEC-004`, `TICKET-012`…); splits `docs/user/` vs `docs/dev/` | `formats.md` (companion templates), `meta/traceability`, `meta/decision-log`, `meta/glossary` | `docs/sdd/design/`, `erd/`, `dod/`, `test-plans/`, `index.md`, `docs/user/`, `docs/dev/` |
+| **doc-generator** | Auto-decides which docs a task needs (feature→FSD+DoD, DB change→ERD+SDS+DoD…); DoD floor for small+; numbered per-feature files (never append-forever); owns the ID spine (`FSD-003`, `SEC-004`, `TICKET-012`…); splits `docs/user/` vs `docs/dev/` | `formats.md` (companion templates), `meta/traceability`, `meta/decision-log`, `meta/glossary` | `docs/sdd/design/`, `erd/`, `dod/`, `test-plans/`, `index.md`, `docs/user/`, `docs/dev/` |
 | **anti-patterns** | Scans generated code against 12 patterns (God Function, Deep Nesting, Hallucinated API, Hardcoded Secrets, N+1 Queries, Over-Typing…) and self-corrects | `think/arch-analyzer` (deletion test / adapter rule for over-engineering pattern) | corrects code in place; notes change in standard/strict |
 | **execution-guard** | Detects repeated-failure loops (same approach/error 2+ times) → escalates with 3 options instead of spinning; periodic progress signals; rapid-iteration detection (3+ prompts/2min → lightweight mode) | — | inline status only |
 | **git-workflow** | Commit granularity (1 per ticket), message format (`type(scope): what — why — Refs: TICKET-xxx, FSD-xxx`), branch naming, honest PR descriptions (never claims an ungated pass) | relies on ID spine from `doc-generator`/`meta/traceability`; composes with external branch-finishing skills | commit messages, branch names, PR body |
@@ -411,7 +411,7 @@ Data-store legend used throughout (all under `docs/sdd/` unless noted):
 | CFG | `config.md` | TIX | `tickets/` | GLO | `glossary.md` |
 | MEM | `memory/` | TST | `test-plans/` | DEC | `decisions/` |
 | PLN | `plans/` | TRC | `traceability.md` | RPT | `reports/` |
-| DES | `design/` (FSD·SDD·PRD·threats·ux) | ERD | `erd/` | STA | `stats/` + `index.md` |
+| DES | `design/` (FSD·SDS·PRD·threats·ux) | ERD | `erd/` | STA | `stats/` + `index.md` |
 | UXS | `ux-screens/` | DOD | `dod/` | MISC | `stack-guide.md`, `analytics.md`, `insights.md`, `HANDOFF.md` |
 | COD | the codebase itself (source, tests, git history) | CLA | `CLAUDE.md` / `AGENTS.md` (repo root, not `docs/sdd/`) | EXT | external web / docs (context7, official framework docs) |
 
@@ -609,7 +609,7 @@ flowchart TD
 
     GLO -->|"canonical terms"| P33
     TRC -->|"next ID"| P33
-    P33 -->|"FSD/SDD/PRD/DoD"| DES
+    P33 -->|"FSD/SDS/PRD/DoD"| DES
     P33 -->|"DoD file"| DOD
     P33 -->|"ID registered"| TRC
 

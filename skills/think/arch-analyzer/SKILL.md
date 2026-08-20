@@ -266,7 +266,7 @@ The user picks a candidate from the report → hand off to **SDD Grill** (`skill
 - **Scope Guard**: Architecture-aware blast radius. Changes crossing module boundaries get larger estimates.
 - **Constraints**: Architecture-specific constraints activated (e.g., hexagonal → enforce port/adapter pattern).
 - **Change Plan**: Include architecture impact. Flag when change crosses architectural boundaries.
-- **Doc Generator**: Trigger SDD generation for architecture-impacting changes.
+- **Doc Generator**: Trigger SDS generation for architecture-impacting changes.
 - **Decision Log**: Log architecture decisions as ADRs (Architecture Decision Records).
 - **Agent Orchestration**: Design-it-twice dispatch mechanics (spawning, context scoping) follow `skills/agents/orchestration/`'s cost-benefit gate — check there before spawning.
 
