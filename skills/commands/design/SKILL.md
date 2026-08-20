@@ -10,6 +10,7 @@ Manual entry point that adaptively runs `skills/think/arch-analyzer/SKILL.md`, `
 
 ## What Happens When Called
 
+0. **If a `/sdd-pipeline:discover` (or an in-conversation grill) session just settled the architecture/scope question this task needs**, this is exactly the hand-off point — build the spec from that shared understanding instead of re-running architecture analysis or scope questions from scratch. Check `docs/sdd/glossary.md` and `docs/sdd/decisions/` for anything the session just wrote; don't re-ask what's already settled.
 1. Check whether the task involves an architecture decision (new pattern, module boundary, structural change). If yes, run architecture analysis: detect existing patterns, apply the deletion test and 1-adapter-hypothetical/2-adapter-real heuristics, propose or flag inconsistencies.
 2. Check whether the task needs a functional spec (what's being built, acceptance criteria). If yes, generate one.
 3. **Check the resulting scope size.** If the designed work is `large` (too big for one implementation pass), automatically decompose it into vertical-slice tickets with blocking edges — the breakdown is shown for granularity confirmation, but the user never has to know or invoke a separate "decompose" step. Small/medium scope: no tickets, straight to a single plan.

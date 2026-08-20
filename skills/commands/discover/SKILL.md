@@ -24,7 +24,7 @@ Facts are looked up by the agent, never asked of the user — internal (existing
 
 - New domain terms → `docs/sdd/glossary.md`
 - Decisions that pass the rule-of-three gate (hard to reverse + surprising + real trade-off) → `docs/sdd/decisions/`
-- **No plan file is written.** If the session ends with "let's build it," the shared understanding feeds into the plan the next time `/sdd-pipeline:implement` or the orchestrator runs — it is not re-asked.
+- **No plan file is written, and no doc/spec is written here either.** If the session ends with "let's build it," offer `/sdd-pipeline:design` as the next step — that's where the shared understanding actually becomes an FSD/SDS/PRD/tickets (whichever the task's size calls for), *before* anything gets built. Discover is the ASK step of the orchestrator's fixed sequence (ASK → SPEC → PLAN → BUILD → CHECK); it hands off to SPEC, not past it — never suggest `/sdd-pipeline:implement` directly from here, that skips the step design exists for. Questions already settled in this session are not re-asked by design or elicitation.
 
 ## Full Behavior
 

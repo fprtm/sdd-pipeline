@@ -6,7 +6,9 @@ disable-model-invocation: true
 
 # /sdd-pipeline:implement
 
-Manual entry point to the BUILD phase. Use when a plan/spec/ticket already exists (from `/sdd-pipeline:discover`, `/sdd-pipeline:design` — which auto-decomposes large work into tickets, there's no separate decompose command — or just the current conversation) and it's time to write code.
+Manual entry point to the BUILD phase. Use when a plan/spec/ticket already exists — from `/sdd-pipeline:design` (which auto-decomposes large work into tickets, there's no separate decompose command) or just the current conversation — and it's time to write code.
+
+`/sdd-pipeline:discover` alone is **not** enough to jump straight here: discover only produces glossary terms and rule-of-three-gated decisions, no plan/spec/ticket — it hands off to `/sdd-pipeline:design` next, not to implement directly. If discover just ran and the user says "build it," that means run design first, not this command.
 
 ## What Happens When Called
 
