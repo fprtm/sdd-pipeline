@@ -247,7 +247,7 @@ docs/sdd/
 │   ├── current.md        # Active plan (overwritten each task)
 │   └── archive/          # Completed plans ({YYYY-MM-DD}-{NN}-{slug}.md)
 ├── changes/              # Small/medium changes: ONE dated self-contained file per topic
-│   └── YYYY-MM-DD-{slug}.md   # frontmatter (description/status) + brief + decisions + tickets + tests inline — replaces plan+report for lite work
+│   └── YYYY-MM-DD-{slug}.md   # frontmatter (description/status/updated) + brief + decisions + tickets + tests inline — replaces plan+report for lite work
 ├── tickets/               # Vertical-slice ticket breakdowns for large tasks
 │   └── {feature-slug}/{NN}-{ticket-slug}.md   # each carries a global TICKET-xxx id
 ├── reports/              # Verification reports per task

@@ -32,7 +32,7 @@ Tokens map directly to a theme in code (CSS variables / Tailwind config / the st
 
 ## 3. Key Screens & Flows — Index-First, One File Per Flow
 
-For each main user journey (reuse the FSD's flow/sequence diagrams): **one file per flow** at `docs/sdd/ux-screens/<flow-slug>.md` with frontmatter `description` (one line) + `priority` (`Must`/`Should`/`Could` — the same vocabulary the test plan uses for journeys). The `-ux.md` doc's flow section is a **thin index**: one row per flow (priority · description · link), sorted by priority. Read index-first: match the flow by its row, open only that file — never one undifferentiated mega-section.
+For each main user journey (reuse the FSD's flow/sequence diagrams): **one file per flow** at `docs/sdd/ux-screens/<flow-slug>.md` with frontmatter `description` (one line) + `priority` (`Must`/`Should`/`Could` — the same vocabulary the test plan uses for journeys) + `updated` (`YYYY-MM-DD`, bumped every time the flow file is revised in place — the file itself has no other way to signal "this changed since you last read it"). The `-ux.md` doc's flow section is a **thin index**: one row per flow (priority · description · link), sorted by priority. Read index-first: match the flow by its row, open only that file — never one undifferentiated mega-section.
 
 Per screen, at the depth §0 confirmed:
 - **Structure-only**: what's on the screen, visual hierarchy, primary action, navigation. Low-fi is fine.

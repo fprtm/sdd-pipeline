@@ -77,7 +77,10 @@ for (const [d, re] of Object.entries(DIR_RULES)) {
 }
 
 // ux-screens/ — one flow per file, kebab slug (flows aren't chronological, so no
-// date/number), frontmatter with description + priority (Must/Should/Could).
+// date/number), frontmatter with description + priority (Must/Should/Could) +
+// updated (bumped whenever the flow file is revised in place — same "is this
+// still current" signal as the Updated/Version header on design/ docs, just
+// in frontmatter form since ux-screens/ files don't use the bolded-field shape).
 for (const e of ls(join(dir, 'ux-screens'))) {
   if (!e.endsWith('.md')) continue;
   const p = join(dir, 'ux-screens', e);
@@ -85,10 +88,11 @@ for (const e of ls(join(dir, 'ux-screens'))) {
   if (!new RegExp(`^${SLUG}\\.md$`).test(e)) flag(`bad filename: ux-screens/${e} — expected <flow-slug>.md`);
   const text = readFileSync(p, 'utf8');
   const fmMatch = text.match(/^---\n([\s\S]*?)\n---/);
-  if (!fmMatch) flag(`ux-screens/${e}: missing frontmatter (description/priority)`);
+  if (!fmMatch) flag(`ux-screens/${e}: missing frontmatter (description/priority/updated)`);
   else {
     if (!/^description:/m.test(fmMatch[1])) flag(`ux-screens/${e}: frontmatter missing "description:"`);
     if (!/^priority:\s*(Must|Should|Could)/m.test(fmMatch[1])) flag(`ux-screens/${e}: frontmatter missing "priority:" (Must/Should/Could)`);
+    if (!/^updated:\s*\d{4}-\d{2}-\d{2}/m.test(fmMatch[1])) flag(`ux-screens/${e}: frontmatter missing "updated: YYYY-MM-DD"`);
   }
 }
 
@@ -100,11 +104,15 @@ for (const e of ls(join(dir, 'changes'))) {
   if (isDir(p)) continue;
   const text = readFileSync(p, 'utf8');
   if (!/^---\n[\s\S]*?\n---/.test(text)) {
-    flag(`changes/${e}: missing frontmatter (description/status)`);
+    flag(`changes/${e}: missing frontmatter (description/status/updated)`);
   } else {
     const fm = text.match(/^---\n([\s\S]*?)\n---/)[1];
     if (!/^description:/m.test(fm)) flag(`changes/${e}: frontmatter missing "description:"`);
     if (!/^status:/m.test(fm)) flag(`changes/${e}: frontmatter missing "status:"`);
+    // The filename date is when the topic was FIRST opened; changes/ files get
+    // updated in place (one topic = one file), so that date alone goes stale
+    // the moment the file is revised — updated: is the only honest signal.
+    if (!/^updated:\s*\d{4}-\d{2}-\d{2}/m.test(fm)) flag(`changes/${e}: frontmatter missing "updated: YYYY-MM-DD"`);
   }
   const m = e.match(new RegExp(`^\\d{4}-\\d{2}-\\d{2}-(${SLUG})\\.md$`));
   if (m) {
