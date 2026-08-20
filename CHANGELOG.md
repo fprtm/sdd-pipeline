@@ -3,6 +3,28 @@
 All notable changes to SDD Pipeline. Versioning is [SemVer](https://semver.org/).
 Plain-language where possible.
 
+## [3.0.2] — 2026-08-20
+### Fixed
+- User-reported: generated `docs/sdd/` files looked stylistically
+  inconsistent. Root cause: five doc-producing skills specified their
+  output as loose prose instead of a concrete template, so files ended
+  up with or without the `Date`/`Updated`/`Version`/`Status` metadata
+  header purely by accident of which skill wrote them — most visibly in
+  `design/`, where `-threats.md` and `-ux.md` sat next to `-fsd.md`/
+  `-sds.md` files that DID carry the header. Fixed:
+  - `threat-model.template.md` — added the same header used by
+    FSD/SDS/PRD/ERD/DoD/Test Plan (`skills/build/doc-generator/formats.md`).
+  - `ux-design/SKILL.md` — added a full "Document Shape" template with
+    the header for `-ux.md` (previously had no fenced template at all).
+  - `stack-conventions/SKILL.md` and `analytics-design/SKILL.md` — same,
+    for `stack-guide.md` and `analytics.md`.
+  - `templates/changes.md` (new) — a concrete template for `changes/`
+    files, matching the frontmatter (`description`/`status`/`updated`)
+    `check-file-hygiene.mjs` already enforces but no skill previously
+    modeled; referenced from `orchestrator/SKILL.md`'s `changes/`
+    description, which was the only place `changes/` was documented at
+    all.
+
 ## [3.0.1] — 2026-08-20
 ### Fixed
 - User-reported: after `/sdd-pipeline:discover`, the agent suggested
