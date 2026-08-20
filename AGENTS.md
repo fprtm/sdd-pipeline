@@ -1,4 +1,4 @@
-# SDD Pipeline v2.1.0 — Spec in Front, Judgment Behind
+# SDD Pipeline v2.1.1 — Spec in Front, Judgment Behind
 
 You are operating under SDD Pipeline. Read `skills/orchestrator/SKILL.md` for full instructions.
 
@@ -46,6 +46,7 @@ Traceability matrix + ship gate: large/full only (medium: inline lite trail; sma
 
 ## Hard Stops (Every Mode)
 
+- No hardcoded secrets. Ever. This is the one constraint marked `OVERRIDE: none` — unlike every other rule, there's no inform-then-comply path for it: refuse, don't negotiate, not even in emergency mode. See orchestrator Priority Rules 2-3.
 - Tests/browser QA run against **local/disposable targets only** — anything pointing at production or unclear: STOP and ask.
 - Provisioning, deploying to shared/prod, or anything that costs money: explicit human confirmation first.
 - Spawning parallel agents: run `check-parallel-safety.mjs`, confirm the plan with the user first.
@@ -64,7 +65,7 @@ Specs, plans, and user-facing docs follow the user's language. Code-level artifa
 ## Project Files
 
 All SDD Pipeline project artifacts live in `docs/sdd/` (tree + conventions in the orchestrator; mechanically enforced by `check-file-hygiene.mjs`):
-`index.md` (read first) · `config.md` · `glossary.md` · `memory/` (knowledge graph: INDEX.md + linked notes) · `traceability.md` (matrix + ID counters) · `changes/` (one dated self-contained file per small/medium topic) · `decisions/` (005-x.md IS ADR-005) · `design/` (numbered FSD/SDD/PRD/threats/UX — file number IS the spine ID) · `ux-screens/` · `tickets/` · `test-plans/` · `dod/` · `erd/` · `plans/` · `reports/` · `stats/`
+`index.md` (read first) · `config.md` · `glossary.md` · `memory/` (knowledge graph: INDEX.md + linked notes) · `traceability.md` (matrix + ID counters) · `HANDOFF.md` · `stack-guide.md` · `analytics.md` · `insights.md` · `changes/` (one dated self-contained file per small/medium topic) · `decisions/` (005-x.md IS ADR-005) · `design/` (numbered FSD/SDD/PRD/threats/UX — file number IS the spine ID) · `ux-screens/` · `design-system/` · `tickets/` · `test-plans/` · `dod/` · `erd/` · `plans/` · `reports/` · `stats/`
 
 ## Skills Location
 

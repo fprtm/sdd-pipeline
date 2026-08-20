@@ -18,7 +18,7 @@ Activate emergency mode when prompt contains urgency signals:
 | Context | Error-focused only: read error logs, stack traces, recent changes. |
 | Scope guard | No limits. Fix what's broken. |
 | Complexity | Skip. |
-| Constraints | Skip ALL. Speed matters more than style. |
+| Constraints | Skip all *overridable* ones — speed matters more than style. The handful marked `OVERRIDE: none` (no hardcoded secrets, above all) are never skipped, in any mode; see orchestrator Priority Rule 3. |
 | Anti-patterns | Skip. |
 | Plan file | Skip. Fix first. Post-fix plan retrospective written to archive. |
 | Change plan | Skip. |
@@ -29,7 +29,7 @@ Activate emergency mode when prompt contains urgency signals:
 | Execution guard | Loop detection after 2 tries. Escalate FAST. |
 | Verification | Quick smoke test: does the fix work? |
 | Adversarial | Skip. |
-| Security | Skip. Can run post-fix. |
+| Security | Full checklist deferred to post-fix, but critical items (secrets, injection) still run — matches `skills/prove/security-check/`'s own emergency row. Never fully skipped. |
 | Performance | Skip. |
 | Report | 1-line: "Fix applied. [test result]." |
 | Decision log | Post-facto: "Emergency fix: [what] [why] [files touched]." |

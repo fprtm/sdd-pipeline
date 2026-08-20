@@ -116,7 +116,7 @@ If a grill session concludes with the user saying "build it" / "let's do it", it
 
 ## Plan Approval Flow
 
-Before BUILD phase, write plan to `docs/sdd/plans/current.md`:
+Before BUILD phase, write a plan — for **large/full** work that's `docs/sdd/plans/current.md`; for **small/medium** work it's the single `docs/sdd/changes/{date}-{slug}.md` file instead (see "`changes/` vs plan+report" below), which folds plan + report into one lightweight artifact rather than requiring both. Everything in this section (mode-based approval behavior, the transparency rule, the archive-naming convention) applies to whichever of the two is the right artifact for the task's size — "plan" below means "the written record," not literally always `plans/current.md`.
 
 ### Plan Contents
 
@@ -136,10 +136,10 @@ Use the template at `templates/plan.md`: header (date, mode, size, SDLC, archite
 
 Whatever the mode, the user must always be told what happened with the plan — never silently create one, never silently skip one:
 
-- Plan created → announce it: `Plan written to docs/sdd/plans/current.md`
+- Plan created → announce it: `Plan written to docs/sdd/plans/current.md` (large/full) or `Change file written to docs/sdd/changes/{date}-{slug}.md` (small/medium)
 - Plan skipped → announce **why**: `No plan file — micro task (1-line change)` or `No plan file — prototype mode`
 
-Inconsistent behavior ("sometimes it makes a plan, sometimes not, and I don't know why") destroys trust in the whole pipeline. The rule is fixed: **small+ task in vibe/standard/strict → plan file, always.** Micro tasks, prototype mode, and emergency mode → no plan file, but say so.
+Inconsistent behavior ("sometimes it makes a plan, sometimes not, and I don't know why") destroys trust in the whole pipeline. The rule is fixed: **small+ task in vibe/standard/strict → a written record, always** — `plans/current.md` for large/full, `changes/{date}-{slug}.md` for small/medium (never both — the whole point of the `changes/` shape is that it replaces the plan+report pair, not adds to it). Micro tasks, prototype mode, and emergency mode → no written record, but say so.
 
 ### Archive Naming — One Fixed Convention
 
@@ -211,8 +211,8 @@ When single-agent only (OpenCode, Cursor): run sequentially, use sub-agent patte
 ## Priority Rules
 
 1. **Project rules override SDD Pipeline defaults.** CLAUDE.md, AGENTS.md, project config always win.
-2. **Never refuse a user override — inform, then comply.** When the user insists on something SDD Pipeline would advise against, the response is always the same three steps: (a) state the specific risk plainly and concretely (not vague "this might cause issues" — what breaks, when, how badly), (b) if the user accepts the risk, proceed without further pushback or repeated warnings, (c) log the override (decision log if it passes rule-of-three). Refusing outright, silently complying without stating risk, and nagging after acceptance are all wrong.
-3. **Emergency overrides everything.** In emergency mode, fix first, process later.
+2. **Never refuse a user override — inform, then comply — except the non-negotiable floor.** A small set of rules are marked `OVERRIDE: none` (constraints/universal's "No Hardcoded Secrets" is the sharpest one) precisely because they're not meant to be arguable — for those, there is no inform-then-comply dance: refuse, full stop, no matter how insistent the ask or which mode is active. For every *other* override, the response is always the same three steps: (a) state the specific risk plainly and concretely (not vague "this might cause issues" — what breaks, when, how badly), (b) if the user accepts the risk, proceed without further pushback or repeated warnings, (c) log the override (decision log if it passes rule-of-three). Refusing outright, silently complying without stating risk, and nagging after acceptance are all wrong — for the overridable rules. Confusing an `OVERRIDE: none` rule for an overridable one is the one failure mode this whole priority list exists to prevent.
+3. **Emergency overrides everything — except that same non-negotiable floor.** In emergency mode, fix first, process later: skip elicitation, scope limits, docs, style constraints, deep security review. Never skip the `OVERRIDE: none` rules — emergency mode buys speed on process and ceremony, not on the one or two things marked non-negotiable for a reason. `skills/prove/security-check/`'s emergency row ("critical items only: secrets, injection") is the correct floor; a mode file that says "security: skip entirely" is wrong and should be brought back in line with this rule.
 4. **Non-coding tasks: step back.** If task is not software (writing, research, analysis), skip SDD pipeline entirely. Pure brainstorming/discussion with no execution intent also skips SDD Pipeline — that's normal conversation, not a grill session. Grill only activates on explicit request or when a consequential decision is about to lock in via an execution signal.
 
 ## Session Persistence — Stay Active Once Activated
@@ -242,6 +242,10 @@ docs/sdd/
 ├── memory/               # Knowledge graph: INDEX.md (map) + one linked note per durable fact
 ├── glossary.md           # Domain terms — canonical meaning + rejected synonyms
 ├── traceability.md       # REQ→FSD→SEC→TICKET→TEST matrix + global ID counters (large/full only)
+├── HANDOFF.md            # Resumable session snapshot (skills/meta/handoff/), overwritten not appended
+├── stack-guide.md        # Version-pinned stack conventions (skills/think/stack-conventions/)
+├── analytics.md          # Metrics tree + event taxonomy (skills/think/analytics-design/)
+├── insights.md           # Periodic self-coaching summary (skills/meta/insight/)
 ├── decisions/            # 1 file per decision, gated by rule-of-three — 005-auth-strategy.md IS ADR-005
 ├── plans/
 │   ├── current.md        # Active plan (overwritten each task)
@@ -251,7 +255,9 @@ docs/sdd/
 ├── tickets/               # Vertical-slice ticket breakdowns for large tasks
 │   └── {feature-slug}/{NN}-{ticket-slug}.md   # each carries a global TICKET-xxx id
 ├── reports/              # Verification reports per task
-├── design/               # FSD, SDD, PRD, threat models per feature (file number = spine ID)
+├── design/               # FSD, SDD, PRD, threat models, UX direction per feature (file number = spine ID)
+├── ux-screens/           # One priority-tagged flow file per user journey (skills/think/ux-design/)
+├── design-system/        # Redirected output of an external UI/UX skill, if one is composed in
 ├── test-plans/           # Test plans per feature (TEST-xxx cases)
 ├── dod/                  # DoD checklists per task
 ├── stats/                # Monthly stats (2026-08.md)
