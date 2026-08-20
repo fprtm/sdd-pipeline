@@ -42,7 +42,7 @@ The routing table above implies a rough estimate:
 - ~20% of sub-tasks → STRONG
 - **Theoretical range: ~40-60% token cost reduction vs. running everything on STRONG tier**
 
-**This number has not been measured in any real run.** It's a plausible estimate from the tier categorization, not a validated result. Treat it as a hypothesis, not a claim. If `/sdd-pipeline:measure` accumulates enough real routing data over time, replace this section with actual observed numbers instead of the estimate.
+**This number has not been measured in any real run.** It's a plausible estimate from the tier categorization, not a validated result. Treat it as a hypothesis, not a claim. If `skills/meta/stats/` accumulates enough real routing data over time (surfaced via `/sdd-pipeline:check`'s impact summary), replace this section with actual observed numbers instead of the estimate.
 
 ## Single-Model Fallback
 

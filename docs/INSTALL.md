@@ -13,7 +13,7 @@ Inside Claude Code, no terminal needed:
 /plugin install sdd-pipeline
 ```
 
-That's it. SDD Pipeline registers as a plugin — the orchestrator and all 7 slash commands (`/sdd-pipeline:discover`, `/sdd-pipeline:decompose`, `/sdd-pipeline:design`, `/sdd-pipeline:implement`, `/sdd-pipeline:verify`, `/sdd-pipeline:audit`, `/sdd-pipeline:measure`) become available immediately.
+That's it. SDD Pipeline registers as a plugin — the orchestrator (auto-triggers on coding tasks) and all 5 slash commands (`/sdd-pipeline:brainstorm`, `/sdd-pipeline:discover`, `/sdd-pipeline:design`, `/sdd-pipeline:implement`, `/sdd-pipeline:check`) become available immediately.
 
 **Note**: this method only sets up the skill/command layer. To also get the pre-commit hook, CI workflow, and `docs/sdd/` project files (glossary, decisions, plans, etc.), run the manual installer once with `--with-hooks --with-ci --with-templates` (see below) — it's safe to run alongside a plugin install.
 
@@ -27,21 +27,21 @@ Use this if you're on Codex, OpenCode, Cursor, want project-scoped install, want
 
 ```bash
 git clone https://github.com/fprtm/sdd-pipeline
-cd sdd
+cd sdd-pipeline
 ```
 
 ### Step 2 — Run the installer for your agent
 
 | Agent | Command | Installs to |
 |-------|---------|-------------|
-| Claude Code (your user account, all projects) | `./install/install.sh --agent claude` | `~/.claude/commands/sdd/` |
-| Claude Code (this project only) | `./install/install.sh --agent claude-proj` | `.claude/commands/sdd/` |
+| Claude Code (your user account, all projects) | `./install/install.sh --agent claude` | `~/.claude/skills/sdd/` |
+| Claude Code (this project only) | `./install/install.sh --agent claude-proj` | `.claude/skills/sdd/` |
 | Codex CLI | `./install/install.sh --agent codex` | `.agents/skills/sdd/` + `AGENTS.md` |
 | OpenCode | `./install/install.sh --agent opencode` | `.opencode/skills/sdd/` + `AGENTS.md` |
 | Cursor | `./install/install.sh --agent cursor` | `.cursor/skills/sdd/` + `AGENTS.md` |
 | Any other agent | `./install/install.sh --agent generic --dest <dir>` | `<dir>` you choose |
 
-Run this **from inside the project you want SDD Pipeline to guard**, not from the `sdd/` clone itself — unless you're installing user-wide (`--agent claude`), in which case it doesn't matter.
+Run this **from inside the project you want SDD Pipeline to guard**, not from the `sdd-pipeline/` clone itself — unless you're installing user-wide (`--agent claude`), in which case it doesn't matter.
 
 > **Cursor note**: since Cursor's January 2026 Agent Skills release, Cursor natively discovers the same `SKILL.md` + frontmatter format used here, so `--agent cursor` installs into `.cursor/skills/sdd/` — the same shape as the `codex`/`opencode` targets, not a stripped-down orchestrator-only copy. If this project already has a `codex` install (`.agents/skills/sdd/`), Cursor discovers that too with zero extra steps, since it also scans `.agents/skills/` as a compatibility path. See `docs/ARCHITECTURE.md` §13 for the full cross-agent discovery comparison, including a note on the orchestrator's folder-name-vs-frontmatter alias this installer adds for OpenCode/Codex/Cursor discovery.
 
@@ -72,7 +72,7 @@ You can combine every flag in one call:
 
 ## Installing Only Part of SDD Pipeline
 
-If you don't want the full 48-skill install, use `--only` with a comma-separated list of phases:
+If you don't want the full install, use `--only` with a comma-separated list of phases (the orchestrator is always included on top of whatever you list — see below):
 
 ```bash
 ./install/install.sh --agent claude --only think,build
@@ -80,14 +80,14 @@ If you don't want the full 48-skill install, use `--only` with a comma-separated
 
 | Phase name | What it includes |
 |------------|-------------------|
-| `think` | elicitation, context-loader, scope-guard, complexity-analyzer, sdlc-detector, arch-analyzer, grill |
-| `build` | constraints, anti-patterns, change-plan, execution-guard, model-router, doc-generator, ticket-decomposition |
-| `prove` | verification, adversarial, security-check, performance-check, report |
-| `meta` | decision-log, comprehension, insight, health-check, memory, stats, glossary |
+| `think` | elicitation, context-loader, scope-guard, complexity-analyzer, sdlc-detector, arch-analyzer, grill, threat-model, database-design, ux-design, stack-conventions, analytics-design |
+| `build` | constraints, anti-patterns, change-plan, execution-guard, model-router, doc-generator, ticket-decomposition, test-plan, git-workflow, infra |
+| `prove` | verification, adversarial, security-check, performance-check, report, coverage-check, browser-qa, judgment |
+| `meta` | decision-log, comprehension, insight, health-check, memory, stats, glossary, traceability, handoff |
 | `modes` | prototype, vibe, standard, strict, emergency |
 | `constraints` | universal, web, cli, mobile, library, api |
-| `agents` | orchestration, model-strategy, subagent-patterns |
-| `commands` | the 7 standalone slash commands |
+| `agents` | orchestration, model-strategy, subagent-patterns, parallel-work |
+| `commands` | the 5 standalone slash commands |
 
 Shortcuts for common combinations:
 
@@ -103,18 +103,18 @@ The orchestrator is always included regardless of `--only`, since every other ph
 ## Verify the Install
 
 ```bash
-cd sdd   # the cloned repo, not your project
+cd sdd-pipeline   # the cloned repo, not your project
 ./scripts/validate-skills.sh
 ```
 
-Should print `ALL CHECKS PASSED` and a count of skills found (48 in a full install). This checks skill files exist, have valid frontmatter, and that `plugin.json`'s skill registrations resolve — it validates the *source repo*, not what got copied into your project, so run it here if something seems off after installing.
+Should print `ALL CHECKS PASSED` and a count of skills found (60 in a full install — this counts every skill module, not just the 6 that register as invocable entry points; see `docs/ARCHITECTURE.md` §13 if that distinction matters to you). This checks skill files exist, have valid frontmatter, and that `plugin.json`'s skill registrations resolve — it validates the *source repo*, not what got copied into your project, so run it here if something seems off after installing.
 
 ---
 
 ## Updating
 
 ```bash
-cd sdd
+cd sdd-pipeline
 git pull
 ./install/install.sh --agent claude --update
 ```
@@ -138,7 +138,7 @@ Removes the installed skill files, the pre-commit hook (if it was SDD Pipeline's
 ## Troubleshooting
 
 **"Unknown option" or install fails immediately**
-Check `./install/install.sh --version` — you may be running an old copy. `git pull` in the `sdd/` clone first.
+Check `./install/install.sh --version` — you may be running an old copy. `git pull` in the `sdd-pipeline/` clone first.
 
 **Pre-commit hook not running**
 `--with-hooks` requires the target directory to already be a git repository (`git init` first if it isn't). Check `.git/hooks/pre-commit` exists and is executable (`chmod +x`).

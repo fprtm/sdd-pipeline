@@ -102,7 +102,7 @@ User reviews and approves.
 
 **Doc Generator** creates:
 
-**PRD** (`docs/sdd/design/ecommerce-api-prd.md`):
+**PRD** (`docs/sdd/design/001-ecommerce-api-prd.md`):
 ```
 Problem: Small online store needs API for product catalog, orders, payments.
 Solution: RESTful API with Stripe integration, PostgreSQL backend.
@@ -111,7 +111,7 @@ Nice to Have: Search, filtering, discount codes.
 Out of Scope: Admin panel, frontend, email notifications (v2).
 ```
 
-**ERD** (`docs/sdd/erd/ecommerce-erd.md`):
+**ERD** (`docs/sdd/erd/001-ecommerce-erd.md`):
 ```mermaid
 erDiagram
     USER ||--o{ ORDER : places
@@ -122,10 +122,10 @@ erDiagram
     ORDER ||--o| SHIPMENT : has
 ```
 
-**SDD** (`docs/sdd/design/ecommerce-api-sdd.md`):
+**SDD** (`docs/sdd/design/001-ecommerce-api-sdd.md`):
 Architecture decisions, module boundaries, API design patterns.
 
-**DoD** (`docs/sdd/dod/ecommerce-api-dod.md`):
+**DoD** (`docs/sdd/dod/001-ecommerce-api-dod.md`):
 Project-level definition of done.
 
 Then builds the actual code module by module.
@@ -139,10 +139,10 @@ Full verification suite for each module as it's built.
 All artifacts linked in `docs/sdd/index.md`:
 ```
 ## Documents
-- [PRD: E-commerce API](design/ecommerce-api-prd.md)
-- [SDD: E-commerce API](design/ecommerce-api-sdd.md)
-- [ERD: E-commerce](erd/ecommerce-erd.md)
-- [DoD: E-commerce API](dod/ecommerce-api-dod.md)
+- [PRD: E-commerce API](design/001-ecommerce-api-prd.md)
+- [SDD: E-commerce API](design/001-ecommerce-api-sdd.md)
+- [ERD: E-commerce](erd/001-ecommerce-erd.md)
+- [DoD: E-commerce API](dod/001-ecommerce-api-dod.md)
 
 ## Decisions
 - [001: Modular Monolith](decisions/001-modular-monolith.md) → SDD

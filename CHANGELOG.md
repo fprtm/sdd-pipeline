@@ -1,7 +1,7 @@
 # Changelog
 
-All notable changes to SDD Pipeline. Versioning is [SemVer](https://semver.org/);
-pre-1.0, so minors may still move fast. Plain-language where possible.
+All notable changes to SDD Pipeline. Versioning is [SemVer](https://semver.org/).
+Plain-language where possible.
 
 ## [2.1.1] — 2026-08-19
 ### Fixed

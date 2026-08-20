@@ -83,9 +83,9 @@ User reviews and approves: "go"
 ### 3. BUILD Phase
 
 **Doc Generator** creates:
-- `docs/sdd/design/user-auth-fsd.md`
-- `docs/sdd/dod/user-auth-dod.md`
-- `docs/sdd/test-plans/user-auth-tests.md`
+- `docs/sdd/design/001-user-auth-fsd.md`
+- `docs/sdd/dod/001-user-auth-dod.md`
+- `docs/sdd/test-plans/001-user-auth-tests.md`
 
 **Constraints** check during build:
 - ✅ YAGNI: no unnecessary features
@@ -116,6 +116,19 @@ password hashing, httpOnly cookies for token storage. Auth middleware
 protects routes via req.user. Start reading: routes/auth.js → services/authService.js.
 ```
 
+**Judgment gate** (`skills/prove/judgment/`) — runs after verification passes, before the task is considered done:
+```
+Weakest point: refresh-token rotation isn't covered by an adversarial test yet —
+the 5 adversarial cases target the auth endpoints, not the token-refresh path.
+Hallucination-risk zones: none flagged — bcrypt/JWT usage matches the project's
+existing patterns rather than being invented fresh.
+Security escalation: this change touches auth/session handling — automated
+checks passed, but this is a category where AI-generated code statistically
+fails most. Recommend a human skim of services/authService.js before merge.
+Comprehension check: can you explain why login uses an httpOnly cookie instead
+of returning the token in the response body?
+```
+
 **Decision logged**: `docs/sdd/decisions/005-jwt-auth-strategy.md`
 
 **Stats footer**:
@@ -137,3 +150,4 @@ SDD Pipeline: 1 anti-pattern fixed, 0 security issues, 10 files changed
 5. Anti-pattern was caught during build — auto-fixed
 6. Security was verified — domain-aware checklist
 7. Everything is linked — index.md connects all artifacts
+8. Verification passing wasn't the end — the judgment gate named a real weak spot (refresh-token rotation untested) and flagged the auth-touching change for a human skim, even though every automated check was green

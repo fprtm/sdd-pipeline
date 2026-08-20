@@ -34,10 +34,17 @@ OUT: everything else
 No hidden complexity flagged. Straightforward token/session debugging.
 ```
 
-### 2. Plan Written
+### 2. Change File Written (not a separate plan)
+
+Small/medium work doesn't get a `plans/current.md` + a later report as two files — one dated, self-contained file in `changes/` folds both into one, updated in place as the task moves forward (see `skills/orchestrator/SKILL.md`'s "Plan Approval Flow"). Standard mode shows it and waits for approval, same as it would for a full plan:
 
 ```markdown
-# Plan: Fix Random Logout After 15 Minutes
+---
+description: fix random logout after 15 minutes — refresh-token race condition
+status: IN PROGRESS
+updated: 2026-08-20
+---
+# Change: Fix Random Logout After 15 Minutes
 
 **Mode**: standard | **Size**: small | **SDLC**: scrum
 
@@ -53,8 +60,11 @@ No hidden complexity flagged. Straightforward token/session debugging.
 4. Identify timing mismatch
 5. Fix and verify
 
-## Documents to Generate
-- None (bug fix — report only)
+## DoD
+(this small task still gets a DoD floor — folded in here, not a separate file)
+- [ ] Root cause identified, not just symptom patched
+- [ ] Regression test added for the concurrent-refresh case
+- [ ] No scope creep beyond auth middleware / token config
 ```
 
 User: "go"
@@ -93,10 +103,13 @@ Check: services/authService.js:47 — refreshToken function.
 SDD Pipeline: 0 anti-patterns | 0 security issues | 1 file changed | confidence: HIGH
 ```
 
+**Change file updated in place** (same file from step 2, not a new one) — `status: IN PROGRESS` → `DONE`, `updated:` bumped to today, DoD boxes checked, and a short "What was tested" section appended. This one file is now the complete record — no separate report file, no `-v2` slug.
+
 ## Key Takeaways
 
 1. Bug fix = lightweight pipeline. 0 questions asked.
-2. No docs generated — bug fix doesn't need FSD/SDD
-3. Root cause identified and explained in comprehension aid
-4. Tests added for the specific failure case
-5. Minimal change — 1 file, surgical fix
+2. No FSD/SDD generated — a bug fix doesn't need a full spec — but a DoD checklist still exists, folded into the change file; that floor never drops for small+ tasks
+3. One `changes/` file, not a plan + a separate report — updated in place as the task moved from IN PROGRESS to DONE
+4. Root cause identified and explained in comprehension aid
+5. Tests added for the specific failure case
+6. Minimal change — 1 file, surgical fix

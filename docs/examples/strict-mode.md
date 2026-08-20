@@ -100,17 +100,17 @@ User: "approved"
 ### 3. BUILD Phase — With Checkpoints
 
 **Doc Generator** creates full suite:
-- `docs/sdd/design/payment-refund-fsd.md`
-- `docs/sdd/design/payment-refund-sdd.md`
-- `docs/sdd/erd/payment-refund-erd.md` (ERD update with Refund entity)
-- `docs/sdd/dod/payment-refund-dod.md`
-- `docs/sdd/test-plans/payment-refund-tests.md`
+- `docs/sdd/design/002-payment-refund-fsd.md`
+- `docs/sdd/design/002-payment-refund-sdd.md`
+- `docs/sdd/erd/002-payment-refund-erd.md` (ERD update with Refund entity)
+- `docs/sdd/dod/002-payment-refund-dod.md`
+- `docs/sdd/test-plans/002-payment-refund-tests.md`
 
 **Strict checkpoint 1** (before writing code):
 ```
 FSD and SDD generated. Please review:
-- docs/sdd/design/payment-refund-fsd.md
-- docs/sdd/design/payment-refund-sdd.md
+- docs/sdd/design/002-payment-refund-fsd.md
+- docs/sdd/design/002-payment-refund-sdd.md
 
 Proceed with implementation? (yes/no/modify)
 ```
