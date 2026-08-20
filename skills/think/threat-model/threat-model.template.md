@@ -1,5 +1,10 @@
 # Threat Model — <feature/system name>
 
+**Date**: [auto]
+**Updated**: [auto]
+**Version**: v1
+**Status**: DRAFT | REVIEWED | ACCEPTED
+
 > **Plain-language summary:** _what could go wrong security-wise and what we're
 > doing about it, in a few sentences._
 

@@ -4,6 +4,40 @@ A product with screens has a UI whether or not anyone designed it — the only q
 
 Output: `docs/sdd/design/{NNN}-{slug}-ux.md` (the direction, tokens, and thin flow index) + `docs/sdd/ux-screens/<flow-slug>.md` (one file per flow).
 
+## Document Shape
+
+`-ux.md` is a numbered design doc that sits in `docs/sdd/design/` next to its FSD/SDS/threats siblings — same metadata header as those (see `skills/build/doc-generator/formats.md`), so a reader scanning the folder can tell at a glance how current each one is instead of the UX doc looking like the odd one out.
+
+```markdown
+# UX: [Feature Name]
+
+**Date**: [auto]
+**Updated**: [auto]
+**Version**: v1
+**Status**: DRAFT | APPROVED | IMPLEMENTED
+
+## 0. Direction
+[§0 answers: existing design to follow, or chosen direction + why, light/dark, wireframe depth]
+
+## 1. Principles & Direction
+[North star tied to brand and audience]
+
+## 2. Design Tokens
+[Color palette (AA-checked), typography scale, spacing & layout — the SSOT]
+
+## 3. Key Screens & Flows
+[Thin index: one row per flow — priority · description · link to docs/sdd/ux-screens/<flow-slug>.md]
+
+## 4. Component Patterns
+[Reusable patterns and the components they map to]
+
+## 5. States for Every Screen
+[Confirmation that empty/loading/error/success are defined per screen, or exceptions noted]
+
+## 6. Accessibility & Responsive
+[Contrast, touch targets, focus order, keyboard operability, breakpoint reflow]
+```
+
 **This skill owns process, not taste** (the orchestrator's composition rule stands: external skills win on aesthetics). If a specialized UI/UX design skill is installed, **prefer it** and hold it to this skill's checklist — confirm direction first, tokens as SSOT, states for every screen, a11y. Its output must still land inside the canonical tree (redirect its output dir to `docs/sdd/design-system/` — never scattered at the repo root), and the `-ux.md` doc cites it as SSOT so the two never diverge. If none is installed, do everything below yourself — fully self-sufficient.
 
 ## 0. Confirm Direction First — With a Concrete Preview, Not a Label

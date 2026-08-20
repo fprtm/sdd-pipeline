@@ -285,7 +285,7 @@ Tree conventions are **mechanically enforced**: run `check-file-hygiene.mjs` (bu
 
 **Language**: specs, plans, and user-facing docs follow the **user's language**; code-level artifacts are **always English** — identifiers, JSDoc/comments, commit messages, branch slugs — so the code stays portable and reviewable regardless of conversation language.
 
-**`changes/` vs plan+report** — for a small/medium change, one dated self-contained file in `changes/` (its own mini gate list, IDs, inline decisions, what-was-tested) replaces the separate plan + report pair, and one row in `index.md` registers it. One topic = one file, updated in place — no `-v2` near-duplicate slugs. Large/full work keeps the full structure (plans/, reports/, design/, tickets/).
+**`changes/` vs plan+report** — for a small/medium change, one dated self-contained file in `changes/` replaces the separate plan + report pair, using the template at `templates/changes.md` (header → What Changed → Gate List → IDs → Inline Decisions → What Was Tested), and one row in `index.md` registers it. One topic = one file, updated in place — no `-v2` near-duplicate slugs. Large/full work keeps the full structure (plans/, reports/, design/, tickets/).
 
 ## Team Support
 

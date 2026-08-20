@@ -4,6 +4,41 @@ A feature that ships with no way to tell if it succeeded is a guess you can't co
 
 Output: `docs/sdd/analytics.md` (project-level). Derives from the PRD's success criteria — don't invent metrics the product doesn't care about (vanity metrics).
 
+## Document Shape
+
+Same metadata header as every other living design doc (FSD/SDS/PRD/ERD/DoD/Test Plan — see `skills/build/doc-generator/formats.md`): a project's metrics tree changes as features ship, so without a header there's no way to tell how current it is.
+
+```markdown
+# Analytics: [Project Name]
+
+**Date**: [auto — first generated]
+**Updated**: [auto — bumped every re-run: new feature, revised metric, taxonomy change]
+**Version**: v1
+
+## North-Star Metric
+[The one metric that best proxies real value delivered, + its REQ/FSD source]
+
+## Input Metrics
+[The few levers that move the north-star]
+
+## Guardrails
+[What must NOT get worse — one per REQ-NF]
+
+## Event Taxonomy
+[object_action name · when it fires · typed properties, one entry per event]
+
+## Funnels & Cohorts
+[Funnel steps as events; cohort splits worth tracking]
+
+## Instrumentation Plan
+[Which events emit where — ties into skills/build/infra/'s observability]
+
+## Privacy
+[PII/consent handling per event property]
+```
+
+Single project-level document (like `glossary.md`, not numbered per-feature) — one file, updated in place, `Version` incrementing on every substantive re-run.
+
 ## 1. Metrics Tree (Tie to REQ Outcomes, Don't Freelance)
 
 - **North-star** — the one metric that best proxies real value delivered ("completed bookings/week", not "signups").

@@ -4,6 +4,45 @@ A stack-neutral pipeline still has to write *idiomatic* code for whatever stack 
 
 Output: `docs/sdd/stack-guide.md` (project-level SSOT for "how we write code in *this* stack") + scaffolded config files where it makes sense.
 
+## Document Shape
+
+Same metadata header as every other living design doc (FSD/SDS/PRD/ERD/DoD/Test Plan — see `skills/build/doc-generator/formats.md`), because this is exactly the same "was this touched last week or a year ago" problem: `stack-guide.md` gets revised in place every time the stack changes or a version bumps, so without a header there's no way to tell how current it is without a git blame.
+
+```markdown
+# Stack Guide: [Project Name]
+
+**Date**: [auto — first generated]
+**Updated**: [auto — bumped every re-run: stack change, version bump, or rule edit]
+**Version**: v1
+**Stack**: [language/framework/datastore, with exact versions]
+
+## Language & Typing
+[Rules from Step 3, each citing its source + version]
+
+## Project Layout
+[...]
+
+## Framework Conventions
+[...]
+
+## Lint & Format
+[...]
+
+## Testing
+[...]
+
+## Security Defaults
+[Framework-specific protections, mapped to threat-model SEC-xxx controls]
+
+## Dependency & Config Management
+[...]
+
+## Sources
+[One line per rule group: source URL + version consulted — this is what makes the guide auditable per Step 2]
+```
+
+This is a single project-level document (like `glossary.md`, not numbered per-feature like FSD) — one file, updated in place, `Version` incrementing on every substantive re-run rather than a new file ever being created for it.
+
 ## Step 1 — Identify the Stack and Versions
 
 Read the ADRs for language, framework, datastore, test tooling, and their **versions**. Version matters: conventions and defaults change between major versions. Brownfield: read the lockfile/manifest — the versions in use, not the ones you remember.
