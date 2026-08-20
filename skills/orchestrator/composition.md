@@ -33,8 +33,9 @@ Recommended: Install **Taste** for design judgment.
 Install now? (y/n)
 ```
 
-4. If user approves: install the skill
-5. If user declines: proceed without it, note in stats
+4. **Before installing, name what's actually about to happen — a third-party skill is unreviewed code/instructions from outside this repo, not a vetted extension.** State plainly: which skill, from where (repo/publisher if known), and that its `SKILL.md` will run in this session the same way any of SDD Pipeline's own skills do — i.e., with the same level of trust an agent gives its own instructions. Don't present "Install now? (y/n)" as a low-stakes default-yes prompt; a skill an agent hasn't read is not a skill it can vouch for. If the source or publisher is unclear, say so explicitly rather than recommending it with the same confidence as a known one.
+5. If user approves: install the skill
+6. If user declines: proceed without it, note in stats
 
 ## Conflict Resolution
 

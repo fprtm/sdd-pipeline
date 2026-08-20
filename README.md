@@ -50,6 +50,20 @@ The sequence is **fixed** — ask → spec → plan → build → check, every t
 - **A coverage gate that resists the easy ways to game it** — ≥80% line+branch is necessary but not sufficient: every FSD error flow tested, every High/Critical SEC control tested, no skipped/`.only`/always-true fake passes, and UI Must-journeys verified in a real browser. Never rounds a fail up to a pass. (It's still an AI-run check reporting on AI-written code — see Limitations below for what that does and doesn't guarantee.)
 - **Hard safety stops** — tests and browser QA run against **local/disposable targets only**; anything pointing at production (or unclear) is a full stop, not a guess. Provisioning/deploying/spending always requires explicit human confirmation, in every mode.
 
+### vs. other spec-driven tools
+
+Several other projects also push AI agents toward spec-first work — worth knowing about, and worth being precise about how they differ rather than just asserting "we're better." Based on each project's own public docs as of this writing:
+
+| | [spec-kit](https://github.com/github/spec-kit) (GitHub) | [BMAD-METHOD](https://github.com/bmad-code-org/bmad-method) | [Agent OS](https://buildermethods.com/agent-os) | [Kiro](https://kiro.dev) (AWS) | SDD Pipeline |
+|---|---|---|---|---|---|
+| Core shape | Spec → Plan → Tasks → Code | Multi-persona agent team (PM/Architect/Dev/QA/...), 4-phase lifecycle | Codebase-standards injection only — explicitly doesn't do spec-writing/task-breakdown | Requirements → Design → Tasks (EARS notation), steering files | THINK → BUILD → **PROVE** |
+| Portable across agents | Yes — 30+ agent integrations | Yes, plus web-bundle exports (Gemini Gems, custom GPTs) | Yes — Claude Code, Cursor, Codex, Gemini, Windsurf | No — AWS's own IDE only | Yes — plain Markdown, works with any agent that reads it |
+| Post-code judgment gate | Not described in public docs | A QA persona exists as part of the agent team | Out of scope by design | Human-in-the-loop approval of design/tasks, not post-code judgment | Yes — explicit gate: weakest point + hallucination-risk zones + security escalation, even when checks pass |
+| Design-time threat modeling tied to a post-code security check | Not described | Not described | Out of scope | Not described | Yes — STRIDE at design time, SEC-xxx controls, re-verified post-code by shared ID |
+| Traceability matrix with a ship gate | Traceability via presets/customization, not a described default gate | Handoff artifacts between agents, not a stable-ID matrix | Out of scope | Not described | Yes — `REQ→FSD→SEC→TICKET→TEST`, red row blocks ship at large/full tier |
+
+The honest read: spec-kit and BMAD are strong on the THINK side (spec quality, agent coordination) and don't appear to claim a PROVE-side judgment layer the way this repo does; Agent OS solves a genuinely different, narrower problem (your codebase's own conventions) and composes fine alongside a THINK/PROVE framework rather than competing with one; Kiro's spec workflow is the closest in spirit but is a single-vendor IDE, not a portable skill set. If judgment-after-verification and a ship gate that can't be quietly downgraded aren't what you need, one of the others may fit better — see this repo's own Limitations section below before assuming SDD Pipeline is the stronger choice by default.
+
 ## Supporting Machinery
 
 - **5 modes** — prototype / vibe / standard / strict / emergency, auto-detected, each dialing ceremony up or down without ever dropping a gate silently.
