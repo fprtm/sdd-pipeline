@@ -12,6 +12,9 @@ Companion to `skills/orchestrator/SKILL.md` — the full gap-detection, recommen
 | Security audit, penetration testing | Deep security analysis | **security-guidance** |
 | Live library docs needed, API reference | Up-to-date documentation | **context7** |
 | E2E testing, browser automation, UI verification | Browser testing | **playwright** |
+| Recurring style asks ("keep it terse", "less formal", "stop over-explaining") | Communication style | A persona skill (e.g. **Caveman** for terse) — no single default fits everyone; suggest, don't presume |
+
+**Communication-style caveat**: a one-off "make this answer shorter" is just an instruction to follow, not a gap — only recommend a persona skill when the same style ask keeps recurring across tasks (the user is re-stating a preference the environment keeps forgetting). Unlike the other rows, there's no one obvious default skill; name the pattern and let the user pick.
 
 ## Recommendation Flow
 
