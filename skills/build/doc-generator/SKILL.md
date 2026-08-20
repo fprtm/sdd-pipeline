@@ -63,6 +63,17 @@ All generated docs go to the structured docs/sdd/ directory, **with a sequence n
 
 After generating, update `docs/sdd/index.md` with links and relationships — the index is how anyone finds the right numbered doc without listing the directory.
 
+**Metadata header — every design doc, so revision state is readable without opening git log**: FSD/SDD/PRD/ERD/DoD/Test Plan all open with the same four bolded fields (exact shape in `formats.md`), read top-to-bottom before anything else:
+
+```
+**Date**: [auto — set once, when the file is first created; never changes]
+**Updated**: [auto — bumped to today on every substantive revision]
+**Version**: v1 [increment by 1 each time Updated changes; typo/formatting fixes don't count]
+**Status**: DRAFT | APPROVED | IMPLEMENTED | SUPERSEDED by {NNN}
+```
+
+This is the same "never delete, mark instead" instinct as the decision log and the traceability matrix's dropped-ID rule, applied to design docs: `Date` answers "how old is this," `Updated`+`Version` answer "has this actually changed since I last read it, and how much" without diffing history, and `Status` answers "is this still the live version" without cross-checking the index. A doc sitting at `v1`/`Status: DRAFT` for months is itself a signal worth noticing.
+
 ## The ID Spine — Stable IDs for Traceability
 
 The numbered filenames double as the traceability spine (`skills/meta/traceability/`). The convention is **hybrid**: documents get file-level IDs, fine-grained items get item-level IDs.

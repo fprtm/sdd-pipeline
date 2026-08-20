@@ -13,6 +13,8 @@ All documents are short, focused, and actionable. NOT enterprise bloatware.
 # FSD: [Feature Name]
 
 **Date**: [auto]
+**Updated**: [auto]
+**Version**: v1
 **Status**: DRAFT | APPROVED | IMPLEMENTED
 
 ## Problem Statement
@@ -62,6 +64,9 @@ what prior art in the codebase to follow, what's explicitly NOT going to be test
 
 **Task**: [one-line description]
 **Date**: [auto]
+**Updated**: [auto]
+**Version**: v1
+**Status**: DRAFT | APPROVED | IMPLEMENTED
 **Architecture**: [detected or proposed pattern]
 
 ## Overview
@@ -101,6 +106,9 @@ what prior art in the codebase to follow, what's explicitly NOT going to be test
 # PRD: [Product Feature Name]
 
 **Date**: [auto]
+**Updated**: [auto]
+**Version**: v1
+**Status**: DRAFT | APPROVED | IMPLEMENTED
 **Priority**: HIGH | MEDIUM | LOW
 
 ## Problem
@@ -138,6 +146,9 @@ what prior art in the codebase to follow, what's explicitly NOT going to be test
 # ERD: [Database Context]
 
 **Date**: [auto]
+**Updated**: [auto]
+**Version**: v1
+**Status**: DRAFT | APPROVED | IMPLEMENTED
 **Database**: [PostgreSQL/MySQL/MongoDB/etc.]
 
 ## Diagram
@@ -183,6 +194,9 @@ erDiagram
 # DoD: [Task Name]
 
 **Date**: [auto]
+**Updated**: [auto]
+**Version**: v1
+**Status**: DRAFT | APPROVED | IMPLEMENTED
 
 ## Checklist
 - [ ] Code implements all acceptance criteria
@@ -210,6 +224,9 @@ Full behavior (5 test classes, TEST-xxx anatomy, LOCAL-only environment safety, 
 # Test Plan: [Feature Name]
 
 **Date**: [auto]
+**Updated**: [auto]
+**Version**: v1
+**Status**: DRAFT | APPROVED | IMPLEMENTED
 **Coverage Target**: ≥80% line + branch (tool + exact command here)
 **Test env**: [command + env file — must be local/ephemeral, see test-plan skill]
 
