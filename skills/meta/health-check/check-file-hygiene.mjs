@@ -7,20 +7,29 @@
 //   node tools/check-file-hygiene.mjs [docs/sdd]
 //
 // Checks (v2 tree = the SDD Pipeline structure + changes/):
-//   1. Root: only the known top-level .md files (index/config/memory/glossary/
-//      traceability/HANDOFF) — no stray docs dumped at the root.
-//   2. Only known subdirectories (design, erd, dod, test-plans, tickets, plans,
-//      reports, decisions, changes, stats).
-//   3. design/   {NNN}-{slug}-(fsd|sdd|prd|threats).md
+//   1. Root: only the known top-level .md files — index, config, glossary,
+//      traceability, HANDOFF, stack-guide, analytics, insights — no stray
+//      docs dumped at the root. (memory is a directory, not a root file —
+//      see #9.)
+//   2. Only known subdirectories: design, erd, dod, test-plans, tickets,
+//      plans, reports, decisions, changes, stats, ux-screens, design-system,
+//      memory.
+//   3. design/   {NNN}-{slug}-(fsd|sdd|prd|threats|ux).md
 //   4. erd/      {NNN}-{slug}-erd.md · dod/ {NNN}-{slug}-dod.md ·
 //      test-plans/ {NNN}-{slug}-tests.md
 //   5. decisions/ {NNN}-{slug}.md
-//   6. changes/  YYYY-MM-DD-{slug}.md + frontmatter with description & status,
-//      and no duplicate topic slug (one topic = one file, updated in place).
-//   7. plans/    current.md only; plans/archive/ YYYY-MM-DD-NN-{slug}.md
-//   8. reports/  YYYY-MM-DD-{slug}.md · stats/ YYYY-MM.md
-//   9. tickets/  {feature-slug}/{NN}-{slug}.md, each containing a TICKET-xxx id
-//  10. index.md exists, and every design/ + changes/ file is referenced in it
+//   6. changes/  YYYY-MM-DD-{slug}.md + frontmatter with description, status,
+//      and updated (bumped on every in-place revision — see the "how this
+//      reaches" comment below), and no duplicate topic slug (one topic =
+//      one file, updated in place).
+//   7. ux-screens/ <flow-slug>.md + frontmatter with description, priority
+//      (Must/Should/Could), and updated.
+//   8. plans/    current.md only; plans/archive/ YYYY-MM-DD-NN-{slug}.md
+//   9. memory/   INDEX.md + <slug>.md notes with description frontmatter,
+//      every note listed in INDEX.md.
+//  10. reports/  YYYY-MM-DD-{slug}.md · stats/ YYYY-MM.md
+//  11. tickets/  {feature-slug}/{NN}-{slug}.md, each containing a TICKET-xxx id
+//  12. index.md exists, and every design/ + changes/ file is referenced in it
 //      (no orphan docs the index doesn't know about).
 // Exits non-zero on any problem.
 
@@ -29,7 +38,7 @@ import { join, relative, basename } from 'node:path';
 
 const dir = process.argv[2] ?? 'docs/sdd';
 const SLUG = '[a-z0-9][a-z0-9-]*';
-const ROOT_MD = new Set(['index.md', 'config.md', 'glossary.md', 'traceability.md', 'HANDOFF.md', 'stack-guide.md', 'analytics.md']);
+const ROOT_MD = new Set(['index.md', 'config.md', 'glossary.md', 'traceability.md', 'HANDOFF.md', 'stack-guide.md', 'analytics.md', 'insights.md']);
 const KNOWN_DIRS = new Set(['design', 'erd', 'dod', 'test-plans', 'tickets', 'plans', 'reports', 'decisions', 'changes', 'stats', 'ux-screens', 'design-system', 'memory']);
 const DIR_RULES = {
   design: new RegExp(`^\\d{3}-${SLUG}-(fsd|sdd|prd|threats|ux)\\.md$`),
@@ -53,14 +62,27 @@ if (!existsSync(dir)) {
 const problems = [];
 const flag = (msg) => problems.push(msg);
 const ls = (d) => (existsSync(d) ? readdirSync(d) : []);
+// existsSync follows symlinks and checks the TARGET, so it's already false
+// for a broken symlink — every isDir()/isMarkdownFile() call site below is
+// therefore safe to call before ever touching statSync/readFileSync on one.
 const isDir = (p) => existsSync(p) && statSync(p).isDirectory();
+// Case-insensitive on purpose: a stray FOO.MD must be caught and flagged
+// (it fails the exact-lowercase DIR_RULES regexes below, correctly, as a
+// bad filename) rather than silently skipped by every check in this file
+// the way a plain e.endsWith('.md') would skip it.
+const isMarkdownFile = (p, e) => existsSync(p) && !isDir(p) && /\.md$/i.test(e);
+// Frontmatter regexes below assume LF; a CRLF file (\r\n line endings) has
+// "---\r\n" which doesn't match a literal "---\n", so every frontmatter
+// check would false-positive "missing frontmatter" on a file that has one.
+// Normalizing on read fixes it at the source for every caller.
+const readText = (p) => readFileSync(p, 'utf8').replace(/\r\n/g, '\n');
 
 // 1+2 — root files and known dirs
 for (const e of ls(dir)) {
   const p = join(dir, e);
   if (isDir(p)) {
     if (!KNOWN_DIRS.has(e)) flag(`unknown directory: ${e}/ — not part of the docs/sdd tree`);
-  } else if (e.endsWith('.md')) {
+  } else if (isMarkdownFile(p, e)) {
     if (!ROOT_MD.has(e)) flag(`stray file at root: ${e} — docs belong in a subdirectory (design/, changes/, …)`);
   }
 }
@@ -71,7 +93,7 @@ for (const [d, re] of Object.entries(DIR_RULES)) {
   for (const e of ls(sub)) {
     const p = join(sub, e);
     if (isDir(p)) { flag(`unexpected subdirectory: ${d}/${e}/`); continue; }
-    if (!e.endsWith('.md')) continue;
+    if (!isMarkdownFile(p, e)) continue;
     if (!re.test(e)) flag(`bad filename: ${d}/${e} — expected ${re}`);
   }
 }
@@ -82,11 +104,10 @@ for (const [d, re] of Object.entries(DIR_RULES)) {
 // still current" signal as the Updated/Version header on design/ docs, just
 // in frontmatter form since ux-screens/ files don't use the bolded-field shape).
 for (const e of ls(join(dir, 'ux-screens'))) {
-  if (!e.endsWith('.md')) continue;
   const p = join(dir, 'ux-screens', e);
-  if (isDir(p)) continue;
+  if (!isMarkdownFile(p, e)) continue;
   if (!new RegExp(`^${SLUG}\\.md$`).test(e)) flag(`bad filename: ux-screens/${e} — expected <flow-slug>.md`);
-  const text = readFileSync(p, 'utf8');
+  const text = readText(p);
   const fmMatch = text.match(/^---\n([\s\S]*?)\n---/);
   if (!fmMatch) flag(`ux-screens/${e}: missing frontmatter (description/priority/updated)`);
   else {
@@ -99,10 +120,9 @@ for (const e of ls(join(dir, 'ux-screens'))) {
 // changes/ — frontmatter + duplicate topic slug
 const changeSlugs = new Map();
 for (const e of ls(join(dir, 'changes'))) {
-  if (!e.endsWith('.md')) continue;
   const p = join(dir, 'changes', e);
-  if (isDir(p)) continue;
-  const text = readFileSync(p, 'utf8');
+  if (!isMarkdownFile(p, e)) continue;
+  const text = readText(p);
   if (!/^---\n[\s\S]*?\n---/.test(text)) {
     flag(`changes/${e}: missing frontmatter (description/status/updated)`);
   } else {
@@ -140,9 +160,10 @@ for (const feat of ls(join(dir, 'tickets'))) {
   if (!isDir(fp)) { flag(`tickets/${feat}: tickets live in a {feature-slug}/ subdirectory`); continue; }
   if (!FEATURE_DIR.test(feat)) flag(`tickets/${feat}/: feature directory should be a kebab-case slug`);
   for (const e of ls(fp)) {
-    if (!e.endsWith('.md')) continue;
+    const tp = join(fp, e);
+    if (!isMarkdownFile(tp, e)) continue;
     if (!TICKET_FILE.test(e)) flag(`bad filename: tickets/${feat}/${e} — expected NN-slug.md`);
-    const text = readFileSync(join(fp, e), 'utf8');
+    const text = readText(tp);
     if (!/TICKET-\d+/.test(text)) flag(`tickets/${feat}/${e}: no global TICKET-xxx id found in the file`);
   }
 }
@@ -153,12 +174,13 @@ for (const feat of ls(join(dir, 'tickets'))) {
 const memDir = join(dir, 'memory');
 if (existsSync(memDir)) {
   const memIndexPath = join(memDir, 'INDEX.md');
-  const memIndex = existsSync(memIndexPath) ? readFileSync(memIndexPath, 'utf8') : null;
+  const memIndex = existsSync(memIndexPath) ? readText(memIndexPath) : null;
   if (!memIndex) flag('memory/INDEX.md missing — the index is how the graph gets read cheaply');
   for (const e of ls(memDir)) {
-    if (!e.endsWith('.md') || e === 'INDEX.md') continue;
+    const mp = join(memDir, e);
+    if (e === 'INDEX.md' || !isMarkdownFile(mp, e)) continue;
     if (!new RegExp(`^${SLUG}\\.md$`).test(e)) flag(`bad filename: memory/${e} — expected <slug>.md`);
-    const fm = readFileSync(join(memDir, e), 'utf8').match(/^---\n([\s\S]*?)\n---/);
+    const fm = readText(mp).match(/^---\n([\s\S]*?)\n---/);
     if (!fm) flag(`memory/${e}: missing frontmatter (description/type)`);
     else if (!/^description:/m.test(fm[1])) flag(`memory/${e}: frontmatter missing "description:"`);
     if (memIndex && !memIndex.includes(e.replace(/\.md$/, ''))) flag(`orphan: memory/${e} not listed in memory/INDEX.md`);
@@ -170,10 +192,10 @@ const indexPath = join(dir, 'index.md');
 if (!existsSync(indexPath)) {
   flag(`index.md missing — the index is how anyone finds the right doc`);
 } else {
-  const index = readFileSync(indexPath, 'utf8');
+  const index = readText(indexPath);
   for (const d of ['design', 'changes']) {
     for (const e of ls(join(dir, d))) {
-      if (e.endsWith('.md') && !index.includes(e)) flag(`orphan: ${d}/${e} not referenced in index.md`);
+      if (isMarkdownFile(join(dir, d, e), e) && !index.includes(e)) flag(`orphan: ${d}/${e} not referenced in index.md`);
     }
   }
 }

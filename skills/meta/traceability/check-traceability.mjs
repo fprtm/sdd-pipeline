@@ -115,8 +115,15 @@ for (const path of files) {
     }
   }
 
-  // Dead relative links.
-  for (const lm of text.matchAll(/\]\(([^)]+)\)/g)) {
+  // Dead relative links. Strip fenced/inline code first — a doc illustrating
+  // markdown syntax itself (e.g. a template explaining "rows look like
+  // `[file](path) — description`") would otherwise be flagged as a literal
+  // dead link to a file named "path". This stripped copy is used ONLY for
+  // the link check below — ID_RE scanning above deliberately still looks
+  // inside code spans, since that's the normal way this repo cites IDs like
+  // `FSD-003` in prose, and stripping there would break real ID tracking.
+  const textForLinkCheck = text.replace(/```[\s\S]*?```/g, '').replace(/`[^`\n]*`/g, '');
+  for (const lm of textForLinkCheck.matchAll(/\]\(([^)]+)\)/g)) {
     let target = lm[1].trim();
     if (/^(https?:|mailto:|#)/.test(target)) continue;
     target = target.split('#')[0];
@@ -128,14 +135,27 @@ for (const path of files) {
 
 const isDefined = (id) => defined.has(id) || defined.has(parentOf(id));
 
+// The matrix itself is only required at large/full tier — medium projects use
+// a lite inline Refs trail instead, and small/micro skip it entirely (see
+// skills/meta/traceability/SKILL.md's gates-by-size table). A project with no
+// traceability.md hasn't opted into full traceability yet; that's a valid,
+// documented tier, not spec drift — so there's nothing to check every REQ/FSD
+// against, and every one of them being reported as an "orphan" simply because
+// no matrix exists yet would contradict the tiering rule. Only enforce spine
+// coverage once a matrix actually exists (i.e. once the project claims to be
+// keeping one — from that point on, it must be kept honest).
+const matrixExists = existsSync(join(dir, MATRIX));
+
 // A parent file id (FSD-003) counts as tracked when the matrix cites it OR any
 // of its sub-items (FSD-003.2); a sub-item counts when the matrix cites it, its
 // parent, or a sibling sub-item of the same parent.
 const matrixParents = new Set([...matrixRefs].map(parentOf));
-for (const [id, f] of defined) {
-  if (!SPINE.has(typeOf(id))) continue;
-  if (matrixRefs.has(id) || matrixParents.has(parentOf(id))) continue;
-  problems.orphan.push(`${id} (defined in ${f})`);
+if (matrixExists) {
+  for (const [id, f] of defined) {
+    if (!SPINE.has(typeOf(id))) continue;
+    if (matrixRefs.has(id) || matrixParents.has(parentOf(id))) continue;
+    problems.orphan.push(`${id} (defined in ${f})`);
+  }
 }
 for (const id of matrixRefs) {
   if (!isDefined(id)) problems.broken.push(id);

@@ -20,8 +20,14 @@ jobs:
         run: |
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }}..HEAD)
-          else
+          elif git rev-parse --verify -q HEAD~1 >/dev/null; then
             FILES=$(git diff --name-only HEAD~1..HEAD)
+          else
+            # First push to a fresh repo/branch — there's no HEAD~1 to diff
+            # against. Diff the empty tree instead so this lists every file
+            # in HEAD (equivalent to "everything just changed"), rather than
+            # failing the whole workflow on the very first push.
+            FILES=$(git diff --name-only "$(git hash-object -t tree /dev/null)"..HEAD)
           fi
           FILE_COUNT=$(echo "$FILES" | grep -c '.' || true)
           echo "count=$FILE_COUNT" >> $GITHUB_OUTPUT
@@ -30,6 +36,8 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Check for hardcoded secrets
+        env:
+          CHANGED_FILES: ${{ steps.changed.outputs.files }}
         run: |
           PATTERNS=(
             'AKIA[0-9A-Z]{16}'
@@ -51,13 +59,15 @@ jobs:
                 FOUND=1
               fi
             done
-          done <<< "${{ steps.changed.outputs.files }}"
+          done <<< "$CHANGED_FILES"
           if [ "$FOUND" -eq 1 ]; then
             echo "::error::Hardcoded secrets detected. Remove before merging."
             exit 1
           fi
 
       - name: Check secret file types
+        env:
+          CHANGED_FILES: ${{ steps.changed.outputs.files }}
         run: |
           BLOCKED=0
           while IFS= read -r file; do
@@ -69,7 +79,7 @@ jobs:
                 echo "::error file=$file::Private key file should not be committed"
                 BLOCKED=1 ;;
             esac
-          done <<< "${{ steps.changed.outputs.files }}"
+          done <<< "$CHANGED_FILES"
           [ "$BLOCKED" -eq 0 ] || exit 1
 
       - name: Check scope declaration for large changes
@@ -80,6 +90,8 @@ jobs:
           fi
 
       - name: Check test coverage for source changes
+        env:
+          CHANGED_FILES: ${{ steps.changed.outputs.files }}
         run: |
           SRC_CHANGED=false
           TEST_CHANGED=false
@@ -89,12 +101,14 @@ jobs:
               *.ts|*.tsx|*.js|*.jsx|*.py|*.go|*.rs|*.java|*.rb)
                 [[ "$file" != *test* ]] && [[ "$file" != *spec* ]] && SRC_CHANGED=true ;;
             esac
-          done <<< "${{ steps.changed.outputs.files }}"
+          done <<< "$CHANGED_FILES"
           if [ "$SRC_CHANGED" = true ] && [ "$TEST_CHANGED" = false ]; then
             echo "::warning::Source code changed without corresponding test changes"
           fi
 
       - name: Check for auth/payment security review
+        env:
+          CHANGED_FILES: ${{ steps.changed.outputs.files }}
         run: |
           AUTH_FILES=false
           while IFS= read -r file; do
@@ -104,7 +118,7 @@ jobs:
                 echo "::notice file=$file::Security-sensitive file changed — ensure SDD Pipeline security review completed"
                 ;;
             esac
-          done <<< "${{ steps.changed.outputs.files }}"
+          done <<< "$CHANGED_FILES"
 
       - name: Summary
         run: |
@@ -113,7 +127,7 @@ jobs:
           echo "- Files changed: ${{ steps.changed.outputs.count }}" >> $GITHUB_STEP_SUMMARY
           echo "- Secrets check: ✅ Passed" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "_Checked by [SDD Pipeline](https://github.com/fprtm/sdd-pipeline) v2.0.0_" >> $GITHUB_STEP_SUMMARY
+          echo "_Checked by [SDD Pipeline](https://github.com/fprtm/sdd-pipeline)_" >> $GITHUB_STEP_SUMMARY
 
   evidence-spine:
     name: Traceability + docs-tree hygiene
