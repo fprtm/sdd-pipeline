@@ -12,8 +12,8 @@ SDD Pipeline Installer v$VERSION
 Usage: ./install.sh --agent <target> [options]
 
 Targets:
-  claude       Install for Claude Code (user scope: ~/.claude/commands/)
-  claude-proj  Install for Claude Code (project scope: .claude/commands/)
+  claude       Install for Claude Code (user scope: ~/.claude/skills/)
+  claude-proj  Install for Claude Code (project scope: .claude/skills/)
   codex        Install for Codex CLI (.agents/skills/ + AGENTS.md)
   opencode     Install for OpenCode (.opencode/skills/)
   cursor       Install for Cursor (.cursor/skills/sdd/ — Agent Skills, since Jan 2026)
@@ -88,19 +88,42 @@ copy_phase() {
   esac
 }
 
+# Expands a comma-separated --only phase list (including the "security"/
+# "quality" shortcuts) into the flat, deduped set of real phase directory
+# names, one per line. No associative arrays (bash 3.2/BSD-safe — see the
+# portability note on rewrite_skill_paths). Validates every name BEFORE any
+# copy_phase call runs, so an unknown phase fails fast with nothing copied
+# yet, instead of leaving a partial orchestrator-only install behind.
+resolve_phases() {
+  local phases="$1"
+  local out="" p x
+  local raw
+  IFS=',' read -ra raw <<< "$phases"
+  for p in "${raw[@]}"; do
+    p="${p// /}"
+    case "$p" in
+      security) for x in constraints prove; do case " $out " in *" $x "*) ;; *) out="$out $x" ;; esac; done ;;
+      quality)  for x in build prove; do case " $out " in *" $x "*) ;; *) out="$out $x" ;; esac; done ;;
+      think|build|prove|meta|modes|constraints|agents|commands)
+        case " $out " in *" $p "*) ;; *) out="$out $p" ;; esac ;;
+      *) echo "Unknown phase: $p" >&2; return 1 ;;
+    esac
+  done
+  printf '%s\n' $out
+}
+
 copy_selective() {
   local dest="$1"
   local phases="$2"
+  local resolved
+  if ! resolved=$(resolve_phases "$phases"); then
+    exit 1
+  fi
   mkdir -p "$dest"
-
-  # Always copy orchestrator
   copy_phase "$dest" "orchestrator"
-
-  IFS=',' read -ra PHASE_ARRAY <<< "$phases"
-  for phase in "${PHASE_ARRAY[@]}"; do
-    phase=$(echo "$phase" | tr -d ' ')
-    copy_phase "$dest" "$phase"
-  done
+  while IFS= read -r phase; do
+    [ -n "$phase" ] && copy_phase "$dest" "$phase"
+  done <<< "$resolved"
 }
 
 # Every skill file cross-references its siblings with a literal path like
@@ -121,9 +144,21 @@ rewrite_skill_paths_in_file() {
   sed -i.bak "s|skills/|${escaped}|g" "$file" && rm -f "$file.bak"
 }
 
-# Same rewrite, applied to every .md/.mjs file already copied under $dest —
-# i.e. the whole installed skill tree, correcting its internal cross-references
-# in place to match where it actually landed.
+# Same rewrite, applied to every .md/.mjs file under the given directories —
+# correcting internal cross-references in place to match where they landed.
+#
+# $1 is always the overall install root (used to compute the prefix); the
+# remaining args are the specific directories to walk. Defaults to $1 itself
+# when no extra dirs are given (a full copy_all_skills install — the whole
+# tree was just freshly copied, so rewriting all of it is correct).
+#
+# On a --only update, callers MUST pass just the freshly-copied subdirs
+# (orchestrator/ + the resolved phases), never the whole install root. The
+# rewrite is NOT idempotent — the prefix itself contains the literal
+# substring "skills/" (e.g. ".agents/skills/sdd/"), so re-running it over
+# files a PRIOR run already rewrote corrupts them into a double-prefixed
+# path (".agents/.agents/skills/sdd/sdd/..."). Directories untouched by this
+# invocation must be left alone, not just left with stale-but-valid content.
 #
 # Uses process substitution (< <(...)), not a `find | while` pipe: the loop
 # body needs `failed` to survive past the loop, which a pipe's subshell
@@ -132,20 +167,41 @@ rewrite_skill_paths_in_file() {
 # one bad file logs a warning and the loop continues instead of aborting
 # the whole install mid-copy with no explanation.
 rewrite_skill_paths() {
-  local dest="$1"
+  local dest="$1"; shift
   local prefix="${dest%/}/"
+  local dirs=("$@")
+  [ ${#dirs[@]} -eq 0 ] && dirs=("$dest")
   local failed=0
-  while IFS= read -r -d '' f; do
-    if ! rewrite_skill_paths_in_file "$f" "$prefix"; then
-      echo "  ! warning: failed to rewrite path references in $f — left as-is" >&2
-      failed=$((failed + 1))
-    fi
-  done < <(find "$dest" -type f \( -name '*.md' -o -name '*.mjs' \) -print0)
+  local d
+  for d in "${dirs[@]}"; do
+    [ -d "$d" ] || continue
+    while IFS= read -r -d '' f; do
+      if ! rewrite_skill_paths_in_file "$f" "$prefix"; then
+        echo "  ! warning: failed to rewrite path references in $f — left as-is" >&2
+        failed=$((failed + 1))
+      fi
+    done < <(find "$d" -type f \( -name '*.md' -o -name '*.mjs' \) -print0)
+  done
   if [ "$failed" -gt 0 ]; then
     echo "  ! $failed file(s) could not be rewritten — see warnings above" >&2
   else
     echo "  ✓ internal skills/... references rewritten to point at $dest/"
   fi
+}
+
+# Computes the exact set of directories a --only copy touched (orchestrator +
+# resolved phases) so rewrite_skill_paths can be scoped to just those — see
+# its docstring for why scoping matters. Prints one path per line.
+only_scope_dirs() {
+  local dest="$1"
+  local only="$2"
+  echo "$dest/orchestrator"
+  local resolved
+  resolved=$(resolve_phases "$only") || exit 1
+  local phase
+  while IFS= read -r phase; do
+    [ -n "$phase" ] && echo "$dest/$phase"
+  done <<< "$resolved"
 }
 
 copy_agents_md() {
@@ -183,8 +239,18 @@ install_hooks() {
     return
   fi
   mkdir -p .git/hooks
-  ln -sf "$(pwd)/enforcement/hooks/pre-commit" .git/hooks/pre-commit 2>/dev/null || \
-    cp "$SCRIPT_DIR/enforcement/hooks/pre-commit" .git/hooks/pre-commit
+  # Always a plain copy, never a symlink: this used to symlink to
+  # "$(pwd)/enforcement/hooks/pre-commit" — but $(pwd) here is the TARGET
+  # project (the docs say to run this installer from inside it), which has
+  # no enforcement/ directory of its own except when the target project IS
+  # this sdd-pipeline clone. Everywhere else `ln -sf` silently "succeeded"
+  # into a dangling symlink pointing at a nonexistent path, so the `|| cp`
+  # fallback never ran, then `chmod` failed on the dangling link and the
+  # whole installer aborted under set -e. A symlink to the source clone was
+  # also fragile even when it happened to resolve — move/delete that clone
+  # later and the hook silently stops running. A self-contained copy has
+  # neither failure mode.
+  cp "$SCRIPT_DIR/enforcement/hooks/pre-commit" .git/hooks/pre-commit
   chmod +x .git/hooks/pre-commit
   echo "Pre-commit hook installed"
 }
@@ -212,12 +278,18 @@ install_templates() {
 
 # Copy the mechanical checkers into the project so CI and local runs can use
 # them without reaching back into the skill install location.
+TOOLS_INSTALLED=false
 install_tools() {
   mkdir -p tools
   cp "$SCRIPT_DIR/skills/meta/traceability/check-traceability.mjs" tools/ 2>/dev/null || true
   cp "$SCRIPT_DIR/skills/meta/health-check/check-file-hygiene.mjs" tools/ 2>/dev/null || true
   cp "$SCRIPT_DIR/skills/agents/parallel-work/check-parallel-safety.mjs" tools/ 2>/dev/null || true
-  echo "Mechanical checkers copied to tools/ (traceability, file-hygiene, parallel-safety)"
+  # install_ci and install_templates both call this — only announce once
+  # when both flags are given together, instead of printing it twice.
+  if [ "$TOOLS_INSTALLED" = false ]; then
+    echo "Mechanical checkers copied to tools/ (traceability, file-hygiene, parallel-safety)"
+    TOOLS_INSTALLED=true
+  fi
 }
 
 uninstall_agent() {
@@ -266,8 +338,8 @@ fi
 
 resolve_dest() {
   case "$AGENT" in
-    claude)      echo "${DEST:-$HOME/.claude/commands/sdd}" ;;
-    claude-proj) echo "${DEST:-.claude/commands/sdd}" ;;
+    claude)      echo "${DEST:-$HOME/.claude/skills/sdd}" ;;
+    claude-proj) echo "${DEST:-.claude/skills/sdd}" ;;
     codex)       echo "${DEST:-.agents/skills/sdd}" ;;
     opencode)    echo "${DEST:-.opencode/skills/sdd}" ;;
     cursor)      echo "${DEST:-.cursor/skills/sdd}" ;;
@@ -301,10 +373,16 @@ if [ "$DO_UNINSTALL" = true ]; then
     fi
   fi
 
-  # Clean up CI
+  # Clean up CI — same ownership check as the pre-commit hook above: only
+  # remove it if it's actually ours, never assume a file at this path in
+  # someone else's project is safe to delete unconditionally.
   if [ -f ".github/workflows/sdd-check.yml" ]; then
-    rm .github/workflows/sdd-check.yml
-    echo "GitHub Actions workflow removed"
+    if grep -q "SDD Pipeline" .github/workflows/sdd-check.yml 2>/dev/null; then
+      rm .github/workflows/sdd-check.yml
+      echo "GitHub Actions workflow removed"
+    else
+      echo "Note: .github/workflows/sdd-check.yml exists but doesn't look like SDD Pipeline's — left in place"
+    fi
   fi
 
   # Clean up AGENTS.md if we created it
@@ -330,13 +408,20 @@ if [ "$DO_UPDATE" = true ]; then
     echo "Updating skills at $TARGET_DEST..."
     if [[ -n "$ONLY" ]]; then
       copy_selective "$TARGET_DEST" "$ONLY"
+      # Scoped on purpose: only the dirs just re-copied, never the whole
+      # tree — see rewrite_skill_paths' docstring for why a --only update
+      # would otherwise corrupt everything copied by an earlier, different
+      # install into a double-prefixed path.
+      readarray_dirs=()
+      while IFS= read -r d; do readarray_dirs+=("$d"); done < <(only_scope_dirs "$TARGET_DEST" "$ONLY")
+      rewrite_skill_paths "$TARGET_DEST" "${readarray_dirs[@]}"
     else
       copy_all_skills "$TARGET_DEST"
+      rewrite_skill_paths "$TARGET_DEST"
     fi
-    rewrite_skill_paths "$TARGET_DEST"
 
     case "$AGENT" in
-      codex|opencode|cursor) install_orchestrator_alias "$TARGET_DEST" ;;
+      claude|claude-proj|codex|opencode|cursor) install_orchestrator_alias "$TARGET_DEST" ;;
     esac
 
     # Update hooks if installed
@@ -365,22 +450,29 @@ echo "Installing SDD Pipeline v$VERSION for $AGENT..."
 if [[ -n "$ONLY" ]]; then
   echo "Selective install: $ONLY"
   copy_selective "$TARGET_DEST" "$ONLY"
+  only_scope_dirs_arr=()
+  while IFS= read -r d; do only_scope_dirs_arr+=("$d"); done < <(only_scope_dirs "$TARGET_DEST" "$ONLY")
+  rewrite_skill_paths "$TARGET_DEST" "${only_scope_dirs_arr[@]}"
 else
   copy_all_skills "$TARGET_DEST"
+  rewrite_skill_paths "$TARGET_DEST"
 fi
-rewrite_skill_paths "$TARGET_DEST"
 
 # Agent-specific setup
 case "$AGENT" in
   claude)
+    install_orchestrator_alias "$TARGET_DEST"
     echo ""
-    echo "SDD Pipeline installed for Claude Code (user scope)."
-    echo "Skills available as /sdd commands."
+    echo "SDD Pipeline installed for Claude Code (user scope, all projects)."
+    echo "Skills discoverable natively at $TARGET_DEST/ — the orchestrator"
+    echo "auto-triggers on coding tasks; type / in chat to pick one manually."
     ;;
   claude-proj)
+    install_orchestrator_alias "$TARGET_DEST"
     echo ""
     echo "SDD Pipeline installed for Claude Code (project scope)."
-    echo "Skills available as /sdd commands in this project."
+    echo "Skills discoverable natively at $TARGET_DEST/ — the orchestrator"
+    echo "auto-triggers on coding tasks; type / in chat to pick one manually."
     ;;
   codex)
     install_orchestrator_alias "$TARGET_DEST"
