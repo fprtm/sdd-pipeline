@@ -143,7 +143,7 @@ Summarize the tier split at the top of the breakdown (counts per tier) so the us
 
 | Mode | Ticket Decomposition |
 |------|----------------------|
-| **prototype** | Skip — build the whole thing in one pass, speed first |
+| **prototype** | For genuinely small scope: build in one pass, no tickets. For `large` scope (new system, multi-component): still decompose into vertical slices — speed-first doesn't mean losing the ability to parallelize or track what's done vs. what's left. Tickets can be lightweight (title + one-line "what to build" + files + blockers, skip DoD/tier/traceability refs), but they exist. |
 | **vibe** | Decompose silently if task is genuinely large; work tickets in sequence without showing the breakdown unless asked |
 | **standard** | Show the breakdown, confirm granularity, then work tickets one at a time with progress updates |
 | **strict** | Show the breakdown, require explicit approval per ticket before starting, full DoD per ticket |

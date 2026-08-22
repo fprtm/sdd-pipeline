@@ -56,7 +56,7 @@ disable:
   - doc-generator
 ```
 
-Read this list once per session (same load as mode/SDLC/domain detection) and treat every name on it as **not dispatched, ever, for this project** — not "run but suppress its output," actually skipped, the same as if the skill directory didn't exist. Match by the skill's directory name (`insight`, not "Insight" or `skills/meta/insight/`). A disabled skill's evidence-gate row (if it has one, e.g. `doc-generator`'s DoD floor) is skipped too — announce it the same way any other skipped gate gets announced ("DoD skipped — doc-generator disabled in config.md"), never silently. This is a blunter instrument than mode (which dials depth) — `disable:` removes a skill outright, for teams that have decided a given check doesn't apply to this project at all.
+Read once per session. Every name on it is **actually skipped** (not "run but suppressed"), matched by directory name (`insight`, not `skills/meta/insight/`). A disabled skill's evidence-gate row is skipped too — announce it ("DoD skipped — doc-generator disabled in config.md"), never silently. This is blunter than mode (which dials depth) — `disable:` removes a skill outright.
 
 ## Mode Detection
 
@@ -97,15 +97,15 @@ Read project context to determine domain:
 
 Load constraints from `skills/constraints/[domain]/SKILL.md`.
 
-## SDLC Detection
+## SDLC Detection — Always Detected, Always Announced
 
-Run `skills/think/sdlc-detector/SKILL.md` to detect methodology:
+Run `skills/think/sdlc-detector/SKILL.md` to detect methodology — **every mode, including prototype**. A prototype can be speed-first without being methodology-blind; knowing "this is kanban" or "this is solo" costs one detection pass and shapes how tickets, scope, and progress updates work for the rest of the session.
 
 1. Check `docs/sdd/config.md` for declared SDLC
 2. Auto-detect from project signals (`.jira/`, `.linear/`, sprint labels, etc.)
 3. If undetected, ask once and save as a note in `docs/sdd/memory/`
 
-SDLC context is passed to all downstream skills. See sdlc-detector for behavior adaptation per methodology.
+**Always announce the detected methodology in the THINK output** — e.g. `SDLC: kanban (detected from .github/project.yml)` or `SDLC: solo (no signals found, defaulted)`. Silent detection that's "passed to downstream skills" but never shown to the user is invisible work — invisible work doesn't build trust. SDLC context is passed to all downstream skills; see sdlc-detector for behavior adaptation per methodology.
 
 ## Architecture Analysis
 
@@ -114,6 +114,10 @@ Run `skills/think/arch-analyzer/SKILL.md`:
 - **Existing project**: Detect patterns, flag inconsistencies, advise on architecture-impacting changes
 - **New project**: Propose architecture based on domain + scale + requirements
 - **Architecture-impacting task**: Flag when changes cross architectural boundaries
+
+## Brownfield Adoption — Existing Project, First Time Using SDD
+
+When detected (coding task + no `docs/sdd/` content): don't treat it as greenfield — respect existing conventions/patterns. Bootstrap `docs/sdd/` incrementally: create `config.md` (detected mode, domain, SDLC) + `index.md` on first task, seed `memory/` from context-loading. Other artifacts appear when tasks naturally produce them, not pre-emptively. Don't retroactively document the codebase — prior work stays in git history. Announce: "First SDD run — created `docs/sdd/config.md` + `index.md`. Patterns: [summary]. SDLC: [detected]."
 
 ## Skill Composition Engine
 
@@ -147,14 +151,14 @@ Use the template at `templates/plan.md`: header (date, mode, size, SDLC, archite
 | **strict** | Plan written and shown. **MUST** be explicitly approved. No proceeding without "approved" / "go" / "yes". |
 | **emergency** | No plan file. Fix first. Post-fix plan retrospective. |
 
-### Plan Transparency — Always Say What Happened
+### Plan Transparency — Say What Happened, Before Code, Every Time
 
-Whatever the mode, the user must always be told what happened with the plan — never silently create one, never silently skip one:
+**Step 0 of BUILD, not a trailing courtesy** — before the first code edit, not an afterthought once code-writing momentum has taken over. The response for any coding task must contain exactly one of these two lines before any file is created/modified:
 
-- Plan created → announce it: `Plan written to docs/sdd/plans/current.md` (large/full) or `Change file written to docs/sdd/changes/{date}-{slug}.md` (small/medium)
-- Plan skipped → announce **why**: `No plan file — micro task (1-line change)` or `No plan file — prototype mode`
+- Plan created → `Plan written to docs/sdd/plans/current.md` (large/full) or `Change file written to docs/sdd/changes/{date}-{slug}.md` (small/medium)
+- Plan skipped → `No plan/docs — reason: <micro task (1-line change) | prototype mode | ...>`
 
-Inconsistent behavior ("sometimes it makes a plan, sometimes not, and I don't know why") destroys trust in the whole pipeline. The rule is fixed: **small+ task in vibe/standard/strict → a written record, always** — `plans/current.md` for large/full, `changes/{date}-{slug}.md` for small/medium (never both — the whole point of the `changes/` shape is that it replaces the plan+report pair, not adds to it). Micro tasks, prototype mode, and emergency mode → no written record, but say so.
+Inconsistent behavior ("sometimes it makes a plan, sometimes not, and I don't know why") destroys trust. Fixed rule: **small+ task in vibe/standard/strict → a written record, always** (`plans/current.md` large/full, `changes/{date}-{slug}.md` small/medium — never both). Micro/prototype/emergency → no written record, but say so — and record the reason in stats regardless (`skills/meta/stats/`'s `gates_skipped` field): an inline announcement can scroll out of view, a stats entry doesn't.
 
 ### Archive Naming — One Fixed Convention
 
@@ -174,7 +178,7 @@ THINK (parallel)               BUILD (sequential)            PROVE (parallel)
    (gated, see below)          └─ model-router (advisory)
 ```
 
-**Mandatory documentation rule**: every change request that reaches BUILD gets *something* written down — at minimum the plan file, plus whatever docs the task type triggers (see `skills/build/doc-generator/`). Elicitation questions that were asked and answered MUST result in a written spec/DoD before code — asking the user five questions and then writing nothing is a broken contract. If a doc is skipped, name the reason (task size, mode) in the output.
+**Mandatory documentation rule**: every change request that reaches BUILD gets *something* written down — at minimum the plan file, plus whatever docs the task type triggers (see `skills/build/doc-generator/`). Elicitation questions that were asked and answered MUST result in a written spec/DoD before code — asking the user five questions and then writing nothing is a broken contract. If a doc is skipped, name the reason (task size, mode) in the output **and** record it in `skills/meta/stats/`'s `gates_skipped` field — this applies at every size, including micro, since a skip reason is cheap to record and is exactly the trail that makes "why didn't this task get docs" answerable later instead of just trusted on faith.
 
 **For `large` tasks**: run `skills/build/ticket-decomposition/SKILL.md` before BUILD — split into vertical-slice tickets with blocking edges, then run THINK→BUILD→PROVE per ticket, working the frontier (unblocked tickets first).
 
@@ -230,14 +234,13 @@ When single-agent only (OpenCode, Cursor): run sequentially, use sub-agent patte
 3. **Emergency overrides everything — except that same non-negotiable floor.** In emergency mode, fix first, process later: skip elicitation, scope limits, docs, style constraints, deep security review. Never skip the `OVERRIDE: none` rules — emergency mode buys speed on process and ceremony, not on the one or two things marked non-negotiable for a reason. `skills/prove/security-check/`'s emergency row ("critical items only: secrets, injection") is the correct floor; a mode file that says "security: skip entirely" is wrong and should be brought back in line with this rule.
 4. **Non-coding tasks: step back.** If task is not software (writing, research, analysis), skip SDD pipeline entirely. Pure brainstorming/discussion with no execution intent also skips SDD Pipeline — that's normal conversation, not a grill session. Grill only activates on explicit request or when a consequential decision is about to lock in via an execution signal.
 
-## Session Persistence — Stay Active Once Activated
+## Session Persistence — Anchored to Repo State, Not Just Memory
 
-Once SDD Pipeline activates in a session (via the orchestrator, any `/sdd-pipeline:*` command, or auto-detection of a coding task), **it stays active for every subsequent coding task in that session**. The user must never have to re-mention SDD Pipeline or re-invoke a skill for the pipeline to keep applying — losing the framework mid-session and silently reverting to unguarded behavior is a failure mode, not a feature.
+Once SDD Pipeline activates (via the orchestrator, any `/sdd-pipeline:*` command, or auto-detection of a coding task), **it stays active for every subsequent coding task in that session** — the user must never have to re-invoke it. Conversational memory of "I already activated this" isn't reliable alone: long sessions get auto-summarized, and this instruction can drop out of retained context with no visible symptom until guardrails silently stop applying.
 
-Concretely:
-- Detected context (mode, domain, SDLC, architecture) carries forward between tasks — re-detect only when the project or an explicit signal changes, not on every prompt.
-- Answers the user already gave (via elicitation or grill) are remembered for the session and in `docs/sdd/memory/` — never re-ask.
-- If the user says "stop using sdd" / "sdd off", deactivate for the session and confirm. That's the only off-switch — context length or topic drift is not.
+- **Don't rely on memory alone. Before treating a task as ungoverned, check for `docs/sdd/` content** (`config.md`, `index.md`, `plans/`, `changes/`). If any exists, SDD is active — full stop — regardless of this session's own memory. A file-existence check is cheap and immune to compaction; conversational memory is the fast path on top of it, not the sole mechanism. This happens naturally in `think/context-loader`'s step 3.
+- Detected context (mode/domain/SDLC/architecture) and answers already given (elicitation, grill, `docs/sdd/memory/`) carry forward — re-detect/re-ask only on an explicit signal change.
+- Only off-switch: the user says "stop using sdd" / "sdd off." Context length, topic drift, or a compaction event is not.
 
 ## Adaptive Behavior
 

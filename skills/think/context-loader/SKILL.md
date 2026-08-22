@@ -8,7 +8,7 @@ Read context in this order. Stop when you have enough to work:
 
 1. **CLAUDE.md / AGENTS.md** — project-level instructions. These ALWAYS override SDD Pipeline defaults.
 2. **docs/ directory** — architecture docs, design docs, API docs, ADRs.
-3. **docs/sdd/config.md** — SDD Pipeline project overrides and saved decisions.
+3. **docs/sdd/config.md** — SDD Pipeline project overrides and saved decisions. This file's mere existence (or any `docs/sdd/` content — `index.md`, `plans/`, `changes/`) is itself the signal that SDD Pipeline is active for this project — checked fresh at the start of every task, not just remembered from having triggered it earlier in the session. See `skills/orchestrator/SKILL.md`'s "Session Persistence" for why this repo-state check matters more than conversational memory.
 4. **docs/sdd/memory/INDEX.md** — the project knowledge graph map: match the task to notes by their one-line hooks, open only those notes (never the whole vault).
 5. **Code scan** — infer from existing code when documentation is absent.
 

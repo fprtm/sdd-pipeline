@@ -26,6 +26,25 @@ see [[ordering-module]]. The lock is why concurrent checkouts serialize here;
 don't "optimize" it away. Source: ERD-002 quota table, FSD-007.
 ```
 
+## The Graph Is Rendered, Not Just Described
+
+"A linked knowledge graph" only earns that name if the links are actually visible as a graph, not just as prose `[[wikilinks]]` scattered across files. `INDEX.md` carries a Mermaid `graph LR` block, above the one-line-per-note list, that's kept current whenever a note is added, removed, or relinked:
+
+````markdown
+```mermaid
+graph LR
+  ordering-module["ordering-module (module)"]
+  quota-lock["quota-lock (gotcha)"]
+  quota-lock --> ordering-module
+```
+````
+
+- **One node per note** — id = slug, label = `slug (type)`.
+- **One edge per `[[wikilink]]`** found in any note body — `source --> target`, directed from the note containing the link to the note it points at. A link to a note that doesn't exist yet still renders (dangling node, no incoming edges) — it's a visible "worth writing" marker, not silently dropped.
+- **Regenerating it is mechanical, not a judgment call**: grep every note body for `[[slug]]` occurrences, rebuild the node/edge list from scratch. Cheap enough to redo on every note change rather than hand-maintain.
+- **Cap at ~40 nodes** for readability — past that, keep generating the full edge list (still machine-derived, still correct) but say so in prose above the block ("graph is for orientation; `INDEX.md`'s bullet list below is the authoritative flat index") rather than silently truncating.
+- This needs no new tool: Mermaid is already this framework's own diagramming convention (see `docs/ARCHITECTURE.md`), and it renders natively in GitHub, VS Code's built-in Markdown preview, and most other Markdown viewers — a human can open `docs/sdd/memory/INDEX.md` and see the map, and an agent gets the same shape-at-a-glance benefit before deciding which notes are worth opening in full.
+
 ## What Belongs Here (Two Jobs, One Graph)
 
 **Codebase knowledge** (so the agent doesn't full-scan):
@@ -68,4 +87,4 @@ don't "optimize" it away. Source: ERD-002 quota table, FSD-007.
 
 ## Exit
 
-`INDEX.md` reflects every note; each note is one focused, linked fact; the next session can get oriented from memory + a targeted read instead of a full re-scan. What this session learned that's durable is written down, not lost.
+`INDEX.md` reflects every note and its Mermaid graph block reflects the current link structure; each note is one focused, linked fact; the next session can get oriented from memory + a targeted read instead of a full re-scan. What this session learned that's durable is written down, not lost.

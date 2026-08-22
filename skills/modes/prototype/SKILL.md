@@ -15,7 +15,7 @@ Speed-first. For MVPs, hackathons, proof-of-concepts. Minimum viable guardrails.
 | Plan file | Skip. No plan file generated. |
 | Change plan | Skip. |
 | Doc generator | Skip. No docs generated. |
-| SDLC detector | Skip. Speed first. |
+| SDLC detector | Detect and announce (cheap, shapes ticket/scope behavior). Skip adaptations that slow work down. |
 | Arch analyzer | Skip. Build fast, refactor later. |
 | Stats | Track minimally (files changed + security issues only). No footer. |
 | Execution guard | Loop detection after 5 tries. No progress signals. |
