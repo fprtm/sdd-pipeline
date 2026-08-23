@@ -6,16 +6,48 @@ How the 60 skill files in `skills/` wire together: what each one does, what it c
 
 SDD Pipeline is not a program — it's a tree of Markdown "skill" files an AI coding agent reads and follows, plus 3 zero-dependency `.mjs` scripts that mechanically check what prose can't guarantee. One file, `skills/orchestrator/SKILL.md`, is the entry point; everything else is either a **phase skill** it dispatches to, a **mode** that dials behavior up/down, a **constraint pack**, or **meta machinery** that runs across every phase.
 
+Everything below is organized around one five-step sequence. It runs in this order every time; only *depth* varies.
+
 ```mermaid
 flowchart LR
-    ASK["1. ASK\nelicitation / grill"] --> SPEC["2. SPEC\nwritten spec + DoD"]
-    SPEC --> PLAN["3. PLAN\nplan file + approval"]
-    PLAN --> BUILD["4. BUILD\ncode + guardrails"]
-    BUILD --> CHECK["5. CHECK\nPROVE + judgment gate"]
+    subgraph T["THINK"]
+        ASK["1. ASK\nelicitation / grill\nscope · complexity · arch"]
+        SPEC["2. SPEC\nFSD/SDS/PRD/ERD · DoD\nthreat model · UX"]
+    end
+    subgraph B["BUILD"]
+        PLAN["3. PLAN\nplan file + approval\n(or changes/ file)"]
+        BUILDS["4. BUILD\ncode + guardrails\ntickets · commits"]
+    end
+    subgraph P["PROVE"]
+        CHECK["5. CHECK\nverify · coverage · security\nreport + judgment gate"]
+    end
+
+    ASK --> SPEC --> PLAN --> BUILDS --> CHECK
+
+    DISC(["/discover"]) -.enters.-> ASK
+    SP(["/spec"]) -.enters.-> SPEC
+    IMPL(["/implement"]) -.enters.-> BUILDS
+    CK(["/check"]) -.enters.-> CHECK
 
     classDef fixed fill:#e8eef7,stroke:#4a6fa5,color:#1a1a1a;
-    class ASK,SPEC,PLAN,BUILD,CHECK fixed;
+    classDef cmd fill:#f3ede4,stroke:#9a7b4f,color:#1a1a1a;
+    class ASK,SPEC,PLAN,BUILDS,CHECK fixed;
+    class DISC,SP,IMPL,CK cmd;
 ```
+
+**Step ↔ phase ↔ command**, so the three vocabularies this doc uses stay pinned to each other:
+
+| Step | Phase | Command that enters here | Refuses to be skipped when… |
+|---|---|---|---|
+| 1. ASK | THINK | `/sdd-pipeline:discover` | always runs; question count scales 0 (micro) → 3-5 (large) |
+| 2. SPEC | THINK + BUILD¹ | `/sdd-pipeline:spec` | size ≥ `small` — the DoD floor has no exceptions above micro |
+| 3. PLAN | BUILD | *(none — orchestrator's own step)* | size ≥ `small` in vibe/standard/strict |
+| 4. BUILD | BUILD | `/sdd-pipeline:implement` | there's code to write |
+| 5. CHECK | PROVE | `/sdd-pipeline:check` | always — depth varies, existence doesn't |
+
+`/sdd-pipeline:brainstorm` sits *before* ASK: no pipeline, no artifacts, no pressure toward execution. PLAN is the one step with no command of its own — it belongs to the orchestrator, and `/implement` presupposes it already happened.
+
+¹ **SPEC is the one step that straddles two phase directories**, and it's worth knowing before §§3-4 read as contradictory: its *analysis* half (`think/threat-model`, `think/ux-design`, `think/database-design`, `think/arch-analyzer`) is filed under `skills/think/`, while its *doc-writing* half (`build/doc-generator`, `build/test-plan`) is filed under `skills/build/`. The five steps describe the sequence a user experiences; the three phases describe how the ~60 skill files are organized on disk. They are related but not identical, and this footnote is the seam.
 
 This sequence is **fixed** — same order every time. Only *depth* adapts, driven by four things the orchestrator detects on every task:
 
