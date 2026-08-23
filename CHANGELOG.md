@@ -55,6 +55,35 @@ steps, and left the user unsure whether "design" had meant the UI or the specs.
   CLI project is never nagged for a design doc it has no reason to own. Three
   behavioral tests added (21 hygiene tests total, 47 across all checkers).
 
+### Also in this release (landed after the v3.0.2 tag, previously unlogged)
+
+- **Session persistence is anchored to repo state, not conversational memory.**
+  Long sessions get auto-summarized, and the "SDD is active" instruction could
+  drop out of retained context with no visible symptom until the guardrails
+  silently stopped applying. Now: if `docs/sdd/` has any content, SDD is active,
+  regardless of what the session remembers. A file-existence check is cheap and
+  immune to compaction.
+- **SDLC detection always runs and always announces**, including prototype mode.
+  A prototype can be speed-first without being methodology-blind, and silent
+  detection that downstream skills consume but the user never sees is invisible
+  work.
+- **Plan transparency is step 0 of BUILD**, before the first code edit, not a
+  trailing courtesy once code-writing momentum has taken over. Every skipped
+  gate is recorded in stats (`gates_skipped`) with its reason — an inline
+  announcement scrolls out of view, a stats entry doesn't.
+- **`memory/INDEX.md` carries a rendered Mermaid graph** of the `[[wikilink]]`
+  structure, mechanically regenerated. "Linked knowledge graph" only earns the
+  name if the links are visible as a graph.
+- **Brownfield adoption**: an existing project gets `docs/sdd/` bootstrapped
+  incrementally on the first task, respecting existing conventions — not
+  greenfield treatment, and no retroactive documentation of code that git
+  history already covers.
+- Prototype mode: `large` scope still gets vertical-slice tickets (lightweight —
+  title, what-to-build, files, blockers). Speed-first shouldn't mean losing the
+  ability to parallelize or see what's left.
+- `AGENTS.md` rewritten 94 → 56 lines: cheaper to load every session, no file
+  tree duplicated from the orchestrator.
+
 ### Fixed
 
 - `docs/ARCHITECTURE.md`'s file map still listed the design-doc suffix set as
