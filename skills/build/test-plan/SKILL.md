@@ -8,6 +8,19 @@ Write to `docs/sdd/test-plans/{NNN}-{slug}-tests.md` (shape in `skills/build/doc
 
 Medium+ tasks in standard/strict mode get a test plan; small tasks get their tests named in the DoD instead of a separate file; micro tasks skip. Strict promotes (small gets a mini plan); prototype/vibe demote. Announce what was (not) generated, per doc-generator's rules.
 
+## Positive AND Negative — Both, Per Flow, Always
+
+**Every flow in the plan carries at least one passing case and at least one failing case.** A plan listing only happy paths is not a test plan; it's a demo script. The negative side is where defects actually live, and it's the side an agent writing its own tests will quietly under-produce, because passing tests are easier to write and feel like progress.
+
+Concretely, per FSD flow:
+
+| | What it proves |
+|---|---|
+| **Positive** ≥1 | Valid input produces the specified outcome |
+| **Negative** ≥1 | Invalid/boundary/denied input is **rejected the way the spec says** — the right error, the right status, no partial write |
+
+A flow with only positive cases is an incomplete row: name it in the plan as a gap rather than leaving the imbalance implicit. `skills/prove/coverage-check/` treats a flow whose FSD defines an error path but whose plan has no negative case as a gate failure, not a rounding error.
+
 ## Test Classes — Label Every Case
 
 - **Happy path** — the main flow works with valid input. One per FSD main flow.
@@ -43,11 +56,17 @@ State the exact test command + which env file it uses in the plan, so any execut
 
 Many fast unit tests · a solid band of integration tests at the seams the architecture defined · a **small, high-value** set of e2e tests over Must journeys (browser-executed for a UI). Don't invert into all-e2e (slow, flaky) or all-unit (misses wiring bugs, never proves the UI works).
 
-## Coverage Target
+## Coverage Target — Achieved, Not Aspired To
 
-- **Default gate: line + branch ≥ 80%**, enforced by `skills/prove/coverage-check/`. State the number and the tool/command in the plan.
+- **Gate: line + branch ≥ 80%**, measured and enforced by `skills/prove/coverage-check/` in **every mode**. State the number and the tool/command in the plan.
+- **"Planned to be covered" is not covered.** The plan sets the target; the gate proves it was hit against real tool output. A plan that names 40 cases while the suite runs 12 is a failing gate, not a partially-completed plan.
 - Coverage is a **floor, not a goal**: 100% of Critical/High SEC controls and every FSD error flow must be tested even when the overall number is already met. A green percentage over untested error paths is false comfort — call it out.
+- **New logic ships with its test in the same change.** Writing the function now and the test "next ticket" is how the 80% is permanently one ticket away. If a function is worth writing, its test is part of writing it.
 - Different threshold? Record it here AND in coverage-check; keep them in sync.
+
+## UI Work: Testable Selectors Are Part of the Deliverable
+
+For any product with a UI, the test plan names the **`data-testid` anchors** each Must journey depends on, and the FE work that implements the screen adds them (`skills/constraints/web/`'s W9). Planning a browser journey against a UI that has no stable handles produces a spec that breaks on the next copy change — the selectors are part of the feature, not an afterthought of the test.
 
 ## Traceability (Both Directions)
 

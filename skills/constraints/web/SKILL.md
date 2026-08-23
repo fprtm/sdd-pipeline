@@ -51,3 +51,10 @@ Apply when the project is a web application (frontend, full-stack, or SSR).
 - **RATIONALE**: Crashes kill user trust.
 - **OVERRIDE**: Prototype mode.
 - **CHECK**: judgment
+
+### W9. Testable Selectors
+- **RULE**: Every interactive element and every element a test asserts on carries a stable `data-testid` (`data-test`/`data-cy` if the project already uses one — follow the existing convention, don't add a second). Applies to the elements Must-priority journeys touch: inputs, buttons, links, list rows, and the outcome elements a journey asserts (totals, badges, empty/error states).
+- **RATIONALE**: Browser tests should break when *behavior* breaks, not when copy or layout changes. Without a stable handle, e2e specs get pinned to text or CSS structure and become the flaky suite everyone eventually disables — which is worse than no suite, because it looks like coverage.
+- **NOTE**: This does **not** replace accessible markup or change how tests select elements. `skills/prove/browser-qa/` still selects by role + name first (that path exercises a11y at the same time); `data-testid` is the guaranteed fallback for when role + name is ambiguous, duplicated, or localized. Adding a testid is never a substitute for a missing label — if an element needs a testid *because* it has no accessible name, fix the accessible name too (W4).
+- **OVERRIDE**: Elements no test will ever address (pure decoration, layout wrappers).
+- **CHECK**: mechanical

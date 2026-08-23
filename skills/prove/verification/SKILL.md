@@ -2,6 +2,17 @@
 
 Multi-layer verification orchestrator. Runs after BUILD phase completes.
 
+## Every Result Comes From a Command That Actually Ran
+
+This is the rule the whole PROVE phase rests on. A verification report is worthless — worse than absent, because it manufactures confidence — if any line in it was inferred rather than observed.
+
+- **Run the command. Read its output. Report that.** Never report PASS because the code looks correct, because the tests were written carefully, or because it passed earlier in the session.
+- **Include the real output** — the summary line at minimum (`Tests: 24 passed, 2 failed`, the coverage table row). A verdict with no tool output behind it is an opinion.
+- **A command that didn't run is `SKIPPED — <reason>`, never PASS.** No test script, runner not installed, coverage misconfigured, sandbox blocked it: all are skips, all are gaps, none are passes.
+- **A failing layer is reported as failing**, including when the fix attempts ran out. "Mostly passing" is not a verdict — give the count and name the failures.
+
+Writing tests and running tests are different acts, and only the second one is evidence. An agent that generated a beautiful suite and never executed it has proven nothing at all.
+
 ## 4 Verification Layers
 
 Run these in parallel when multi-agent is available. Sequential otherwise.

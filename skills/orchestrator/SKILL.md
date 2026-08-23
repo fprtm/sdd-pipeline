@@ -63,9 +63,7 @@ Load the corresponding mode file from `skills/modes/[mode]/SKILL.md` for behavio
 
 ### What Mode May and May Not Dial
 
-Mode controls **depth and visibility** — how many rounds, how much is shown, how much ceremony. Mode does **not** control **coverage** — whether a subject was consulted at all.
-
-Concretely: no mode may skip a discovery seat (`skills/commands/discover/`'s Why · Constraints · What · Data · Technical), skip the DoD floor above `micro`, or skip the `OVERRIDE: none` rules. A seat may be skipped only when the product has no such surface (no screens → no UI questions), and that skip is announced with its reason. What prototype/vibe legitimately buy is *one round instead of four, recommendations accepted by default, and nothing narrated* — not an unasked question about the data model.
+Mode controls **depth and visibility** — how many rounds, how much is shown, how much ceremony. Mode does **not** control **coverage** — whether a subject was consulted or a gate was measured at all. Concretely: no mode may skip a discovery seat (`skills/commands/discover/`'s Why · Constraints · What · Data · Technical), skip the DoD floor above `micro`, skip running the coverage gate, or skip an `OVERRIDE: none` rule. A seat is skipped only when the product has no such surface (no screens → no UI questions), announced with its reason. What prototype/vibe legitimately buy is *one round instead of four, recommendations accepted by default, and nothing narrated* — not an unasked question about the data model, and not an unmeasured test suite.
 
 ## Task Size Detection
 
@@ -192,10 +190,11 @@ The evidence spine (traceability matrix, threat model, test plan, coverage gate)
 | DoD (doc-generator floor) | — | ✅ always | ✅ | ✅ |
 | Test plan (`build/test-plan`) | — | tests named in DoD | ✅ plan file | ✅ plan file |
 | Threat model (`think/threat-model`) | — | only if security-sensitive zone touched | zone-triggered | ✅ mandatory |
-| Coverage gate (`prove/coverage-check`) | — | run tests, no % gate | ✅ ≥80% + honesty checks | ✅ |
+| Coverage gate (`prove/coverage-check`) | — | ✅ ≥80% on **changed lines** + suite green | ✅ ≥80% overall + honesty checks | ✅ |
+| Committed e2e harness (UI products) | — | ask before adding to an existing repo | ✅ | ✅ |
 | Traceability (`meta/traceability`) | — | — | lite (inline `Refs:` trail) | ✅ full matrix + ship gate |
 
-**strict** promotes each gate one size-level down (medium behaves like large, small like medium); **prototype/vibe** demote per each skill's mode table; **emergency** defers gates to the post-fix follow-up. Whatever applies: announce what ran and what was skipped, with the reason — a silently missing gate is a trust failure, a silently added one is ceremony.
+**strict** promotes each gate one size-level down (medium behaves like large, small like medium); **prototype/vibe** demote *narration*, not measurement; **emergency** defers gates to the post-fix follow-up. **The coverage gate is the exception no mode may switch off** — what scales with size is the denominator (changed lines at `small`, whole repo at medium+), never the 80% bar, and a result is only ever reported from a command that actually ran. Whatever applies: announce what ran and what was skipped, with the reason — a silently missing gate is a trust failure, a silently added one is ceremony.
 
 The **ship gate** (large/full): work doesn't ship while a Must/Should traceability row is 🔴/🟡 — never quietly downgrade it; the user can override (inform-then-comply), logged.
 

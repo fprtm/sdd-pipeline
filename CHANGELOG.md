@@ -3,6 +3,66 @@
 All notable changes to SDD Pipeline. Versioning is [SemVer](https://semver.org/).
 Plain-language where possible.
 
+## [5.1.0] — 2026-08-23
+
+Testing was the layer most able to *look* done while proving nothing. Five
+tightenings, all from one user report.
+
+### Added
+
+- **Positive AND negative, per flow, always.** `build/test-plan` now requires at
+  least one passing case and at least one failing case per FSD flow — the
+  negative side being where defects live, and the side an agent writing its own
+  tests quietly under-produces because passing tests are easier to write and feel
+  like progress. `prove/coverage-check` treats a flow with a defined error path
+  and no negative case as a **gate failure**, not a rounding error.
+- **`constraints/web` W9 — Testable Selectors.** Interactive elements and
+  elements a test asserts on carry a stable `data-testid`. Deliberately *not* a
+  change to how tests select: `prove/browser-qa` still tries role + name first
+  (that path exercises accessibility at the same time, and a journey that can't
+  find `button "Checkout"` has found a real a11y defect), with the testid as the
+  guaranteed fallback for ambiguous, duplicated, or localized names. A testid
+  added *because* an element has no accessible name also files the missing label
+  as a finding — it must not paper over W4.
+- **A committed e2e harness is required infrastructure for UI products.** An
+  interactive browser run proves the journey worked once, on one machine, in one
+  session; it guards nothing tomorrow. Playwright by default (Cypress if the repo
+  already uses it), one committed spec per Must journey, wired into CI — that's
+  what makes it a smoke and regression net rather than a demo.
+  **On an existing repo doing small/medium `changes/` work with no harness
+  present, this is asked, never assumed**: set it up once (dependency + config +
+  spec + CI job), interactive check only and flag the journey unguarded, or skip
+  browser verification and mark it explicitly unverified. Whichever is chosen is
+  recorded in the `changes/` file's gate list. A user who asked for a bugfix and
+  received a new dev-dependency and a CI workflow has been handed scope they
+  never approved, however well-intentioned.
+
+### Changed
+
+- **The coverage gate now runs in every mode.** `prototype` used to skip it
+  outright and `standard` skipped the percentage on small tasks. Mode now dials
+  *narration* and *whether a FAIL blocks* — never whether the measurement
+  happens. "Coverage unchecked" is no longer an acceptable end state for a task
+  that added logic.
+- **What the 80% is measured over scales with size**, because "the whole repo
+  hits 80%" is the wrong demand for a two-file bugfix in a repo sitting at 40%:
+  **changed lines** at `small`, **whole repo** at medium+. Same bar, different
+  denominator — the code you just wrote is covered either way, and you aren't
+  held responsible for the repo's history.
+- **`constraints/universal` #8** now requires tests **in the same change**,
+  executed and passing, with a negative case wherever the function can fail — and
+  is explicitly *not* overridable by mode alone. Deferring the test to "the next
+  ticket" is how the coverage target stays permanently one ticket away.
+
+### Fixed
+
+- **Verification could report a pass for a command that never ran.**
+  `prove/verification` opens with a rule the whole PROVE phase rests on: every
+  result comes from a command that actually executed, quoted from its real
+  output; a command that couldn't run is `SKIPPED — <reason>`, which is a gap,
+  never a pass. Same rule added to `prove/coverage-check` for numbers. Writing
+  tests and running tests are different acts, and only the second is evidence.
+
 ## [5.0.0] — 2026-08-23
 
 The ASK step was the weakest part of this framework and the release before this

@@ -15,20 +15,28 @@ Use the command recorded in the test plan (`docs/sdd/test-plans/…`). If none i
 
 Prefer **branch** coverage, not just line — branch is what catches untested error paths.
 
+**Report only what actually ran.** Every number in this gate's output traces to real tool output from this run — include the raw summary line. Never infer a percentage from how thorough the tests *look*, never carry forward a number from an earlier run, and never report a gate result for a command that failed to execute (missing runner, misconfigured coverage, no test script). A gate that couldn't run is `SKIPPED — <reason>`, which is a gap, not a pass. Stating a coverage figure that no command produced is fabrication, and it defeats the entire purpose of having a gate.
+
 ## Step 2 — Compare to the Gate
 
-- Default gate: **≥ 80% line and branch** (use the test plan's threshold if it differs). Report actual numbers plainly — overall and per-package if available — and whether the gate passed.
+- Gate: **≥ 80% line and branch** (use the test plan's threshold if it differs). Report actual numbers plainly — overall and per-package if available — and whether the gate passed.
 - If below target, **list the specific uncovered files/functions** (term-missing style) so the next tickets are obvious. Never just "add more tests".
+- **The gate is measured in every mode and at every size above `micro`.** Mode changes how loudly it's narrated and whether a FAIL blocks — never whether the measurement happens. "Coverage unchecked" is not an acceptable end state for a task that added logic.
+- **What the 80% is measured *over* scales with size**, because "the whole repo hits 80%" is the wrong ask for a two-file bugfix in a repo sitting at 40%:
+  - **small** → **≥80% of the lines this change touched**, plus the existing suite green. The code you just wrote is covered; you're not held responsible for the repo's history.
+  - **medium / large** → **≥80% overall** (line + branch) *and* the honesty checks below.
+  Either way the target is the same number and it is genuinely enforced — what changes is the denominator, not the bar.
 
 ## Step 3 — The Honesty Checks (This Is the Point)
 
 A passing percentage is necessary but not sufficient:
 
 1. **Every FSD error/alternate flow has a test that hits it.** Cross-check the plan's edge cases against actually-executed lines.
-2. **Every High/Critical SEC control has a passing security/regression test.** Failing this = gate failure *regardless of the percentage*.
-3. **No fake passes** — grep for skipped/`.only`/commented-out/always-true assertions; flag them.
-4. **New code isn't dragging coverage down** — if the diff added uncovered lines, name them even when the global number still clears the gate.
-5. **UI product: every Must-priority journey is browser-verified** (via `skills/prove/browser-qa/`) or its gap explicitly flagged. A green unit suite doesn't prove a user can complete the journey in a browser.
+2. **Every flow has both a positive and a negative case.** Per `skills/build/test-plan/`'s positive-AND-negative rule: a flow whose FSD defines an error path but whose suite only proves the happy path is a **gate failure**, not a rounding error. An all-green suite of exclusively passing-input tests is the most common way an 80% number means nothing.
+3. **Every High/Critical SEC control has a passing security/regression test.** Failing this = gate failure *regardless of the percentage*.
+4. **No fake passes** — grep for skipped/`.only`/commented-out/always-true assertions; flag them.
+5. **New code isn't dragging coverage down** — if the diff added uncovered lines, name them even when the global number still clears the gate.
+6. **UI product: every Must-priority journey is browser-verified** (via `skills/prove/browser-qa/`) or its gap explicitly flagged. A green unit suite doesn't prove a user can complete the journey in a browser.
 
 ## Step 4 — Verdict
 
@@ -39,10 +47,14 @@ A passing percentage is necessary but not sufficient:
 
 ## Mode Behavior
 
-| Mode | Behavior |
-|------|----------|
-| prototype | Skip — note "coverage unchecked" |
-| vibe | Run silently at medium+; surface only a FAIL |
-| standard | Full gate at medium+; small tasks: run tests, skip the percentage gate |
-| strict | Full gate at small+ · FAIL blocks until resolved or explicitly overridden |
-| emergency | Post-fix only: run the suite, note gaps for the calm follow-up |
+**The gate always runs.** Mode dials *narration* and *whether a FAIL blocks* — never whether coverage is measured. (Same rule as everywhere else in this framework: mode controls depth and visibility, not coverage.)
+
+| Mode | Measured? | Narrated | FAIL behavior |
+|------|-----------|----------|---------------|
+| prototype | ✅ always | one line: the number + pass/fail | Reported, doesn't block |
+| vibe | ✅ always | silent on PASS, surfaced on FAIL | Reported, doesn't block |
+| standard | ✅ always | full gate output | **Blocks** until resolved or explicitly overridden (logged) |
+| strict | ✅ always | full gate output | **Blocks**; override requires explicit user confirmation |
+| emergency | deferred | — | Run the suite post-fix; gaps go to the calm follow-up, named not forgotten |
+
+A user can always override an unmet gate — inform-then-comply, and log it. What's not available is the gate quietly not happening.

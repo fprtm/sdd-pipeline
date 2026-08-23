@@ -49,9 +49,9 @@ See `skills/build/constraints/SKILL.md` for the full constraint engine behavior.
 - **CHECK**: mechanical
 
 ### 8. Tests for New Logic
-- **RULE**: Non-trivial new functions need at least 1 test.
-- **RATIONALE**: Untested = unverified.
-- **OVERRIDE**: Prototype mode or user opts out.
+- **RULE**: Every non-trivial new function gets tests **in the same change** — at least one positive case and, wherever the function can reject or fail, at least one negative case. The tests must be **executed and passing** before the change is reported done, and the project's coverage gate (default ≥80% line+branch) must actually be met, not projected.
+- **RATIONALE**: Untested = unverified. Deferring the test to "the next ticket" is how the coverage target stays permanently one ticket away, and a positive-only suite proves the function works on the inputs its author already thought about — which is never where the bug is.
+- **OVERRIDE**: User opts out explicitly (logged). *Not* overridable by mode alone — mode dials how loudly the result is narrated, not whether the tests ran.
 - **CHECK**: mechanical
 
 ### 9. No Dead Code

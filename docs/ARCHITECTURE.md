@@ -79,10 +79,11 @@ flowchart TD
 | DoD | — | ✅ always | ✅ | ✅ |
 | Test plan file | — | named in DoD | ✅ | ✅ |
 | Threat model | — | zone-triggered | zone-triggered | ✅ mandatory |
-| Coverage gate ≥80% | — | run tests, no % gate | ✅ | ✅ |
+| Coverage gate ≥80% | — | ✅ on **changed lines** + suite green | ✅ overall + honesty checks | ✅ |
+| Committed e2e harness (UI) | — | ask before adding to an existing repo | ✅ | ✅ |
 | Traceability matrix | — | — | lite inline `Refs:` | ✅ full matrix + ship gate |
 
-`strict` promotes every gate one size-level down; `prototype`/`vibe` demote; `emergency` defers to a post-fix follow-up. See §8 for the full mode dial.
+`strict` promotes every gate one size-level down; `prototype`/`vibe` demote **narration**, not measurement; `emergency` defers to a post-fix follow-up. The coverage gate is the one row no mode may switch off — what scales with size is the denominator (changed lines vs. whole repo), never the 80% bar. See §7 for the full mode dial.
 
 ---
 
@@ -235,7 +236,7 @@ flowchart TD
 | Skill | What it does | Calls / feeds | Writes to |
 |---|---|---|---|
 | **verification** | 4 layers (parallel if multi-agent): Types (tsc/mypy/…), Tests (LOCAL-only hard stop, then suite + coverage-check at medium+), Lint (auto-fix), Spec Conformance (runs `check-traceability.mjs` first, then traces THINK requirements to tests); self-fixes failing layers up to 2 attempts | `build/test-plan` (env-safety rule), `prove/coverage-check`, `check-traceability.mjs` | aggregated 4-layer summary → feeds `prove/report` |
-| **coverage-check** | Runs the stack's coverage command; gate default ≥80% line+branch; **honesty checks**: every FSD error flow tested, every High/Critical SEC tested, no `.only`/skip/always-true fakes, new-code coverage drag flagged, UI Must journeys browser-verified; never rounds FAIL to PASS | `build/test-plan` (command/threshold), `prove/browser-qa` | verdict + prioritized TICKET/TEST backlog list |
+| **coverage-check** | Runs the stack's coverage command; gate ≥80% line+branch, measured in **every mode** (mode dials narration and whether FAIL blocks, never whether it runs); denominator scales — changed lines at `small`, whole repo at medium+; **honesty checks**: every FSD error flow tested, **every flow has a positive AND a negative case**, every High/Critical SEC tested, no `.only`/skip/always-true fakes, new-code coverage drag flagged, UI Must journeys browser-verified; reports only numbers a command actually produced; never rounds FAIL to PASS | `build/test-plan` (command/threshold), `prove/browser-qa` | verdict + prioritized TICKET/TEST backlog list |
 | **adversarial** | Generates tests across 7 attack categories (Boundary, Injection, State, Type Confusion, Permission, Scale, Environment), skipping irrelevant ones (no SQLi tests for a CLI) | — | tests as output |
 | **security-check** | Domain-aware checklist (Web W1-8, CLI C1-5, API A1-8, Library L1-4, Mobile M1-4); cites the SEC-xxx each finding verifies/violates if a threat model exists; a control on paper but missing in the diff is a FAIL not N/A | `think/threat-model` (design-phase counterpart) | PASS/FAIL/N-A findings |
 | **performance-check** | Static-only detection of 10 patterns (O(n²), N+1, missing pagination, unbounded memory, sync blocking, redundant computation, large bundle imports, missing DB index, unbounded cache, missing connection pool) | — | inline `PERFORMANCE CHECK:` report |

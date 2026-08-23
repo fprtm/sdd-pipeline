@@ -14,6 +14,8 @@ In order of preference:
 
 Whichever you use, **interact by accessibility ref, not screen coordinates**: snapshot the accessibility tree, act on elements by role + name (`button "Login"`, `textbox "Email"`). Ref-based interaction survives layout changes; coordinate-clicking is flaky. Vision/coordinate mode only for what the a11y tree can't see (canvas, charts, drag-drop).
 
+**Selector order: role + name first, `data-testid` as the stable fallback.** Role+name is preferred because it exercises accessibility at the same time — a journey that can't find `button "Checkout"` has found a real a11y defect, not just a test problem. Reach for the `data-testid` (required by `skills/constraints/web/`'s W9) when role+name is ambiguous, duplicated across a list, or localized into a language the spec shouldn't hardcode. If an element needs a testid *because* it has no accessible name, file the missing label as a finding too — don't let the testid paper over it.
+
 **If no browser capability is available at all:** don't fake it. Verify at the highest fidelity you can (API/SSR-level) and **flag the browser layer as unverified** — an honest gap, not a silent pass.
 
 ## Local Only — Never Production (HARD STOP)
@@ -49,7 +51,33 @@ Assert the *result the user would check*, tied back to the FSD/TEST id.
 ## Two Flavors — Different Lifecycles, Use Both
 
 - **(a) Interactive agent-driven run** — the fast dev loop: run the app → drive the journey → assert → on failure capture the exact failing step (element/assertion, screenshot if available) → fix root cause → retest. Great feedback, but **ephemeral**.
-- **(b) Committed e2e spec** — the journey as a Playwright/Cypress file in the repo: a **durable regression net** CI runs on every change (wired by `skills/build/infra/`). Prefer one committed spec per Must journey.
+- **(b) Committed e2e spec** — the journey as a Playwright/Cypress file in the repo: a **durable regression net** CI runs on every change (wired by `skills/build/infra/`). One committed spec per Must journey.
+
+## A Committed e2e Harness Is Required Infrastructure, Not a Nice-to-Have
+
+An interactive run proves the journey worked *once, on this machine, in this session*. It guards nothing tomorrow. The committed spec is what turns a passing journey into a **smoke and regression net** — the thing that tells you a refactor three weeks from now silently broke checkout. Flavor (a) without flavor (b) is a demo.
+
+So: **any product with a UI gets a committed e2e harness (Playwright by default; Cypress if the repo already uses it).** How that obligation lands depends on what's already there:
+
+| Situation | What happens |
+|---|---|
+| **Harness exists** | Add the Must-journey specs to it. No question needed. |
+| **New product / greenfield with a UI** | Setting it up is part of the work — a `test-plan` line item and a ticket, not an optional extra. Don't ask; it's baseline infrastructure, same as a linter. |
+| **Existing codebase, `large` work adding a UI surface** | Same as greenfield: it's in scope, ticketed. |
+| **Existing codebase, small/medium change (`changes/` work), no harness present** | **Ask first — never install silently, never skip silently.** |
+
+### The Ask, For Existing Code
+
+Adding an e2e harness to someone's existing repo is a real change: a dependency, a config, a CI job, and a browser download. That's out of proportion to a two-file bugfix, and it's exactly the kind of unrequested scope expansion `constraints/universal`'s YAGNI and No-Scope-Creep rules exist to stop. So put it to the user (native question tool first, per `skills/think/elicitation/`'s How to Ask):
+
+> This repo has no e2e harness, so I can verify this change in the browser now but nothing will guard it afterward. Options:
+> **(a)** Set up Playwright once — a dependency, a config, one spec for this journey, and a CI job. Larger diff now, regression net from here on.
+> **(b)** Interactive browser check only this time — I verify it works, and flag the journey as unguarded.
+> **(c)** Skip browser verification entirely — say so, and I'll mark it explicitly unverified.
+
+Recommend **(a)** when the change touches a Must journey or a flow that has broken before; recommend **(b)** for a peripheral change on a repo that's clearly not ready for it. Whatever they pick, it lands in the `changes/` file's gate list — a declined harness is a recorded decision, not an invisible gap.
+
+**Never install a test harness as a surprise.** A user who asked for a bugfix and got a new dev-dependency, a `playwright.config.ts`, and a CI workflow has been handed scope they didn't approve, however well-intentioned.
 
 ## When a Journey Fails
 

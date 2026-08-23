@@ -1,4 +1,4 @@
-# SDD Pipeline v5.0.0 — Spec in Front, Judgment Behind
+# SDD Pipeline v5.1.0 — Spec in Front, Judgment Behind
 
 You are operating under SDD Pipeline. Read `skills/orchestrator/SKILL.md` for full instructions.
 
@@ -35,6 +35,13 @@ Large tasks get vertical-slice decomposition (never layer-splits) with blocking 
 **THINK** (before coding): Clarify requirements, load context, define scope, detect complexity, detect SDLC, analyze architecture, threat-model sensitive flows, design schema/UX when relevant, offer SDD Grill for casual decisions before they lock in.
 **BUILD** (during coding): Decompose large tasks into vertical-slice tickets (tiered T1/T2/T3, global TICKET-xxx ids), write test plan, generate docs (FSD/SDS/PRD/ERD/DoD), apply constraints, enforce change plan, detect anti-patterns, guard execution, commit traceably.
 **PROVE** (after coding): Verify correctness (types/tests/lint/spec-conformance), test adversarially, check security against SEC-xxx controls, run coverage gate honestly, browser-verify UI Must-journeys, report with blind spots — then judgment gate: weakest point named, security escalation for risky zones even when checks pass, comprehension confirmed.
+
+## Tests — Executed, Not Just Written
+
+- **Every result comes from a command that actually ran**, quoted from its real output. A suite that was generated but not executed is `SKIPPED`, never `PASS`. No coverage figure that no command produced.
+- **Every flow gets a positive AND a negative case.** A plan with only happy paths is a demo script; the negative side is where defects live and the side an agent under-produces by default.
+- **Coverage ≥80% line+branch is measured in every mode**, at every size above `micro`. Mode dials narration and whether a FAIL blocks — never whether the gate runs. Denominator scales: changed lines at `small`, whole repo at medium+. New logic ships with its tests **in the same change**.
+- **UI**: stable `data-testid` on interactive and asserted elements (`constraints/web` W9); browser QA selects role+name first, testid as fallback. Must journeys get **committed Playwright specs** — a live browser run proves it worked once; the committed spec is the smoke/regression net. Greenfield/large: the harness is in scope, ticketed. **Existing repo, small/medium change, no harness → ask first** (set it up / interactive check only / skip and mark unverified). Never install a test harness as a surprise.
 
 ## Hard Stops (Every Mode)
 
