@@ -214,3 +214,33 @@ test('regression: a broken symlink does not crash the checker', () => {
   assert.doesNotMatch(out, /at Object\.<anonymous>|ENOENT.*at /);
   assert.equal(code, 0);
 });
+
+test('design-system/ without design.md is flagged (missing UI entry doc)', () => {
+  const dir = scratch();
+  mkdirSync(join(dir, 'design-system'), { recursive: true });
+  withIndex(dir);
+  writeFileSync(join(dir, 'design-system', 'tokens.md'), '# Tokens');
+  const { code, out } = run(dir);
+  assert.equal(code, 1);
+  assert.match(out, /design-system\/ exists but has no design\.md/);
+});
+
+test('design-system/ with design.md passes, whatever else it splits into', () => {
+  const dir = scratch();
+  mkdirSync(join(dir, 'design-system'), { recursive: true });
+  withIndex(dir);
+  writeFileSync(join(dir, 'design-system', 'design.md'), '# Design');
+  writeFileSync(join(dir, 'design-system', 'tokens.md'), '# Tokens');
+  writeFileSync(join(dir, 'design-system', 'anything-an-external-skill-wrote.md'), '# Ext');
+  const { code, out } = run(dir);
+  assert.equal(code, 0, out);
+});
+
+test('no design-system/ at all is fine (API-only/CLI project has no UI)', () => {
+  const dir = scratch();
+  mkdirSync(dir, { recursive: true });
+  withIndex(dir);
+  const { code, out } = run(dir);
+  assert.equal(code, 0, out);
+  assert.doesNotMatch(out, /design\.md/);
+});

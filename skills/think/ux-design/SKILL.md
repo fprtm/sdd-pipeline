@@ -2,7 +2,50 @@
 
 A product with screens has a UI whether or not anyone designed it — the only question is whether it was decided deliberately or fell out of ad-hoc component choices. This is the design-phase peer of `skills/think/arch-analyzer/` for the interface: the FE gets built to a system, not improvised. Runs whenever there IS a UI (medium+ with screens; skip only for API-only/CLI), or on "design the UI / design system / palette / wireframe / UX".
 
-Output: `docs/sdd/design/{NNN}-{slug}-ux.md` (the direction, tokens, and thin flow index) + `docs/sdd/ux-screens/<flow-slug>.md` (one file per flow).
+Output: **`docs/sdd/design-system/design.md`** (the one entry doc for the UI — always) + `docs/sdd/design/{NNN}-{slug}-ux.md` (per-feature UX spec) + `docs/sdd/ux-screens/<flow-slug>.md` (one file per flow).
+
+## `design.md` — One Entry Doc, Always, However Many Files It Splits Into
+
+**Whenever this skill runs, `docs/sdd/design-system/design.md` exists.** This is the file someone means when they say "where's the design doc" — the project-level SSOT for how the product looks and behaves: direction, tokens, screen inventory, component patterns.
+
+Splitting the content across many files is correct and expected (tokens change on their own cadence, each flow is its own file, per-feature UX specs are numbered like their FSD siblings). What's *not* acceptable is that the split leaves no front door — a reader landing on a folder of a dozen fragments has to reconstruct the design system by reading all of them. `design.md` is that front door: it holds the parts that are genuinely project-wide, and links to every fragment for the rest.
+
+```markdown
+# Design — [Product Name]
+
+**Date**: [auto]
+**Updated**: [auto — bumped whenever direction, tokens, or the inventory changes]
+**Version**: v1
+**Status**: DRAFT | APPROVED | IMPLEMENTED
+
+## Direction
+[The confirmed §0 answer: existing system followed, or chosen direction + why. Light/dark. Hard brand constraints.]
+
+## Principles
+[North star tied to brand and audience — the tiebreaker for later trade-offs.]
+
+## Tokens (SSOT)
+[Color palette with light AND dark values (each AA-checked), type scale, spacing/radii/elevation.
+If an external UI/UX skill owns these, that file is the SSOT and this section cites it — never a second copy that drifts.]
+
+## Screens & Flows
+| Flow | Priority | Where |
+|------|----------|-------|
+| [flow name] | Must | [`ux-screens/<flow-slug>.md`](../ux-screens/<flow-slug>.md) |
+
+## Component Patterns
+[Reusable patterns → the components they map to.]
+
+## Accessibility & Responsive
+[Contrast, touch targets, focus order, keyboard operability, breakpoint reflow — the project-wide rules.]
+
+## Per-Feature UX Specs
+- [FSD-adjacent UX docs: `design/{NNN}-{slug}-ux.md`, one row each]
+```
+
+**Relationship to `-ux.md`**: `design.md` is **project-level and singular** (the design system, updated in place forever); `design/{NNN}-{slug}-ux.md` is **per-feature and numbered** (this feature's screens, frozen with its FSD). One product has exactly one `design.md` and as many `-ux.md` files as it has UI features. When only one small feature has a UI, `design.md` is still written — short is fine, absent is not.
+
+`check-file-hygiene.mjs` enforces this: a `design-system/` directory with no `design.md` is a flagged problem.
 
 ## Document Shape
 
@@ -38,7 +81,7 @@ Output: `docs/sdd/design/{NNN}-{slug}-ux.md` (the direction, tokens, and thin fl
 [Contrast, touch targets, focus order, keyboard operability, breakpoint reflow]
 ```
 
-**This skill owns process, not taste** (the orchestrator's composition rule stands: external skills win on aesthetics). If a specialized UI/UX design skill is installed, **prefer it** and hold it to this skill's checklist — confirm direction first, tokens as SSOT, states for every screen, a11y. Its output must still land inside the canonical tree (redirect its output dir to `docs/sdd/design-system/` — never scattered at the repo root), and the `-ux.md` doc cites it as SSOT so the two never diverge. If none is installed, do everything below yourself — fully self-sufficient.
+**This skill owns process, not taste** (the orchestrator's composition rule stands: external skills win on aesthetics). If a specialized UI/UX design skill is installed, **prefer it** and hold it to this skill's checklist — confirm direction first, tokens as SSOT, states for every screen, a11y. Its output must still land inside the canonical tree (redirect its output dir to `docs/sdd/design-system/` — never scattered at the repo root), and both `design.md` and the `-ux.md` doc cite it as SSOT so the copies never diverge. **An external skill owning the tokens does not excuse the missing front door**: `design.md` is still written, citing that skill's files rather than duplicating them. If none is installed, do everything below yourself — fully self-sufficient.
 
 ## 0. Confirm Direction First — With a Concrete Preview, Not a Label
 
@@ -89,4 +132,4 @@ From the REQ-NF a11y target: contrast (AA), touch-target size, focus order, keyb
 
 ## Exit Gate
 
-Direction confirmed with a concrete preview (§0), existing designs respected if present; tokens defined (palette passes AA, type + spacing set); flows index-first, priority-tagged, confirmed as they landed; screens at the confirmed depth with all four states; component patterns named; a11y + responsive addressed; tokens handoff-ready. Then the FSD picks up the states as behaviors and BUILD builds to the system.
+`docs/sdd/design-system/design.md` exists and its inventory matches what's actually on disk; direction confirmed with a concrete preview (§0), existing designs respected if present; tokens defined (palette passes AA, type + spacing set); flows index-first, priority-tagged, confirmed as they landed; screens at the confirmed depth with all four states; component patterns named; a11y + responsive addressed; tokens handoff-ready; `check-file-hygiene.mjs` passes. Then the FSD picks up the states as behaviors and BUILD builds to the system.

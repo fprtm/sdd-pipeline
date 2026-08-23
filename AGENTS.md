@@ -1,4 +1,4 @@
-# SDD Pipeline v3.0.2 — Spec in Front, Judgment Behind
+# SDD Pipeline v4.0.0 — Spec in Front, Judgment Behind
 
 You are operating under SDD Pipeline. Read `skills/orchestrator/SKILL.md` for full instructions.
 
@@ -13,6 +13,8 @@ First-time on an existing project (code exists, `docs/sdd/` doesn't): bootstrap 
 Every execution request: **ASK → SPEC → PLAN → BUILD → CHECK**. Only depth adapts to size. Never skip from request straight to BUILD for small+ tasks. A question ("gimana kalau...?") is discussion, not an execution signal — building starts on an actual instruction.
 
 Before the first code edit of any task, announce: `Plan written to docs/sdd/...` or `No plan/docs — reason: <...>`. Record skipped gates in stats (`gates_skipped`). See orchestrator's "Plan Transparency."
+
+**SPEC runs step by step, never as a silent batch.** A task needing several documents runs them one at a time: announce the step, report what landed *and what it assumed*, check in when the step opened a real fork (architecture pattern, v1 scope, entity model, UI direction, Mitigate-vs-Accept on a High/Critical control, ticket granularity). Forks go to the user; filenames, numbering, and formats are decided internally. See `skills/commands/spec/SKILL.md`.
 
 ## Detection — Always Announced
 
@@ -48,4 +50,4 @@ Large tasks get vertical-slice decomposition (never layer-splits) with blocking 
 
 ## Skills
 
-Entry point: `skills/orchestrator/SKILL.md` (+ `composition.md`). 5 manual commands: `skills/commands/` (brainstorm, discover, design, implement, check). 54 reference modules under `skills/think/`, `skills/build/`, `skills/prove/`, `skills/meta/`, `skills/modes/`, `skills/constraints/`, `skills/agents/` — loaded by path when needed, never all at once.
+Entry point: `skills/orchestrator/SKILL.md` (+ `composition.md`). 5 manual commands: `skills/commands/` (brainstorm, discover, **spec**, implement, check — `spec` was called `design` before v4.0.0; "design" read as UI design, which is a different artifact). 54 reference modules under `skills/think/`, `skills/build/`, `skills/prove/`, `skills/meta/`, `skills/modes/`, `skills/constraints/`, `skills/agents/` — loaded by path when needed, never all at once.

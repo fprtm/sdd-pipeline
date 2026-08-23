@@ -119,7 +119,7 @@ flowchart TD
 | **arch-analyzer** | Detects 1 of 16 architecture patterns via directory/import/config signals + confidence scoring; Deletion Test + "1 adapter=hypothetical, 2=real" heuristics; consistency report for brownfield, decision matrix + proposed tree for greenfield; optional self-contained HTML visual report (temp dir only); "Design It Twice" multi-agent technique for high-stakes calls | `design-it-twice.md` (companion), `build/anti-patterns` (premature-abstraction xref), `docs/sdd/decisions/` (ADR-conflict check), `agents/orchestration` (spawn gate), hands off to **grill** | no fixed doc path (inline / temp-dir HTML) |
 | **threat-model** | STRIDE pass over the FSD/SDS's data-flow diagram at trust boundaries; rates Likelihood×Impact; writes SEC-xxx controls (Mitigate/Accept/Transfer/Avoid); OWASP-ish baseline always checked | `build/test-plan` (TEST-xxx per High/Critical control), `build/ticket-decomposition` (ticket per control), `prove/security-check` (PROVE-side pair via shared SEC-xxx), `prove/judgment`, `meta/traceability` | `docs/sdd/design/{NNN}-{slug}-threats.md` |
 | **database-design** | One-entity-one-responsibility schema modeling from the domain glossary; 3NF default; naming/FK/cascade/index rules; additive-first migrations | `build/doc-generator/formats.md` (ERD shape), `docs/sdd/glossary.md`, `think/stack-conventions`, `think/threat-model` (multi-tenant isolation) | `docs/sdd/erd/{NNN}-{slug}-erd.md` |
-| **ux-design** | Confirms direction with a concrete preview first (respects existing design system if present); design tokens (WCAG AA) as SSOT; index-first flow files; 4 states (empty/loading/error/success) per screen; yields to an external UI/UX skill on aesthetics if installed | `think/arch-analyzer` (process peer), `build/doc-generator`, `check-file-hygiene.mjs` | `docs/sdd/design/{NNN}-{slug}-ux.md` + one file per flow at `docs/sdd/ux-screens/<flow-slug>.md` |
+| **ux-design** | Confirms direction with a concrete preview first (respects existing design system if present); design tokens (WCAG AA) as SSOT; **one `design.md` entry doc always, however many files the content splits into** (mechanically enforced); index-first flow files; 4 states (empty/loading/error/success) per screen; yields to an external UI/UX skill on aesthetics if installed | `think/arch-analyzer` (process peer), `build/doc-generator`, `check-file-hygiene.mjs` | `docs/sdd/design-system/design.md` + `docs/sdd/design/{NNN}-{slug}-ux.md` + one file per flow at `docs/sdd/ux-screens/<flow-slug>.md` |
 | **stack-conventions** | Reads official docs (context7/MCP/research skill) for the chosen stack+version, turns them into version-pinned, checkable rules; scaffolds config-as-code (`tsconfig.json`, ESLint, etc.) | `build/infra` (CI wiring), `think/threat-model` (security defaults), `constraints/` (stays stack-neutral layer beneath this) | `docs/sdd/stack-guide.md` + scaffolded config files |
 | **analytics-design** | Turns PRD success criteria into a metrics tree (north-star/inputs/guardrails), event taxonomy, funnels/cohorts, instrumentation plan; enforces no-PII-without-consent | `build/infra` (observability), `think/threat-model` (privacy) | `docs/sdd/analytics.md` |
 | **grill** (SDD Grill) | Interviews the user round-by-round over a "design tree," asking the whole open **frontier** per round with a recommendation per question; adversarial toward the user's premises *and* its own recommendations; **council pass** (5 seats: devil's advocate, maintainer-1yr-later, security, cost, end-user) for decisions passing rule-of-three; never runs uninvited | `think/arch-analyzer`, `think/scope-guard`, `think/complexity-analyzer`, `constraints/[domain]`, `build/constraints`, `think/sdlc-detector`, `meta/glossary`, `meta/decision-log`, `agents/orchestration` | live updates to `docs/sdd/glossary.md`; ADRs via `meta/decision-log`; feeds (never writes) `docs/sdd/plans/current.md` |
@@ -345,13 +345,13 @@ The orchestrator usually triggers invisibly, but 5 commands let you start at a s
 flowchart LR
     BS["/brainstorm\nfoggy idea → open conversation,\nno pipeline, no pressure"]
     DISC["/discover\ngrill: frontier/round interview\nbefore a decision locks in"]
-    DESIGN["/design\narch-analysis + spec + tickets\n(design-only is a complete stop)"]
+    SPEC["/spec\narch-analysis + specs + threat model\n+ UX + tickets, step by step\n(spec-only is a complete stop)"]
     IMPL["/implement\nBUILD-phase guardrails on\nan existing plan/spec/ticket"]
     CHECK["/check\nadaptive QA: verify a fresh change,\naudit the codebase otherwise"]
 
     BS -.optional, if idea firms up.-> DISC
-    DISC -.shared understanding feeds.-> IMPL
-    DESIGN --> IMPL
+    DISC -.shared understanding feeds.-> SPEC
+    SPEC --> IMPL
     IMPL --> CHECK
     CHECK -.gap found.-> IMPL
 ```
@@ -360,7 +360,7 @@ flowchart LR
 |---|---|---|---|
 | **brainstorm** | "Mature a vague idea through open conversation and research — no plan, no spec, no pressure toward execution." | on request, borrows **grill**'s council seats for a light devil's-advocate pass | optionally `docs/sdd/design/{NNN}-{slug}-idea.md` |
 | **discover** | "Investigate a decision before it locks in. Runs a frontier/round interview backed by SDD Pipeline's own judgment engines." | is the manual entry to **`think/grill`** | `docs/sdd/glossary.md`, `docs/sdd/decisions/` (rule-of-three gated) — never a plan file |
-| **design** | "Adaptively run architecture analysis and/or spec generation — and, when large, auto-decompose into tickets." | `think/arch-analyzer`, `build/doc-generator`, `build/ticket-decomposition` | `docs/sdd/design/`, `docs/sdd/erd/`, `docs/sdd/tickets/`; stops honestly before BUILD if no execution signal |
+| **spec** | "Turn a settled decision into written specs — architecture analysis, FSD/SDS/PRD/ERD, threat model, UX, and (when large) vertical-slice tickets. Runs step by step, announcing and confirming each one. This is the SPEC step of the pipeline, not visual/UI design." | `think/arch-analyzer`, `think/ux-design`, `think/threat-model`, `build/doc-generator`, `build/ticket-decomposition` | `docs/sdd/design/`, `docs/sdd/design-system/design.md`, `docs/sdd/erd/`, `docs/sdd/tickets/`; stops honestly before BUILD if no execution signal |
 | **implement** | "Execute an existing plan, spec, or ticket with build-time guardrails active." | `build/constraints`, `build/anti-patterns`, `build/change-plan`, `build/execution-guard`, `build/model-router` | working code + change summary |
 | **check** | "Adaptive QA — verifies a fresh change if one exists, audits the whole codebase otherwise, always ends with an impact summary." | **VERIFY** branch (fresh diff exists) → `prove/verification` + adversarial + security-check + performance-check + judgment; **AUDIT** branch (no diff) → `meta/health-check`, read-only | `docs/sdd/reports/{date}-{slug}.md` (verify only) + always an impact digest from `meta/stats` |
 
@@ -383,8 +383,9 @@ docs/sdd/
 ├── memory/                owned by: meta/memory        → INDEX.md + <slug>.md notes
 ├── decisions/             owned by: meta/decision-log   → {NNN}-{slug}.md  (file number IS ADR-N)
 ├── design/                owned by: build/doc-generator, think/threat-model, think/ux-design
-│                                     → {NNN}-{slug}-(fsd|sdd|prd|threats|ux).md
+│                                     → {NNN}-{slug}-(fsd|sds|prd|threats|ux).md
 ├── ux-screens/             owned by: think/ux-design     → <flow-slug>.md, priority-tagged
+├── design-system/          owned by: think/ux-design     → design.md (required entry doc) + free-form rest
 ├── erd/                    owned by: think/database-design → {NNN}-{slug}-erd.md
 ├── tickets/                owned by: build/ticket-decomposition → {feature-slug}/{NN}-{slug}.md
 ├── test-plans/             owned by: build/test-plan      → {NNN}-{slug}-tests.md

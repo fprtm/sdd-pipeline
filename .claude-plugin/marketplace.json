@@ -4,12 +4,12 @@
     "name": "ferrypratama"
   },
   "description": "SDD Pipeline — spec in front, judgment behind. Control over and trust in AI-generated code.",
-  "version": "3.0.2",
+  "version": "4.0.0",
   "plugins": [
     {
       "name": "sdd-pipeline",
       "source": "./",
-      "description": "SDD Pipeline v2 — spec in front, judgment behind. THINK, BUILD, PROVE: adaptive-depth pipeline (ask → spec → plan → build → check), AI-output judgment gate grounded in research on AI code defects, traceability spine REQ→FSD→SEC→TICKET→TEST with a mechanical checker, design-phase threat modeling (STRIDE), coverage gate with honesty checks, git worktree parallel work, 5 modes, SDLC awareness. Stack-neutral; friendly to developers and non-developers."
+      "description": "SDD Pipeline — spec in front, judgment behind. THINK, BUILD, PROVE: adaptive-depth pipeline (ask → spec → plan → build → check), AI-output judgment gate grounded in research on AI code defects, traceability spine REQ→FSD→SEC→TICKET→TEST with a mechanical checker, design-phase threat modeling (STRIDE), coverage gate with honesty checks, git worktree parallel work, 5 modes, SDLC awareness. Stack-neutral; friendly to developers and non-developers."
     }
   ]
 }

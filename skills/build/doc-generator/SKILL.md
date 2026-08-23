@@ -117,6 +117,19 @@ Every FSD and SDS must include one compact Mermaid diagram giving the user a vis
 
 Keep it small: if the diagram needs more than ~12 nodes, it's covering too much — split it or simplify. A diagram that needs a paragraph to explain should be redrawn, not explained.
 
+## One Doc at a Time — Announce, Write, Report
+
+A task that needs six documents is six steps, not one. Generating the whole suite in a single silent pass and revealing it at the end means every assumption made in doc #1 is already baked into docs #2–6 by the time the user can correct it — and correcting it then costs a rewrite of all six.
+
+For each document, in order:
+
+1. **Announce before writing**: `Writing FSD-004 (catalog management) — the feature has user-facing behavior and acceptance criteria.` Name the doc and why that type applies.
+2. **Write it.**
+3. **Report after**: filename, plus any decision the doc had to make that the user never stated — entity boundaries, what landed out of scope, a requirement's Must/Should priority. **These are the assumptions worth surfacing; a filename list alone hides them.**
+4. **Check in when the doc opened a real fork** (per `skills/commands/spec/SKILL.md`'s fork table — architecture pattern, v1 scope, entity model, UI direction, a Mitigate-vs-Accept control, ticket granularity). Use `skills/think/elicitation/`'s "How to Ask" rule: native question tool first. No real fork → one line and continue; a checkpoint with nothing to decide is ceremony.
+
+**standard/strict** run the full loop (strict requires approval, not just a check-in, between docs); **vibe** announces and batches, asking only on a fork; **prototype/emergency** skip docs entirely, so the question doesn't arise.
+
 ## Mode Behavior
 
 | Mode | Doc Generation |

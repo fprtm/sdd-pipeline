@@ -3,6 +3,66 @@
 All notable changes to SDD Pipeline. Versioning is [SemVer](https://semver.org/).
 Plain-language where possible.
 
+## [4.0.0] — 2026-08-23
+
+All three items below came from one user report after a real
+`/sdd-pipeline:design` run on a new project: it produced a nine-file design
+suite in a single pass, asked nothing along the way, announced nothing between
+steps, and left the user unsure whether "design" had meant the UI or the specs.
+
+### BREAKING
+
+- **`/sdd-pipeline:design` is now `/sdd-pipeline:spec`.** "Design" reads as
+  *visual/UI design* to most people, while this command's actual job is written
+  specs — FSD/SDS/PRD/ERD/threat model. Visual design is one optional part of
+  it, and it now has its own clearly-named artifact (see below), so the two
+  stop competing for the same word. The new name isn't invented: `SPEC` is
+  already what the framework's own fixed sequence calls this step
+  (`ASK → SPEC → PLAN → BUILD → CHECK`), and `grill`/`discover` already
+  described handing off to "the SPEC step."
+  **Migration**: use `/sdd-pipeline:spec`; there is no alias. The
+  `docs/sdd/design/` output directory is unchanged — only the command was
+  renamed, so no existing project's files move.
+
+### Added
+
+- **The SPEC step now runs step by step instead of one silent batch.** Each
+  step announces itself before running, reports what landed *and what it had to
+  assume*, then checks in before the next one. The check-in is not ceremonial:
+  it fires on a fixed list of forks that invalidate downstream work if guessed
+  wrong — architecture pattern, v1 scope, entity model (one entity or two), UI
+  direction, Mitigate-vs-Accept on a High/Critical control, ticket granularity.
+  Anything off that list (filenames, numbering, doc formats, diagram shapes)
+  stays an internal decision; the user picks direction, never bookkeeping.
+  Scales by mode as usual: prototype announces only, vibe batches and asks only
+  on a fork, standard runs the full loop, strict requires approval between
+  steps. Implemented in `skills/commands/spec/SKILL.md` (run protocol + fork
+  table), `skills/build/doc-generator/SKILL.md` (per-document loop), and
+  `skills/orchestrator/SKILL.md` + `AGENTS.md` so it applies when the SPEC step
+  runs inline rather than via the command.
+- **UI design always produces one entry doc: `docs/sdd/design-system/design.md`.**
+  Previously the UI's direction, tokens, and screen inventory were spread across
+  `design/{NNN}-{slug}-ux.md` and `ux-screens/*.md` with no single front door —
+  a reader landing on the folder had to reconstruct the design system by opening
+  every fragment. Splitting the content stays correct; having no entry point
+  doesn't. `design.md` is project-level and singular (direction, tokens SSOT,
+  screen inventory, component patterns, a11y rules); `-ux.md` stays per-feature
+  and numbered. An external UI/UX skill owning the tokens doesn't excuse the
+  missing front door — `design.md` is still written, citing that skill's files
+  instead of duplicating them.
+  **Mechanically enforced**: `check-file-hygiene.mjs` flags a `design-system/`
+  directory with no `design.md`. Only when the directory exists — an API-only or
+  CLI project is never nagged for a design doc it has no reason to own. Three
+  behavioral tests added (21 hygiene tests total, 47 across all checkers).
+
+### Fixed
+
+- `docs/ARCHITECTURE.md`'s file map still listed the design-doc suffix set as
+  `(fsd|sdd|prd|threats|ux)` — a leftover from the v3.0.0 SDD→SDS rename that
+  contradicted both `check-file-hygiene.mjs` and the rest of the doc.
+- `.claude-plugin/marketplace.json`'s plugin description still opened with
+  "SDD Pipeline v2 —" three majors later.
+
 ## [3.0.2] — 2026-08-20
 ### Fixed
 - User-reported: generated `docs/sdd/` files looked stylistically

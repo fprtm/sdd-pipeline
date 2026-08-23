@@ -84,7 +84,7 @@ Most of the time the orchestrator works invisibly — describe the work and it r
 |---------|------|---------------|
 | `/sdd-pipeline:brainstorm` | Idea is still fog | Open conversation + research to ripen a vague idea. Pipeline stays off. |
 | `/sdd-pipeline:discover` | Decisions forming | Interrogates a decision before it locks in — frontier/round interview + council/devil's advocate |
-| `/sdd-pipeline:design` | Solution shaping | Architecture analysis and/or specs; auto-splits large work into tickets. Design-only is a complete deliverable — it stops there honestly. |
+| `/sdd-pipeline:spec` | Solution shaping | Architecture analysis, specs (FSD/SDS/PRD/ERD), threat model, UX when there are screens; auto-splits large work into tickets. Runs **step by step** — each announced, each confirmed. Spec-only is a complete deliverable — it stops there honestly. |
 | `/sdd-pipeline:implement` | Time to build | Executes an existing plan/spec/ticket with build-time guardrails |
 | `/sdd-pipeline:check` | Prove it | Adaptive QA: verifies a fresh change, audits the codebase otherwise — ends with the impact summary |
 
@@ -101,7 +101,8 @@ docs/sdd/
 ├── changes/              # Small/medium work: ONE dated self-contained file per topic
 ├── decisions/            # One file per decision (rule-of-three gated) — 005-x.md IS ADR-005
 ├── design/               # FSD/SDS/PRD/threat models/UX (numbered — file number IS the spine ID)
-├── ux-screens/ design-system/
+├── ux-screens/           # One file per user journey, priority-tagged
+├── design-system/design.md   # UI entry doc — direction, tokens, screen inventory (when there's a UI)
 ├── tickets/              # Vertical-slice tickets with global TICKET-xxx ids
 ├── test-plans/ dod/ erd/ plans/ reports/ stats/
 ```

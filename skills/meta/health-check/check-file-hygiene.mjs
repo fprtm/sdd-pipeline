@@ -24,6 +24,9 @@
 //      one file, updated in place).
 //   7. ux-screens/ <flow-slug>.md + frontmatter with description, priority
 //      (Must/Should/Could), and updated.
+//   7b. design-system/ (if it exists at all) must contain design.md — the one
+//      entry doc for the UI. Other filenames there are unconstrained on
+//      purpose: an external UI/UX skill's output is redirected into it.
 //   8. plans/    current.md only; plans/archive/ YYYY-MM-DD-NN-{slug}.md
 //   9. memory/   INDEX.md + <slug>.md notes with description frontmatter,
 //      every note listed in INDEX.md.
@@ -114,6 +117,20 @@ for (const e of ls(join(dir, 'ux-screens'))) {
     if (!/^description:/m.test(fmMatch[1])) flag(`ux-screens/${e}: frontmatter missing "description:"`);
     if (!/^priority:\s*(Must|Should|Could)/m.test(fmMatch[1])) flag(`ux-screens/${e}: frontmatter missing "priority:" (Must/Should/Could)`);
     if (!/^updated:\s*\d{4}-\d{2}-\d{2}/m.test(fmMatch[1])) flag(`ux-screens/${e}: frontmatter missing "updated: YYYY-MM-DD"`);
+  }
+}
+
+// design-system/ — must have design.md, the single entry doc for the UI.
+// The rest of the directory is deliberately unconstrained: an external UI/UX
+// skill's output gets redirected here and we don't dictate its filenames. What
+// IS required is the front door — a folder of fragments with no design.md
+// forces a reader to reconstruct the design system by opening all of them.
+// Only checked when the directory exists: an API-only or CLI project has no UI
+// and should not be nagged for a design doc it has no reason to own.
+if (isDir(join(dir, 'design-system'))) {
+  const entries = ls(join(dir, 'design-system'));
+  if (!entries.includes('design.md')) {
+    flag(`design-system/ exists but has no design.md — the UI needs one entry doc, however many files the content splits into (see skills/think/ux-design/)`);
   }
 }
 

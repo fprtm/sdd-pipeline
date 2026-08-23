@@ -7,7 +7,7 @@ description: SDD Pipeline orchestrator — auto-applies THINK/BUILD/PROVE guardr
 
 You are operating under **SDD Pipeline** — spec in front, judgment behind: a system that gives humans control over and trust in AI-generated code through three phases: **THINK → BUILD → PROVE**.
 
-For direct access to a single phase without full auto-detection, use one of the standalone commands: `/sdd-pipeline:discover` (interrogate a decision), `/sdd-pipeline:design` (architecture/spec — auto-decomposes large work into tickets), `/sdd-pipeline:implement` (code with guardrails), `/sdd-pipeline:check` (adaptive QA: verifies a fresh change, audits the codebase otherwise, always ends with the impact summary).
+For direct access to a single phase without full auto-detection, use one of the standalone commands: `/sdd-pipeline:discover` (interrogate a decision), `/sdd-pipeline:spec` (architecture/spec — auto-decomposes large work into tickets), `/sdd-pipeline:implement` (code with guardrails), `/sdd-pipeline:check` (adaptive QA: verifies a fresh change, audits the codebase otherwise, always ends with the impact summary).
 
 ## The Fixed Sequence — Ask Before Execute, Always
 
@@ -178,6 +178,8 @@ THINK (parallel)               BUILD (sequential)            PROVE (parallel)
    (gated, see below)          └─ model-router (advisory)
 ```
 
+**The SPEC step is stepwise, not a batch dump.** Whether reached via `/sdd-pipeline:spec` or run inline here, a task needing several documents runs them one at a time: announce the step before it runs, report what landed *and what it had to assume*, and check in with the user when the step opened a real fork (architecture pattern, v1 scope, entity model, UI direction, a High/Critical control's Mitigate-vs-Accept, ticket granularity). Full protocol and the fork table: `skills/commands/spec/SKILL.md`; per-document loop: `skills/build/doc-generator/`. Producing a dozen artifacts in one silent pass and presenting them finished is how a wrong assumption at step 1 reaches step 6 unchallenged — the user gets a wall of confident output and no seam to push back on. Forks go to the user; filenames, numbering, and formats are decided internally.
+
 **Mandatory documentation rule**: every change request that reaches BUILD gets *something* written down — at minimum the plan file, plus whatever docs the task type triggers (see `skills/build/doc-generator/`). Elicitation questions that were asked and answered MUST result in a written spec/DoD before code — asking the user five questions and then writing nothing is a broken contract. If a doc is skipped, name the reason (task size, mode) in the output **and** record it in `skills/meta/stats/`'s `gates_skipped` field — this applies at every size, including micro, since a skip reason is cheap to record and is exactly the trail that makes "why didn't this task get docs" answerable later instead of just trusted on faith.
 
 **For `large` tasks**: run `skills/build/ticket-decomposition/SKILL.md` before BUILD — split into vertical-slice tickets with blocking edges, then run THINK→BUILD→PROVE per ticket, working the frontier (unblocked tickets first).
@@ -275,7 +277,8 @@ docs/sdd/
 ├── reports/              # Verification reports per task
 ├── design/               # FSD, SDS, PRD, threat models, UX direction per feature (file number = spine ID)
 ├── ux-screens/           # One priority-tagged flow file per user journey (skills/think/ux-design/)
-├── design-system/        # Redirected output of an external UI/UX skill, if one is composed in
+├── design-system/        # UI design. design.md is the entry doc, required whenever there's a UI
+│   └── design.md         # direction + tokens SSOT + screen inventory (skills/think/ux-design/)
 ├── test-plans/           # Test plans per feature (TEST-xxx cases)
 ├── dod/                  # DoD checklists per task
 ├── stats/                # Monthly stats (2026-08.md)

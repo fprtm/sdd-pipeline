@@ -70,7 +70,7 @@ EXPECTED_SKILLS=(
   "agents/subagent-patterns/SKILL.md"
   "commands/brainstorm/SKILL.md"
   "commands/discover/SKILL.md"
-  "commands/design/SKILL.md"
+  "commands/spec/SKILL.md"
   "commands/implement/SKILL.md"
   "commands/check/SKILL.md"
 )

@@ -42,14 +42,14 @@ Unprompted, produce nothing — the conversation itself was the output.
 
 ## Hand-off
 
-When the idea firms up and the user signals they want to get serious ("oke gua mau seriusin ini"), offer — don't auto-start — the next step: `/sdd-pipeline:discover` to interrogate the real decisions, which flows into design → implement → check. The idea brief (if written) feeds discover so nothing discussed gets re-asked.
+When the idea firms up and the user signals they want to get serious ("oke gua mau seriusin ini"), offer — don't auto-start — the next step: `/sdd-pipeline:discover` to interrogate the real decisions, which flows into spec → implement → check. The idea brief (if written) feeds discover so nothing discussed gets re-asked.
 
 ## Position in the Command Flow
 
 ```
 /sdd-pipeline:brainstorm   idea is fog → shape it          (this command)
 /sdd-pipeline:discover     decisions forming → interrogate them
-/sdd-pipeline:design       solution shaping → architecture + spec (+ auto ticket split if large)
+/sdd-pipeline:spec         solution shaping → architecture + specs (+ auto ticket split if large)
 /sdd-pipeline:implement    build under guardrails
 /sdd-pipeline:check        verify the change / audit the codebase + impact summary
 ```
