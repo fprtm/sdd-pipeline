@@ -6,7 +6,7 @@ Speed-first. For MVPs, hackathons, proof-of-concepts. Minimum viable guardrails.
 
 | Phase | Setting |
 |-------|---------|
-| Elicitation | Skip. Auto-infer everything. |
+| Elicitation | Skip on a routine task. On a new product/feature, the five discovery seats still all get asked — one fast round each. Mode dials depth, not coverage. |
 | Context | Minimal: detect stack only. |
 | Scope guard | No limits. |
 | Complexity | Detect but don't block. |

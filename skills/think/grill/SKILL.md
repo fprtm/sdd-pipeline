@@ -1,10 +1,10 @@
 # SDD Grill
 
-Interview the user relentlessly until a shared understanding is reached — BEFORE any plan file is written or code is touched. This is where architecture, scope, and direction decisions get challenged, not rubber-stamped after the fact.
+Interview the user relentlessly until a shared understanding is reached — BEFORE any spec is written or code is touched. This is where architecture, scope, and direction decisions get challenged, not rubber-stamped after the fact.
 
 ## Why This Exists
 
-Most bad AI-agent outcomes trace back to a decision made casually in conversation ("let's use microservices", "we'll need real-time sync") that never got interrogated before it became a plan. By the time the orchestrator writes `docs/sdd/plans/current.md`, the direction is often already locked. Grill runs *before* that lock-in, at the moment the decision is still soft.
+Most bad AI-agent outcomes trace back to a decision made casually in conversation ("let's use microservices", "we'll need real-time sync") that never got interrogated before it became a plan. By the time the orchestrator writes the spec and the ticket breakdown, the direction is often already locked. Grill runs *before* that lock-in, at the moment the decision is still soft.
 
 ## Trigger
 
@@ -17,7 +17,7 @@ Most bad AI-agent outcomes trace back to a decision made casually in conversatio
 
 Before offering, check `docs/sdd/config.md` for a `grill:` block with `auto-suggest: false` — if set, skip the offer entirely for this project (manual invocation via "grill this" etc. still always works regardless of this setting; only the unprompted offer is what the config turns off). No `grill:` block, or `auto-suggest: true`, means the default behavior below applies.
 
-When auto-suggest is active and a trigger is detected, SDD Pipeline asks once: *"This sounds like an architecture-level decision. Want to grill it first before we build?"* — user can decline, and SDD Pipeline proceeds straight to plan-writing without complaint.
+When auto-suggest is active and a trigger is detected, SDD Pipeline asks once: *"This sounds like an architecture-level decision. Want to grill it first before we build?"* — user can decline, and SDD Pipeline proceeds straight to the SPEC step without complaint.
 
 **Never auto-runs.** Grilling always requires explicit user engagement — it's an interview, not a silent gate.
 
@@ -52,7 +52,7 @@ Generic grilling gives recommendations from general reasoning. SDD Grill routes 
 | Technology/dependency choice | `skills/build/constraints/` — dependency limit, YAGNI rule |
 | SDLC/process fit | `skills/think/sdlc-detector/` — methodology-specific guidance |
 
-This means the `➡️` recommendation isn't "what sounds reasonable" — it's "what SDD Pipeline's own rule for this exact category says," so the recommendation stays consistent whether it comes from Grill, the plan file, or a later constraint check.
+This means the `➡️` recommendation isn't "what sounds reasonable" — it's "what SDD Pipeline's own rule for this exact category says," so the recommendation stays consistent whether it comes from Grill, the spec, or a later constraint check.
 
 ## Be Critical — Grilling Is Not Polite Questioning
 
@@ -62,6 +62,15 @@ A grill session that only asks clarifying questions is an intake form, not a gri
 2. **Every stated requirement gets one "why" or one counter-example.** Not endlessly — once per requirement. "You want real-time sync. What breaks if it's 5 seconds stale?" A requirement that survives one honest counter-question is much more trustworthy than one that was never poked.
 3. **Attack the recommendation too — including your own.** After giving a `➡️` recommendation, name the strongest argument *against* it in one line. If you can't produce a real counter-argument, you haven't thought about it enough to recommend it.
 4. **"I don't know" from the user is data, not a dead end.** It marks a branch the user hasn't thought through — that branch gets a deeper round, not a default answer quietly filled in.
+
+## Two Subjects, Two Frontiers
+
+The mechanic above is the same either way, but what seeds the tree differs:
+
+- **A single decision** ("should we use microservices", "is this scope right") — the tree is that decision and whatever hangs off it. This is the mid-session case, when the orchestrator spots something consequential being stated casually.
+- **A whole product or feature** — the tree is seeded by the **five-seat agenda** in `skills/commands/discover/SKILL.md`: Why → Constraints → What → Data → Technical, in that dependency order. Each seat is a cluster of the tree, and its questions enter the frontier as its prerequisites settle. A seat is skipped only when the product has no such surface (no screens → no UI questions), never because of mode, size, or urgency.
+
+If you're not sure which you're in, ask: is there one decision on the table, or a thing being defined? Defining a thing means seats.
 
 ## Council — Devil's Advocate for Consequential Decisions
 
@@ -78,6 +87,14 @@ For decisions that pass the rule-of-three bar (hard to reverse + surprising + re
 Present the objections, let the user respond, then close. If multi-agent dispatch is available and the decision is big enough (see cost-benefit gate in `skills/agents/orchestration/`), the seats can run as parallel sub-agents — each seat gets genuinely independent reasoning instead of one mind role-playing five voices. Single-agent: run them sequentially, honestly.
 
 An objection that lands doesn't kill the decision — it either reshapes it or gets an explicit, logged acceptance ("we accept the maintenance cost because X"). Objections that get no answer at all mean the frontier isn't actually empty.
+
+### The Second Pass: Council Over the Whole Picture
+
+When the subject was a whole product or feature (the seat agenda above), run **one more council pass at the end, over everything settled together** — not per decision.
+
+Per-decision councils are blind to how decisions *interact*. Each choice can be individually defensible while the combination is a v1 twice the size anyone intended: "ship both flows" + "solo builder" + "no scheduling backend" each survive their own council and collectively describe a build nobody sized. Only a pass that sees them at once catches that.
+
+The question this pass asks: **given everything above, is this shape actually buildable by whoever is building it, within the time and budget from the Constraints seat?** Same five seats, one subject — the assembled picture. An objection here either reshapes scope or gets an explicit, logged acceptance.
 
 ## Facts vs Decisions
 
@@ -102,7 +119,7 @@ Borrow these directly when the frontier touches architecture:
 
 1. **Glossary update**: any new domain term that surfaced gets written to `docs/sdd/glossary.md` (see `skills/meta/glossary/`) — live, not batched.
 2. **Decision gate**: run each crystallized decision through the rule-of-three test (see `skills/meta/decision-log/`). Only decisions that are hard-to-reverse, surprising, and the result of a real trade-off get an ADR file.
-3. **Hand-off to spec, not straight to plan**: if the user follows up with "build this" / "let's do it", the next step is `/sdd-pipeline:spec` (or the orchestrator's own SPEC step, if grilling happened mid-session rather than via the standalone command) — turning the shared understanding into the FSD/SDS/PRD/tickets the task's size actually calls for, per `skills/build/doc-generator/`'s own task-type table. Do not write `docs/sdd/plans/current.md` directly and do not jump to suggesting `/sdd-pipeline:implement` — that skips the fixed sequence's SPEC step (see orchestrator's "The Fixed Sequence — Ask Before Execute, Always": ASK → SPEC → PLAN → BUILD → CHECK; grilling is ASK, not a shortcut past SPEC). THINK-phase questions already settled in the grill are NOT re-asked by elicitation or spec's own confirmation steps.
+3. **Hand-off to spec, not straight to plan**: if the user follows up with "build this" / "let's do it", the next step is `/sdd-pipeline:spec` (or the orchestrator's own SPEC step, if grilling happened mid-session rather than via the standalone command) — turning the shared understanding into the FSD/SDS/PRD/tickets the task's size actually calls for, per `skills/build/doc-generator/`'s own task-type table. Do not write specs or tickets directly and do not jump to suggesting `/sdd-pipeline:implement` — that skips the fixed sequence's SPEC step (see orchestrator's "The Fixed Sequence — Ask Before Execute, Always": ASK → SPEC → PLAN → BUILD → CHECK; grilling is ASK, not a shortcut past SPEC). THINK-phase questions already settled in the grill are NOT re-asked by elicitation or spec's own confirmation steps.
 4. **No forced artifact**: if the user just wanted to think out loud and walks away, nothing is created beyond glossary/ADR entries that already passed their gates. Grilling that doesn't end in "build" still isn't wasted — the ADRs and glossary persist for next time.
 
 ## Rules
@@ -111,7 +128,7 @@ Borrow these directly when the frontier touches architecture:
 2. Never ask the user something SDD Pipeline (or a sub-agent) can look up.
 3. Batch the whole frontier per round — don't drip questions one at a time, don't dump everything ignoring dependency order.
 4. If the user wants to stop early ("enough, just build it with X"), stop immediately and treat their answer as the frontier's final state — don't insist on finishing every branch.
-5. Grilling never writes `docs/sdd/plans/current.md` directly. It writes glossary/ADR entries only. Plan-writing stays the orchestrator's job, triggered by an explicit build signal.
+5. Grilling never writes specs, tickets, or a `changes/` file. It writes glossary/ADR entries only. Those belong to the SPEC step, triggered by an explicit build signal.
 
 ## Mode Interaction
 

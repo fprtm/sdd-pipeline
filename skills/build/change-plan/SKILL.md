@@ -48,7 +48,7 @@ Categories:
 
 ## Integration with Plan File
 
-The change plan is included in `docs/sdd/plans/current.md` (written by orchestrator before BUILD). The plan file contains scope, approach, and the change plan together. This skill handles the execution tracking — comparing actual changes vs planned changes.
+The change plan is included in the task’s written record — `docs/sdd/changes/{date}-{slug}.md` for small/medium work, or the ticket being worked for large work (see orchestrator’s "Plan Approval Flow"). That record carries scope, approach, and the change plan together. This skill handles the execution tracking — comparing actual changes vs planned changes.
 
 After task completion, the change summary is included in the verification report and stats.
 

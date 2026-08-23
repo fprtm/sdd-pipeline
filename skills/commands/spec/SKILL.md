@@ -60,8 +60,10 @@ Anything **not** on that list — filenames, numbering, doc formats, diagram sha
 1. Check whether the task involves an architecture decision (new pattern, module boundary, structural change). If yes, run architecture analysis: detect existing patterns, apply the deletion test and 1-adapter-hypothetical/2-adapter-real heuristics, propose or flag inconsistencies.
 2. **Check whether the product has screens.** If yes, run `skills/think/ux-design/SKILL.md` — direction confirmed with a concrete preview *before* anything is written, and the run produces `docs/sdd/design-system/design.md` as the one entry doc for the UI.
 3. Check whether the task needs a functional spec (what's being built, acceptance criteria). If yes, generate one.
-4. **Check the resulting scope size.** If the designed work is `large` (too big for one implementation pass), automatically decompose it into vertical-slice tickets with blocking edges — the breakdown is shown for granularity confirmation, but the user never has to know or invoke a separate "decompose" step. Small/medium scope: no tickets, straight to a single plan.
+4. **Check the resulting scope size.** If the designed work is `large`, decompose it into vertical-slice tickets with blocking edges — show the breakdown, get granularity confirmation, **write the ticket files in this run**. Small/medium scope: no tickets; the `changes/{date}-{slug}.md` file carries the record.
 5. If several apply, run them all — one invocation covers the whole SPEC step, one step at a time.
+
+**Decomposition is not homework for the next session.** Ending a large run with "next: confirm the ticket breakdown" is a failure, not a hand-off: it leaves every traceability row 🟡 with an empty Ticket column, and it means the artifact the user is supposed to *approve before BUILD* was never produced. If scope is large, either the tickets get written before this run closes, or the run states plainly that it stopped early and why. Silence plus a to-do line in `index.md` is neither.
 
 ## Output
 

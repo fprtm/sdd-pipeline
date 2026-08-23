@@ -1,4 +1,4 @@
-# SDD Pipeline v4.0.0 — Spec in Front, Judgment Behind
+# SDD Pipeline v5.0.0 — Spec in Front, Judgment Behind
 
 You are operating under SDD Pipeline. Read `skills/orchestrator/SKILL.md` for full instructions.
 
@@ -12,14 +12,16 @@ First-time on an existing project (code exists, `docs/sdd/` doesn't): bootstrap 
 
 Every execution request: **ASK → SPEC → PLAN → BUILD → CHECK**. Only depth adapts to size. Never skip from request straight to BUILD for small+ tasks. A question ("gimana kalau...?") is discussion, not an execution signal — building starts on an actual instruction.
 
-Before the first code edit of any task, announce: `Plan written to docs/sdd/...` or `No plan/docs — reason: <...>`. Record skipped gates in stats (`gates_skipped`). See orchestrator's "Plan Transparency."
+Before the first code edit of any task, announce the written record: `Change file written to docs/sdd/changes/...` (small/medium), `Tickets written to docs/sdd/tickets/... — N tickets` (large), or `No written record — reason: <...>`. There is no `plans/current.md` any more — for large work the approved ticket breakdown *is* the plan. Record skipped gates in stats (`gates_skipped`). See orchestrator's "Plan Approval Flow."
+
+**ASK is product discovery, not a warm-up.** `/sdd-pipeline:discover` opens as plain conversation while the idea is fog, announces its shift, then works five seats in dependency order: **Why · Constraints · What · Data · Technical**, every question carrying a recommendation, council over each hard decision and once over the whole shape. A seat is skipped only when the product has no such surface (no screens → no UI questions) — **never because of mode, size, or urgency**.
 
 **SPEC runs step by step, never as a silent batch.** A task needing several documents runs them one at a time: announce the step, report what landed *and what it assumed*, check in when the step opened a real fork (architecture pattern, v1 scope, entity model, UI direction, Mitigate-vs-Accept on a High/Critical control, ticket granularity). Forks go to the user; filenames, numbering, and formats are decided internally. See `skills/commands/spec/SKILL.md`.
 
 ## Detection — Always Announced
 
 On every task, detect and announce:
-- **Mode**: prototype / vibe / standard / strict / emergency
+- **Mode**: prototype / vibe / standard / strict / emergency. Dials *depth and visibility*, never *coverage*. **Tone is not a signal** — `vibe`/`prototype` only on request or via `config.md`.
 - **Size**: micro / small / medium / large
 - **Domain**: web / cli / mobile / library / api
 - **SDLC**: scrum / kanban / waterfall / solo — **always detected, every mode including prototype**. Announce it: `SDLC: kanban (detected from ...)`. Silent detection is invisible work.
@@ -50,4 +52,4 @@ Large tasks get vertical-slice decomposition (never layer-splits) with blocking 
 
 ## Skills
 
-Entry point: `skills/orchestrator/SKILL.md` (+ `composition.md`). 5 manual commands: `skills/commands/` (brainstorm, discover, **spec**, implement, check — `spec` was called `design` before v4.0.0; "design" read as UI design, which is a different artifact). 54 reference modules under `skills/think/`, `skills/build/`, `skills/prove/`, `skills/meta/`, `skills/modes/`, `skills/constraints/`, `skills/agents/` — loaded by path when needed, never all at once.
+Entry point: `skills/orchestrator/SKILL.md` (+ `composition.md`). 4 manual commands: `skills/commands/` — **discover** (ASK: absorbed brainstorm in v5.0.0; two gears + five seats), **spec** (SPEC: was `design` before v4.0.0), **implement** (BUILD), **check** (CHECK). 54 reference modules under `skills/think/`, `skills/build/`, `skills/prove/`, `skills/meta/`, `skills/modes/`, `skills/constraints/`, `skills/agents/` — loaded by path when needed, never all at once.

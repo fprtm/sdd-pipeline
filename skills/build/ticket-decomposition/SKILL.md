@@ -67,6 +67,10 @@ Granularity look right? Any tickets to merge or split further?
 
 Wait for confirmation before writing ticket files. This is a judgment call (how to slice) — always worth a quick check before committing to file.
 
+**The breakdown is also the approval gate for large work** (see orchestrator's "What Gets Approved"): for `large` scope there is no separate plan file, so this list is what the user approves before BUILD. That raises the bar on it — it must be complete enough to reorder, merge, or defer against, not a teaser.
+
+**Confirm, then write, in the same run.** Showing the breakdown and stopping there leaves the work in the worst state available: specs written, every traceability row 🟡 with an empty Ticket column, and no approved work order. If the user confirms, the ticket files get written now. If they don't respond or defer, say explicitly that the run stopped before decomposition and that BUILD has nothing approved to start from — never leave it as a quiet to-do line in `index.md`.
+
 ## Ticket Format
 
 **Location**: `docs/sdd/tickets/{feature-slug}/{NN}-{ticket-slug}.md`

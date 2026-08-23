@@ -263,7 +263,7 @@ install_ci() {
 }
 
 install_templates() {
-  mkdir -p docs/sdd/{decisions,plans/archive,tickets,reports,design,test-plans,dod,stats,erd,changes,ux-screens,memory}
+  mkdir -p docs/sdd/{decisions,tickets,reports,design,design-system,test-plans,dod,stats,erd,changes,ux-screens,memory}
   cp "$SCRIPT_DIR/templates/sdd.config.md" docs/sdd/config.md 2>/dev/null || true
   # decisions/ holds one file per decision (see skills/meta/decision-log/) —
   # there's no single "decisions doc" to template. This is a plain git-tracking

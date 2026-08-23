@@ -3,6 +3,86 @@
 All notable changes to SDD Pipeline. Versioning is [SemVer](https://semver.org/).
 Plain-language where possible.
 
+## [5.0.0] — 2026-08-23
+
+The ASK step was the weakest part of this framework and the release before this
+one didn't fix it. A real run produced a full spec suite in which the stack, the
+architecture, the entity model, and the schema were all decided *while writing
+the documents* — the user was never interviewed about any of them. That is the
+exact failure the framework claims to prevent, so ASK got rebuilt.
+
+### BREAKING
+
+- **`/sdd-pipeline:brainstorm` is gone — absorbed into `/sdd-pipeline:discover`.**
+  A foggy idea and a forming decision are the same conversation at two different
+  moments, and making the user pick which one they were in was a question they
+  couldn't answer. `discover` now runs in **two gears**: Gear 1 is open
+  conversation with research on demand and devil's advocate *off* (attacking a
+  half-formed idea kills it before it has a shape worth attacking); Gear 2 is the
+  seat-by-seat interrogation. The shift between them is announced out loud —
+  that moment used to be an invisible boundary between two commands.
+  **Migration**: use `/sdd-pipeline:discover` for both cases — it detects which
+  gear to open in. There is no alias. Invocable skills go 6 → 5, total 60 → 59.
+- **`docs/sdd/plans/` is retired.** For large work it was a summary of five
+  documents that already exist — scope in the PRD, approach and decisions in the
+  SDS + ADRs, risks in the SDS + threat model — which added no information and
+  could go stale against them. Small/medium work keeps its single `changes/`
+  file, which *is* the only record at that size and therefore earns its keep.
+  **What replaces the approval gate**: the ticket breakdown. That's a better
+  artifact to approve than five abstract bullets — the user can merge, split,
+  reorder, or defer individual slices, and what they approve is the real work
+  order. `templates/plan.md` deleted. Existing projects with a `plans/`
+  directory keep working; `check-file-hygiene.mjs` still accepts the shape.
+
+### Changed — ASK is now product discovery
+
+- **Five seats, worked in dependency order**: **Why** (problem, who has it, and
+  what would count as this working — the success measure is the operational
+  definition of the goal, so it lives here rather than in a separate analytics
+  conversation) → **Constraints** (budget, deadline, who maintains this at 2am,
+  existing systems, what data is sensitive and which regime applies) →
+  **What** (v1 scope, main flows, UI direction) → **Data** (the entities the
+  business actually distinguishes, and how they're stored) → **Technical**
+  (architecture and stack).
+  A seat earns its place by holding decisions **only the user can supply** that
+  are **expensive to reverse once code exists**; anything the agent can look up
+  is research, not a question. A seat is skipped **only** when the product has no
+  such surface (no screens → no UI questions), announced with its reason.
+- **Every question carries a recommendation.** This is what makes five seats
+  survivable rather than an interrogation: agreeing is one keystroke, and
+  disagreeing is exactly where the conversation was worth having.
+- **Council runs twice**: per decision as before, plus once over the *whole
+  assembled picture* before the session closes. Per-decision councils are blind
+  to how decisions interact — each can be individually defensible while the
+  combination is a v1 nobody sized.
+
+### Changed — modes may no longer dial coverage
+
+- **Tone-based mode detection removed.** `vibe` used to trigger on "casual prompt
+  with no quality requirements", i.e. writing style was being used as a proxy for
+  how much rigor the user wanted. Someone typing "bikin checkout dong" about a
+  payment system is still building a payment system. `vibe`/`prototype` are now
+  entered only on explicit request or via `config.md`.
+- **Modes dial depth and visibility, never coverage.** No mode may skip a
+  discovery seat, the DoD floor above `micro`, or an `OVERRIDE: none` rule. What
+  prototype/vibe legitimately buy is one round instead of four, recommendations
+  accepted by default, and nothing narrated — not an unasked question about the
+  data model.
+
+### Fixed
+
+- **Ticket decomposition could silently become homework.** A large run was
+  allowed to end with "next: confirm the ticket breakdown" in `index.md`, which
+  leaves the worst possible state: specs written, every traceability row 🟡 with
+  an empty Ticket column, and — now that tickets are the approval artifact — no
+  approved work order for BUILD to start from. Decomposition either completes in
+  the run or the run says plainly that it stopped early and why.
+- `skills/orchestrator/SKILL.md` was over the 300-line soft limit; the two
+  `config.md`-reading sections (`disable:` and `team:`) split into
+  `skills/orchestrator/config-reference.md`, read only when a `config.md` exists.
+- `install/install.sh` no longer creates `plans/archive/` on a fresh install, and
+  does create `design-system/`.
+
 ## [4.0.0] — 2026-08-23
 
 All three items below came from one user report after a real

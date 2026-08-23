@@ -84,9 +84,9 @@ Warning: Refund logic must handle Stripe webhook for async refund completion
 
 SDD Pipeline pauses and waits:
 ```
-Plan written to docs/sdd/plans/current.md.
+Tickets written to docs/sdd/tickets/payment-refund/ — 4 tickets, starting with TICKET-018.
 
-⚠️ STRICT MODE: Please review the plan carefully.
+⚠️ STRICT MODE: Please review the breakdown carefully.
 - Scope is correct?
 - Architecture approach is acceptable?
 - Key decisions align with your requirements?

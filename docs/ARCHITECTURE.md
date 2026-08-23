@@ -1,6 +1,6 @@
 # SDD Pipeline — Architecture & Skill Reference
 
-How the 60 skill files in `skills/` wire together: what each one does, what it calls, what it reads/writes, and when it runs. Read this after `README.md` (the pitch) and `skills/orchestrator/SKILL.md` (the source of truth) — this doc exists to make the *shape* of the system visible at a glance.
+How the 59 skill files in `skills/` wire together: what each one does, what it calls, what it reads/writes, and when it runs. Read this after `README.md` (the pitch) and `skills/orchestrator/SKILL.md` (the source of truth) — this doc exists to make the *shape* of the system visible at a glance.
 
 ## 1. The Big Picture
 
@@ -15,7 +15,7 @@ flowchart LR
         SPEC["2. SPEC\nFSD/SDS/PRD/ERD · DoD\nthreat model · UX"]
     end
     subgraph B["BUILD"]
-        PLAN["3. PLAN\nplan file + approval\n(or changes/ file)"]
+        PLAN["3. PLAN\nticket breakdown (large)\nor changes/ file — approved"]
         BUILDS["4. BUILD\ncode + guardrails\ntickets · commits"]
     end
     subgraph P["PROVE"]
@@ -45,9 +45,9 @@ flowchart LR
 | 4. BUILD | BUILD | `/sdd-pipeline:implement` | there's code to write |
 | 5. CHECK | PROVE | `/sdd-pipeline:check` | always — depth varies, existence doesn't |
 
-`/sdd-pipeline:brainstorm` sits *before* ASK: no pipeline, no artifacts, no pressure toward execution. PLAN is the one step with no command of its own — it belongs to the orchestrator, and `/implement` presupposes it already happened.
+There is no `/brainstorm` command any more: a foggy idea and a forming decision are the same conversation at two moments, so `/discover` handles both and announces when it shifts gears. PLAN is the one step with no command of its own — it belongs to the orchestrator, and what gets approved there is the ticket breakdown (large) or the change file (small/medium).
 
-¹ **SPEC is the one step that straddles two phase directories**, and it's worth knowing before §§3-4 read as contradictory: its *analysis* half (`think/threat-model`, `think/ux-design`, `think/database-design`, `think/arch-analyzer`) is filed under `skills/think/`, while its *doc-writing* half (`build/doc-generator`, `build/test-plan`) is filed under `skills/build/`. The five steps describe the sequence a user experiences; the three phases describe how the ~60 skill files are organized on disk. They are related but not identical, and this footnote is the seam.
+¹ **SPEC is the one step that straddles two phase directories**, and it's worth knowing before §§3-4 read as contradictory: its *analysis* half (`think/threat-model`, `think/ux-design`, `think/database-design`, `think/arch-analyzer`) is filed under `skills/think/`, while its *doc-writing* half (`build/doc-generator`, `build/test-plan`) is filed under `skills/build/`. The five steps describe the sequence a user experiences; the three phases describe how the ~59 skill files are organized on disk. They are related but not identical, and this footnote is the seam.
 
 This sequence is **fixed** — same order every time. Only *depth* adapts, driven by four things the orchestrator detects on every task:
 
@@ -64,7 +64,7 @@ flowchart TD
     THINK_P --> COMP["Skill composition check\n(external skills needed?)"]
     COMP --> GRILL{"Consequential decision\nstated casually?"}
     GRILL -- yes, offered --> GRILLSKILL["SDD Grill"]
-    GRILL -- no / declined --> PLANFILE["Write plans/current.md (large/full)\nor changes/{date}-{slug}.md (small/medium)"]
+    GRILL -- no / declined --> PLANFILE["Write tickets/ (large/full)\nor changes/{date}-{slug}.md (small/medium)"]
     GRILLSKILL --> PLANFILE
     PLANFILE --> BUILD_P["BUILD phase"]
     BUILD_P --> PROVE_P["PROVE phase"]
@@ -88,12 +88,12 @@ flowchart TD
 
 ## 2. Orchestrator (`skills/orchestrator/SKILL.md`)
 
-The only skill registered as a top-level entry point (alongside the 5 commands in §11). It never does the work itself — it detects context, dispatches to phase skills, and owns the plan-approval flow and the meta bookkeeping at the end.
+The only skill registered as a top-level entry point (alongside the 4 commands in §10). It never does the work itself — it detects context, dispatches to phase skills, and owns the plan-approval flow and the meta bookkeeping at the end.
 
 | | |
 |---|---|
 | **Detects** | mode, task size, domain, SDLC, architecture (delegates each detection to a THINK skill) |
-| **Owns** | the fixed ASK→SPEC→PLAN→BUILD→CHECK sequence, plan-file writing (`docs/sdd/plans/current.md`) and its approval flow, the stats footer, session persistence (stays active all session once triggered) |
+| **Owns** | the fixed ASK→SPEC→PLAN→BUILD→CHECK sequence, the written record (tickets for large, `changes/{date}-{slug}.md` for small/medium) and its approval flow, the stats footer, session persistence (stays active all session once triggered) |
 | **Dispatches to** | every skill under `think/`, `build/`, `prove/`, `meta/`; loads the matching file from `modes/[mode]/SKILL.md` and `constraints/[domain]/SKILL.md` |
 | **Multi-agent rule** | THINK skills spawn in parallel and merge; BUILD splits by independent file/component; PROVE spawns one agent per layer — see §10 |
 
@@ -154,7 +154,7 @@ flowchart TD
 | **ux-design** | Confirms direction with a concrete preview first (respects existing design system if present); design tokens (WCAG AA) as SSOT; **one `design.md` entry doc always, however many files the content splits into** (mechanically enforced); index-first flow files; 4 states (empty/loading/error/success) per screen; yields to an external UI/UX skill on aesthetics if installed | `think/arch-analyzer` (process peer), `build/doc-generator`, `check-file-hygiene.mjs` | `docs/sdd/design-system/design.md` + `docs/sdd/design/{NNN}-{slug}-ux.md` + one file per flow at `docs/sdd/ux-screens/<flow-slug>.md` |
 | **stack-conventions** | Reads official docs (context7/MCP/research skill) for the chosen stack+version, turns them into version-pinned, checkable rules; scaffolds config-as-code (`tsconfig.json`, ESLint, etc.) | `build/infra` (CI wiring), `think/threat-model` (security defaults), `constraints/` (stays stack-neutral layer beneath this) | `docs/sdd/stack-guide.md` + scaffolded config files |
 | **analytics-design** | Turns PRD success criteria into a metrics tree (north-star/inputs/guardrails), event taxonomy, funnels/cohorts, instrumentation plan; enforces no-PII-without-consent | `build/infra` (observability), `think/threat-model` (privacy) | `docs/sdd/analytics.md` |
-| **grill** (SDD Grill) | Interviews the user round-by-round over a "design tree," asking the whole open **frontier** per round with a recommendation per question; adversarial toward the user's premises *and* its own recommendations; **council pass** (5 seats: devil's advocate, maintainer-1yr-later, security, cost, end-user) for decisions passing rule-of-three; never runs uninvited | `think/arch-analyzer`, `think/scope-guard`, `think/complexity-analyzer`, `constraints/[domain]`, `build/constraints`, `think/sdlc-detector`, `meta/glossary`, `meta/decision-log`, `agents/orchestration` | live updates to `docs/sdd/glossary.md`; ADRs via `meta/decision-log`; feeds (never writes) `docs/sdd/plans/current.md` |
+| **grill** (SDD Grill) | Interviews the user round-by-round over a "design tree," asking the whole open **frontier** per round with a recommendation per question; adversarial toward the user's premises *and* its own recommendations; **council pass** (5 seats: devil's advocate, maintainer-1yr-later, security, cost, end-user) for decisions passing rule-of-three; never runs uninvited | `think/arch-analyzer`, `think/scope-guard`, `think/complexity-analyzer`, `constraints/[domain]`, `build/constraints`, `think/sdlc-detector`, `meta/glossary`, `meta/decision-log`, `agents/orchestration` | live updates to `docs/sdd/glossary.md`; ADRs via `meta/decision-log`; feeds (never writes) the SPEC-step artifacts |
 
 ---
 
@@ -193,7 +193,7 @@ flowchart TD
 | Skill | What it does | Calls / feeds | Writes to |
 |---|---|---|---|
 | **constraints** | Loads universal (10 rules: YAGNI, dep limits, no premature abstraction…) → domain-specific → project overrides, in that order; secrets rule (#7) is non-negotiable | `constraints/[domain]/SKILL.md`, `docs/sdd/config.md`, `CLAUDE.md`/`AGENTS.md`, decision log on override | decision-log entry + memory on override |
-| **change-plan** | Requires a `CHANGE PLAN:` block (CREATE/MODIFY/DELETE + why) before code; tracks deviations live; produces a Planned-vs-Deviations-vs-Refactoring summary after | `docs/sdd/plans/current.md` | contributes to plan file / verification report |
+| **change-plan** | Requires a `CHANGE PLAN:` block (CREATE/MODIFY/DELETE + why) before code; tracks deviations live; produces a Planned-vs-Deviations-vs-Refactoring summary after | the task’s written record (`changes/` file or the active ticket) | contributes to that record / verification report |
 | **doc-generator** | Auto-decides which docs a task needs (feature→FSD+DoD, DB change→ERD+SDS+DoD…); DoD floor for small+; numbered per-feature files (never append-forever); owns the ID spine (`FSD-003`, `SEC-004`, `TICKET-012`…); splits `docs/user/` vs `docs/dev/` | `formats.md` (companion templates), `meta/traceability`, `meta/decision-log`, `meta/glossary` | `docs/sdd/design/`, `erd/`, `dod/`, `test-plans/`, `index.md`, `docs/user/`, `docs/dev/` |
 | **anti-patterns** | Scans generated code against 12 patterns (God Function, Deep Nesting, Hallucinated API, Hardcoded Secrets, N+1 Queries, Over-Typing…) and self-corrects | `think/arch-analyzer` (deletion test / adapter rule for over-engineering pattern) | corrects code in place; notes change in standard/strict |
 | **execution-guard** | Detects repeated-failure loops (same approach/error 2+ times) → escalates with 3 options instead of spinning; periodic progress signals; rapid-iteration detection (3+ prompts/2min → lightweight mode) | — | inline status only |
@@ -313,9 +313,11 @@ One file per mode; each defines, for *every* skill above, exactly how it behaves
 | Adversarial | skip | skip | 3-5 tests | 5-10+ tests | skip |
 | Security check | secrets only | silent, CRITICAL only | full checklist | full + recommend manual review | critical items only |
 | Judgment gate | skip | silent self-audit | full, comprehension aid | full + explicit user confirmation | weakest point noted for later |
-| Trigger signal | "prototype", "MVP", "hackathon" | casual prompt, no quality bar stated | default | "production", "fintech", "compliance" | "down", "broken", "urgent", "ASAP" |
+| Trigger signal | asked for: "prototype", "MVP", "hackathon" | asked for: "vibe", "no ceremony" — **never inferred from tone** | default | "production", "fintech", "compliance" | "down", "broken", "urgent", "ASAP" |
 
 Full per-skill tables live in each `skills/modes/{mode}/SKILL.md` — the table above is the cross-section.
+
+**What the dial may not reach.** Mode controls *depth and visibility*, never *coverage*. No mode may skip a discovery seat (`commands/discover`'s Why · Constraints · What · Data · Technical), the DoD floor above `micro`, or an `OVERRIDE: none` rule. A seat is skipped only when the product has no such surface, announced with its reason. And ceremony is never inferred from how a message is written — a casual prompt about a payment system is still a payment system, so `vibe`/`prototype` are entered only on request or via `config.md`.
 
 ---
 
@@ -371,27 +373,25 @@ sequenceDiagram
 
 ## 10. Commands — `skills/commands/` (manual entry points)
 
-The orchestrator usually triggers invisibly, but 5 commands let you start at a specific phase deliberately. Each has `disable-model-invocation: true` — they're never auto-triggered.
+The orchestrator usually triggers invisibly, but 4 commands let you start at a specific step deliberately. Each has `disable-model-invocation: true` — they're never auto-triggered.
 
 ```mermaid
 flowchart LR
-    BS["/brainstorm\nfoggy idea → open conversation,\nno pipeline, no pressure"]
-    DISC["/discover\ngrill: frontier/round interview\nbefore a decision locks in"]
+    DISC["/discover\nGear 1: fog → conversation\nGear 2: 5 seats + council"]
     SPEC["/spec\narch-analysis + specs + threat model\n+ UX + tickets, step by step\n(spec-only is a complete stop)"]
-    IMPL["/implement\nBUILD-phase guardrails on\nan existing plan/spec/ticket"]
+    IMPL["/implement\nBUILD-phase guardrails on\nan approved ticket / change file"]
     CHECK["/check\nadaptive QA: verify a fresh change,\naudit the codebase otherwise"]
 
-    BS -.optional, if idea firms up.-> DISC
-    DISC -.shared understanding feeds.-> SPEC
+    DISC -.settled decisions feed.-> SPEC
     SPEC --> IMPL
     IMPL --> CHECK
     CHECK -.gap found.-> IMPL
+    DISC -->|"gear shift announced"| DISC
 ```
 
 | Command | Frontmatter description | Branches to | Writes |
 |---|---|---|---|
-| **brainstorm** | "Mature a vague idea through open conversation and research — no plan, no spec, no pressure toward execution." | on request, borrows **grill**'s council seats for a light devil's-advocate pass | optionally `docs/sdd/design/{NNN}-{slug}-idea.md` |
-| **discover** | "Investigate a decision before it locks in. Runs a frontier/round interview backed by SDD Pipeline's own judgment engines." | is the manual entry to **`think/grill`** | `docs/sdd/glossary.md`, `docs/sdd/decisions/` (rule-of-three gated) — never a plan file |
+| **discover** | "Product discovery — take an idea from fog to settled decisions before anything is written… Absorbs what used to be a separate brainstorm command." | is the manual entry to **`think/grill`**, seeded by its own five-seat agenda | `docs/sdd/glossary.md`, `docs/sdd/decisions/` (rule-of-three gated), optional idea brief — never a spec, ticket, or change file |
 | **spec** | "Turn a settled decision into written specs — architecture analysis, FSD/SDS/PRD/ERD, threat model, UX, and (when large) vertical-slice tickets. Runs step by step, announcing and confirming each one. This is the SPEC step of the pipeline, not visual/UI design." | `think/arch-analyzer`, `think/ux-design`, `think/threat-model`, `build/doc-generator`, `build/ticket-decomposition` | `docs/sdd/design/`, `docs/sdd/design-system/design.md`, `docs/sdd/erd/`, `docs/sdd/tickets/`; stops honestly before BUILD if no execution signal |
 | **implement** | "Execute an existing plan, spec, or ticket with build-time guardrails active." | `build/constraints`, `build/anti-patterns`, `build/change-plan`, `build/execution-guard`, `build/model-router` | working code + change summary |
 | **check** | "Adaptive QA — verifies a fresh change if one exists, audits the whole codebase otherwise, always ends with an impact summary." | **VERIFY** branch (fresh diff exists) → `prove/verification` + adversarial + security-check + performance-check + judgment; **AUDIT** branch (no diff) → `meta/health-check`, read-only | `docs/sdd/reports/{date}-{slug}.md` (verify only) + always an impact digest from `meta/stats` |
@@ -422,8 +422,7 @@ docs/sdd/
 ├── tickets/                owned by: build/ticket-decomposition → {feature-slug}/{NN}-{slug}.md
 ├── test-plans/             owned by: build/test-plan      → {NNN}-{slug}-tests.md
 ├── dod/                    owned by: build/doc-generator   → {NNN}-{slug}-dod.md
-├── plans/current.md        owned by: orchestrator (overwritten each task)
-├── plans/archive/           → {YYYY-MM-DD}-{NN}-{slug}.md
+├── plans/                  RETIRED — kept for existing projects, nothing new written here
 ├── changes/                small/medium work → ONE dated self-contained file per topic
 ├── reports/                 owned by: prove/report, commands/check → {date}-{slug}.md
 └── stats/                   owned by: meta/stats           → {YYYY-MM}.md
@@ -443,7 +442,7 @@ Data-store legend used throughout (all under `docs/sdd/` unless noted):
 |---|---|---|---|---|---|
 | CFG | `config.md` | TIX | `tickets/` | GLO | `glossary.md` |
 | MEM | `memory/` | TST | `test-plans/` | DEC | `decisions/` |
-| PLN | `plans/` | TRC | `traceability.md` | RPT | `reports/` |
+| PLN | written record: `tickets/` or `changes/` | TRC | `traceability.md` | RPT | `reports/` |
 | DES | `design/` (FSD·SDS·PRD·threats·ux) | ERD | `erd/` | STA | `stats/` + `index.md` |
 | UXS | `ux-screens/` | DOD | `dod/` | MISC | `stack-guide.md`, `analytics.md`, `insights.md`, `HANDOFF.md` |
 | COD | the codebase itself (source, tests, git history) | CLA | `CLAUDE.md` / `AGENTS.md` (repo root, not `docs/sdd/`) | EXT | external web / docs (context7, official framework docs) |
@@ -780,11 +779,11 @@ Read order for a newcomer: **12.1 → 12.2** to see the whole shape in under a m
 
 ---
 
-## 13. Cross-Agent Skill Discovery — Why Only 6 of 60 Are Invocable, Everywhere
+## 13. Cross-Agent Skill Discovery — Why Only 5 of 59 Are Invocable, Everywhere
 
-This repo talks about "60 skills" throughout §§1-12 using SDD Pipeline's own internal vocabulary. In every AI coding tool's actual sense of the word "skill," there are only **6**: `orchestrator` and the 5 files under `skills/commands/`. This isn't a Claude Code-only limitation — it's a convention now shared across **Claude Code, OpenCode, Codex CLI, and Cursor**, all of which have converged on the same **Agent Skills** file format. The gate is structural, not platform-specific:
+This repo talks about "59 skills" throughout §§1-12 using SDD Pipeline's own internal vocabulary. In every AI coding tool's actual sense of the word "skill," there are only **5**: `orchestrator` and the 5 files under `skills/commands/`. This isn't a Claude Code-only limitation — it's a convention now shared across **Claude Code, OpenCode, Codex CLI, and Cursor**, all of which have converged on the same **Agent Skills** file format. The gate is structural, not platform-specific:
 
-> A directory only counts as a "skill" if its `SKILL.md` has valid YAML frontmatter with a `name` and a `description`. Across the whole `skills/` tree (60 `SKILL.md` files total), exactly 6 have that frontmatter — `orchestrator/SKILL.md` and the 5 `commands/*/SKILL.md` files. The other 54 are plain markdown with no frontmatter block at all, by design: they're reference modules the 6 real skills read via file path when a specific step needs them, never standalone entries.
+> A directory only counts as a "skill" if its `SKILL.md` has valid YAML frontmatter with a `name` and a `description`. Across the whole `skills/` tree (59 `SKILL.md` files total), exactly 5 have that frontmatter — `orchestrator/SKILL.md` and the 4 `commands/*/SKILL.md` files. The other 54 are plain markdown with no frontmatter block at all, by design: they're reference modules the 5 real skills read via file path when a specific step needs them, never standalone entries.
 
 Verified against each tool's own documentation:
 
@@ -793,11 +792,11 @@ Verified against each tool's own documentation:
 | **Claude Code** | `plugin.json`'s `skills` array (marketplace) or `.claude/skills/<name>/SKILL.md` (manual) | Only the 6 paths listed in `plugin.json` | Never registered — copied as file content only, read via path reference |
 | **OpenCode** | Native skill scanner, requires `name` (alphanumeric+hyphens, matches dir name) + `description` (1-1024 chars) in frontmatter; unknown fields ignored | `.opencode/skills/`, `.claude/skills/`, `.agents/skills/` (+ global `~/.config/opencode/`, `~/.claude/`, `~/.agents/` equivalents) | Fail frontmatter validation → not discovered at all, invisible to the `<available_skills>` list injected into agent context at session start |
 | **Codex CLI** | Same frontmatter requirement (`name` + `description` drive whether/when Codex auto-invokes); explicit picker via `/skills`, or `$name` to mention one directly | `.agents/skills/<name>/SKILL.md` (per this repo's own installer target) | Fail frontmatter validation → don't appear in the `/skills` picker or `$` mention list |
-| **Cursor** (since the Jan 2026 Agent Skills release) | Same frontmatter requirement, including recognizing `disable-model-invocation: true` (the exact flag this repo's 5 commands use); manual invoke via `/` in Agent chat or pin as a Custom Mode; auto-invoke otherwise | `.cursor/skills/`, `.agents/skills/` (project) + `~/.cursor/skills/`, `~/.agents/skills/` (global); legacy compat also reads `.claude/skills/`, `.codex/skills/` | Fail frontmatter validation → don't appear in the Customize → Skills → "Agent Decides" list |
+| **Cursor** (since the Jan 2026 Agent Skills release) | Same frontmatter requirement, including recognizing `disable-model-invocation: true` (the exact flag this repo's 4 commands use); manual invoke via `/` in Agent chat or pin as a Custom Mode; auto-invoke otherwise | `.cursor/skills/`, `.agents/skills/` (project) + `~/.cursor/skills/`, `~/.agents/skills/` (global); legacy compat also reads `.claude/skills/`, `.codex/skills/` | Fail frontmatter validation → don't appear in the Customize → Skills → "Agent Decides" list |
 
 **A cross-compat side effect worth knowing**: both OpenCode's and Cursor's scan lists include `.agents/skills/` — exactly where this repo's installer puts the Codex CLI install (`./install/install.sh --agent codex`). So a project that installed SDD Pipeline for Codex already has it auto-discoverable by OpenCode *and* Cursor too, with zero extra install step, on any tool released after each added `.agents/skills/` compatibility.
 
-**Net effect for the user, on every tool**: nobody is ever shown a menu of 60 items. Whatever skill-listing UI exists — Claude Code's `/` palette, Codex's `/skills` picker, OpenCode's `<available_skills>` context injection, Cursor's Customize → Skills panel — surfaces the same 6 entries. The 54 internal modules stay exactly what they were designed to be: content the orchestrator (or a command) reads by path when its own logic decides a specific step needs it, never a discoverable, invocable, or user-facing item on any platform.
+**Net effect for the user, on every tool**: nobody is ever shown a menu of 59 items. Whatever skill-listing UI exists — Claude Code's `/` palette, Codex's `/skills` picker, OpenCode's `<available_skills>` context injection, Cursor's Customize → Skills panel — surfaces the same 5 entries. The 54 internal modules stay exactly what they were designed to be: content the orchestrator (or a command) reads by path when its own logic decides a specific step needs it, never a discoverable, invocable, or user-facing item on any platform.
 
 **Fixed, not just flagged**: `--agent cursor` now installs the full skill tree into `.cursor/skills/sdd/` (same shape as `codex`/`opencode`), replacing the old behavior of dumping the whole tree as loose `.md` files into `.cursor/rules/` — a format Cursor's *Rules* system (which expects `.mdc` files) never actually loaded, despite the installer's own comments claiming "orchestrator only." Verified end-to-end in a scratch repo: `.cursor/skills/sdd/SKILL.md` and all 5 `commands/*/SKILL.md` now pass Cursor's/OpenCode's/Codex's folder-name-must-match-frontmatter-`name` validation.
 

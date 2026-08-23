@@ -44,12 +44,17 @@ Recommendation: Auth logic in services/ layer, middleware in middleware/, routes
 Consistent with existing patterns.
 ```
 
-### 2. Plan Written
+### 2. Written Record
 
-SDD Pipeline writes `docs/sdd/plans/current.md`:
+Medium-size work gets one dated, self-contained file — `docs/sdd/changes/2026-08-23-user-auth.md`. (Large work would get the ticket breakdown instead; `plans/current.md` was retired in v5.0.0.)
 
 ```markdown
-# Plan: User Authentication with JWT
+---
+description: JWT authentication for the API
+status: in-progress
+updated: 2026-08-23
+---
+# User Authentication with JWT
 
 **Mode**: standard | **Size**: medium | **SDLC**: scrum
 **Architecture**: layered (existing)

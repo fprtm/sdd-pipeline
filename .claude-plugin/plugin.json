@@ -1,6 +1,6 @@
 {
   "name": "sdd-pipeline",
-  "version": "4.0.0",
+  "version": "5.0.0",
   "description": "SDD Pipeline — spec in front, judgment behind. Control over and trust in AI-generated code: THINK, BUILD, PROVE. Adaptive-depth pipeline (ask → spec → plan → build → check), AI-output judgment gate, traceability spine (REQ→FSD→SEC→TICKET→TEST), design-phase threat modeling, coverage gate, mechanical enforcement scripts, multi-agent orchestration.",
   "author": {
     "name": "ferrypratama"
@@ -30,7 +30,6 @@
   ],
   "skills": [
     "./skills/orchestrator",
-    "./skills/commands/brainstorm",
     "./skills/commands/discover",
     "./skills/commands/spec",
     "./skills/commands/implement",

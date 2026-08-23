@@ -38,9 +38,9 @@ The order is **fixed**. Only the *depth* adapts to task size — a typo gets zer
 
 | Step | What happens | What it leaves behind | Skip it and… |
 |---|---|---|---|
-| **ASK** | Adaptive questions scaled to size (micro: 0 … large: 3–5), context loaded, scope declared, hidden complexity surfaced, architecture read. SDD Grill interrogates consequential decisions here — before they lock in. | glossary terms, ADRs | you build the wrong thing, precisely and efficiently |
+| **ASK** | Product discovery: five seats — **why · constraints · what · data · technical** — worked in dependency order, every question carrying a recommendation, council review at the end. Opens as plain conversation when the idea is still fog, then shifts into decisions. | glossary terms, ADRs | you build the wrong thing, precisely and efficiently |
 | **SPEC** | The answers become something written: FSD/SDS/PRD/ERD, threat model, UX, DoD. Runs **step by step** — each announced, each reporting what it assumed, each checking in on real forks. | `docs/sdd/design/`, `erd/`, `dod/`, `design-system/design.md` | five answered questions evaporate into the chat |
-| **PLAN** | Scope IN/OUT, approach, pre-declared decisions, risks — written to a file and approved per mode. | `plans/current.md` (large) or `changes/{date}-{slug}.md` (small/medium) | "done" becomes wherever the agent felt like stopping |
+| **PLAN** | The work order, approved before any code: the ticket breakdown for large work, the change file for small/medium. | `tickets/` (large) or `changes/{date}-{slug}.md` (small/medium) | "done" becomes wherever the agent felt like stopping |
 | **BUILD** | Code, under guardrails: constraints, change plan, anti-pattern scan, execution guard, traceable commits. Large work splits into vertical-slice tickets first. | code, commits, `tickets/` | scope drift with no seam to catch it |
 | **CHECK** | Types, tests, lint, spec conformance → coverage gate, adversarial, security, performance, browser QA → report → **judgment gate**. | `reports/`, a green (or honestly red) matrix | "all tests pass" mistaken for "it's safe" |
 
@@ -49,7 +49,7 @@ Two rules that make the sequence more than a diagram:
 - **Never jump from a request straight to BUILD** for anything above `micro`. Even a crystal-clear request gets step 2 — something written. A clear request with zero written spec is how scope drift starts.
 - **A question is not an execution signal.** "What if we used X?" is discussion — answer it, grill it if it's consequential, but don't start building. Building starts on an instruction.
 
-The five steps group into the three phases the skill tree is organized by — roughly **THINK** = ASK + SPEC, **BUILD** = PLAN + BUILD, **PROVE** = CHECK. "Roughly" because SPEC straddles the line: the analysis half (threat model, architecture, UX) lives in `think/`, while the doc-*writing* half (`doc-generator`, `test-plan`) lives in `build/`. The five steps are the sequence you experience; the three phases are how the ~60 skill files are filed.
+The five steps group into the three phases the skill tree is organized by — roughly **THINK** = ASK + SPEC, **BUILD** = PLAN + BUILD, **PROVE** = CHECK. "Roughly" because SPEC straddles the line: the analysis half (threat model, architecture, UX) lives in `think/`, while the doc-*writing* half (`doc-generator`, `test-plan`) lives in `build/`. The five steps are the sequence you experience; the three phases are how the ~59 skill files are filed.
 
 ```
 THINK                  BUILD                  PROVE
@@ -67,7 +67,7 @@ THINK                  BUILD                  PROVE
 ## What Makes It Different
 
 - **AI-output judgment gate** — verification proves the code *runs*; judgment proves a human *understands and accepts* it. Every judged report names its weakest point and hallucination-risk zones; AI-generated changes touching auth/input/crypto/SQL get flagged for human eyes **even when all automated checks pass**; generation is throttled to review capacity so comprehension debt doesn't pile up.
-- **Plan before code, DoD always** — a plan file is written and (per mode) approved before BUILD; every task small+ gets a Definition of Done checklist. "Done" is never whatever the agent felt like stopping at.
+- **Approved work order before code, DoD always** — nothing gets built until a written record exists and (per mode) is approved: the ticket breakdown for large work, a single dated change file for small/medium. Every task small+ gets a Definition of Done checklist. "Done" is never whatever the agent felt like stopping at.
 - **Traceability spine with a ship gate** — stable IDs (`REQ → FSD → ADR/SEC → TICKET → TEST`) in a matrix that makes gaps visible: an untested requirement is a red row, not a hidden one. Large/full builds may not ship while a Must/Should row is red — and the gate is never quietly downgraded.
 - **Mechanical enforcement, not just prose** — three zero-dependency scripts catch what markdown instructions can't guarantee: `check-traceability.mjs` (drift, broken refs, freelance tickets/tests), `check-file-hygiene.mjs` (docs-tree conventions), `check-parallel-safety.mjs` (file-overlap before parallel agents spawn). All CI-wireable.
 - **Security shifted left AND checked right** — a lightweight STRIDE threat model at design time (SEC-xxx controls with owners), re-verified by the post-code security checklist and required tests for every High/Critical control.
@@ -90,9 +90,9 @@ The honest read: spec-kit and BMAD are strong on the THINK side (spec quality, a
 
 ## Supporting Machinery
 
-- **5 modes** — prototype / vibe / standard / strict / emergency, auto-detected, each dialing ceremony up or down without ever dropping a gate silently.
+- **5 modes** — prototype / vibe / standard / strict / emergency. They dial **depth and visibility**, never **coverage**: no mode may skip a discovery seat, the DoD floor, or a non-negotiable rule. And ceremony is never inferred from tone — someone typing "bikin checkout dong" about a payment system is still building a payment system, so `vibe`/`prototype` are entered only when asked for or set in `config.md`.
 - **Adaptive depth + evidence gates by size** — micro/small/medium/large each get a defined set of active gates (documented in the orchestrator), so a bugfix never drowns in ceremony and a product never ships unproven.
-- **SDD Grill** — a frontier/round interview that interrogates consequential decisions *before* they lock in, backed by the framework's own judgment engines.
+- **SDD Grill** — the frontier/round interview mechanic behind discovery: the whole askable frontier per round, a recommendation per question, adversarial toward your premises *and* its own advice, backed by the framework's own judgment engines.
 - **Architecture analysis** — pattern detection, deletion test, adapter-count rule, design-it-twice for high-stakes calls; proposals always pin down the actual directory tree and the FE↔BE contract per endpoint.
 - **Vertical-slice tickets, tiered T1/T2/T3** — independently demoable slices with computed blocking edges; tiers route trivial work to cheap models and risky work to strong ones. Local ticket files are the SSOT; mirroring to GitHub Issues is optional (asked, never assumed).
 - **Parallel work on one repo** — git worktree isolation, a deterministic file-overlap check, ticket claiming, dependency-ordered merges. Always confirmed before spawning; hard cap 6 agents.
@@ -105,22 +105,24 @@ The honest read: spec-kit and BMAD are strong on the THINK side (spec quality, a
 Most of the time the orchestrator works invisibly — describe the work and it runs the fixed sequence at the right depth. Reach for a command to *enter the sequence at a specific step*:
 
 ```
-              ASK    →    SPEC    →    PLAN    →    BUILD    →    CHECK
-                ↑           ↑                         ↑            ↑
-/brainstorm → /discover   /spec                   /implement     /check
- (before ASK —
-  idea is fog)
+   ASK    →    SPEC    →    PLAN    →    BUILD    →    CHECK
+    ↑            ↑                         ↑            ↑
+ /discover     /spec                   /implement     /check
 ```
 
 | Command | Enters at | When | What it does |
 |---------|-----------|------|---------------|
-| `/sdd-pipeline:brainstorm` | before ASK | Idea is still fog | Open conversation + research to ripen a vague idea. Pipeline stays off. |
-| `/sdd-pipeline:discover` | **ASK** | Decisions forming | Interrogates a decision before it locks in — frontier/round interview + council/devil's advocate |
-| `/sdd-pipeline:spec` | **SPEC** | Solution shaping | Architecture analysis, specs (FSD/SDS/PRD/ERD), threat model, UX when there are screens; auto-splits large work into tickets. Runs **step by step** — each announced, each confirmed. Spec-only is a complete deliverable — it stops there honestly. |
-| `/sdd-pipeline:implement` | **BUILD** | Time to build | Executes an existing plan/spec/ticket with build-time guardrails |
+| `/sdd-pipeline:discover` | **ASK** | Anywhere from "I have a vague idea" to "I need to decide X" | Product discovery. Opens as plain conversation while the idea is fog, then shifts — out loud — into a seat-by-seat interrogation: **why · constraints · what · data · technical**. Frontier rounds with a recommendation per question, council review over each hard decision *and* over the whole shape at the end. |
+| `/sdd-pipeline:spec` | **SPEC** | Decisions are settled, time to write them down | Architecture analysis, specs (FSD/SDS/PRD/ERD), threat model, UX when there are screens; splits large work into tickets. Runs **step by step** — each announced, each confirmed. Spec-only is a complete deliverable — it stops there honestly. |
+| `/sdd-pipeline:implement` | **BUILD** | Time to build | Executes an approved ticket or change file with build-time guardrails |
 | `/sdd-pipeline:check` | **CHECK** | Prove it | Adaptive QA: verifies a fresh change, audits the codebase otherwise — ends with the impact summary |
 
-The commands are named after the steps they enter, which is why the SPEC-step command is `/spec` and not `/design` — "design" reads as *visual* design, and that's a different artifact (`docs/sdd/design-system/design.md`, produced *inside* the SPEC step when the product has screens). PLAN has no command of its own: it's the orchestrator's own step, and it always runs — `/implement` still expects a plan or spec to exist before it writes code.
+Each command is named after the step it enters. Two consequences worth knowing:
+
+- **The SPEC-step command is `/spec`, not `/design`** — "design" reads as *visual* design, which is a different artifact entirely (`docs/sdd/design-system/design.md`, produced *inside* the SPEC step when the product has screens).
+- **There's no separate `/brainstorm`** — a foggy idea and a forming decision are the same conversation at two different moments, and making the user pick which one they're in was a question they couldn't answer. `/discover` handles both and announces when it shifts gears.
+
+PLAN has no command: it's the orchestrator's own step, and what gets approved there is the ticket breakdown (large work) or the change file (small/medium).
 
 ## Project File Structure
 

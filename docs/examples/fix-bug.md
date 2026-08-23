@@ -36,7 +36,7 @@ No hidden complexity flagged. Straightforward token/session debugging.
 
 ### 2. Change File Written (not a separate plan)
 
-Small/medium work doesn't get a `plans/current.md` + a later report as two files — one dated, self-contained file in `changes/` folds both into one, updated in place as the task moves forward (see `skills/orchestrator/SKILL.md`'s "Plan Approval Flow"). Standard mode shows it and waits for approval, same as it would for a full plan:
+Small/medium work doesn't get a separate plan plus a later report as two files — one dated, self-contained file in `changes/` folds both into one, updated in place as the task moves forward (see `skills/orchestrator/SKILL.md`'s "Plan Approval Flow"). Standard mode shows it and waits for approval, same as it would for a full plan:
 
 ```markdown
 ---

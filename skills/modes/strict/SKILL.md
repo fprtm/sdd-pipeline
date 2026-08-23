@@ -12,7 +12,7 @@ Maximum control. For production systems, fintech, healthcare, compliance-sensiti
 | Complexity | Detailed breakdown. Must address each sub-task before proceeding. |
 | Constraints | All rules visible. Pause and wait for approval on each violation. |
 | Anti-patterns | Report each detection with explanation. Fix after acknowledgment. |
-| Plan file | Written to `docs/sdd/plans/current.md`. **MUST be explicitly approved before BUILD**. |
+| Written record | `changes/{date}-{slug}.md` (small/medium) or the ticket breakdown (large). **MUST be explicitly approved before BUILD**. |
 | Change plan | Declare, approve EACH file, re-approve on ANY deviation. |
 | Doc generator | Generate full applicable suite (FSD, SDS, PRD, ERD, DoD, test plan). Require review of FSD/SDS before BUILD. |
 | SDLC detector | Full adaptation + formal compliance checks. Scrum: require story reference. Waterfall: require traceability. |
@@ -49,7 +49,7 @@ The user must acknowledge before the agent continues. This creates a complete au
 Plan MUST be explicitly approved before BUILD proceeds:
 
 ```
-Plan written to docs/sdd/plans/current.md.
+Change file written to docs/sdd/changes/2026-08-23-payment-refund.md.
 
 Please review the plan and confirm:
 - Scope is correct

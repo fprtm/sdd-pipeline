@@ -68,7 +68,6 @@ EXPECTED_SKILLS=(
   "agents/orchestration/SKILL.md"
   "agents/model-strategy/SKILL.md"
   "agents/subagent-patterns/SKILL.md"
-  "commands/brainstorm/SKILL.md"
   "commands/discover/SKILL.md"
   "commands/spec/SKILL.md"
   "commands/implement/SKILL.md"
@@ -107,7 +106,7 @@ echo ""
 # --- Check 2b: Command skills have valid frontmatter ---
 echo "## Checking command skill frontmatter..."
 
-for cmd in brainstorm discover design implement check; do
+for cmd in discover spec implement check; do
   file="$SKILLS_DIR/commands/$cmd/SKILL.md"
   if [ -f "$file" ]; then
     if ! head -1 "$file" | grep -q "^---$"; then
@@ -157,10 +156,10 @@ for mode in prototype vibe standard strict emergency; do
     fi
 
     # Check v0.2.0 additions
-    if grep -q "Plan file\|Plan handling\|plan file" "$file"; then
-      log_ok "modes/$mode: has plan handling"
+    if grep -q "Written record\|Plan file\|Plan handling\|plan file" "$file"; then
+      log_ok "modes/$mode: has written-record handling"
     else
-      log_warn "modes/$mode: missing plan handling (v0.2.0)"
+      log_warn "modes/$mode: missing written-record handling"
     fi
 
     if grep -q "Stats\|stats\|footer" "$file"; then
@@ -259,7 +258,7 @@ echo ""
 # --- Check 8: Templates ---
 echo "## Checking templates..."
 
-for file in templates/sdd.config.md templates/memory.md templates/index.md templates/glossary.md templates/plan.md; do
+for file in templates/sdd.config.md templates/memory.md templates/index.md templates/glossary.md; do
   if [ -f "$SCRIPT_DIR/$file" ]; then
     log_ok "$file exists"
   else

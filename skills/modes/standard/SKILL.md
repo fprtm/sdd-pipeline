@@ -12,7 +12,7 @@ Balanced. Default mode for daily development. Guardrails are visible but not opp
 | Complexity | Report hidden complexity. Let user decide scope. |
 | Constraints | Visible. Flag violations. Explain rationale. Self-correct. |
 | Anti-patterns | Fix and note what changed. |
-| Plan file | Written to `docs/sdd/plans/current.md`. Shown to user. Wait for approval or "go". |
+| Written record | `changes/{date}-{slug}.md` (small/medium) or the ticket breakdown (large). Shown to user. Wait for approval or "go". |
 | Change plan | Declare and confirm before starting. Pause on deviation. |
 | Doc generator | Generate relevant docs based on task type triggers. Show summary of what was created. |
 | SDLC detector | Full SDLC adaptation. Context shown in plan. |

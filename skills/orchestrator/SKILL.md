@@ -7,16 +7,17 @@ description: SDD Pipeline orchestrator — auto-applies THINK/BUILD/PROVE guardr
 
 You are operating under **SDD Pipeline** — spec in front, judgment behind: a system that gives humans control over and trust in AI-generated code through three phases: **THINK → BUILD → PROVE**.
 
-For direct access to a single phase without full auto-detection, use one of the standalone commands: `/sdd-pipeline:discover` (interrogate a decision), `/sdd-pipeline:spec` (architecture/spec — auto-decomposes large work into tickets), `/sdd-pipeline:implement` (code with guardrails), `/sdd-pipeline:check` (adaptive QA: verifies a fresh change, audits the codebase otherwise, always ends with the impact summary).
+For direct access to a single phase without full auto-detection, use one of the standalone commands: `/sdd-pipeline:discover` (product discovery — fog to settled decisions, five seats), `/sdd-pipeline:spec` (architecture/spec — auto-decomposes large work into tickets), `/sdd-pipeline:implement` (code with guardrails), `/sdd-pipeline:check` (adaptive QA: verifies a fresh change, audits the codebase otherwise, always ends with the impact summary).
 
 ## The Fixed Sequence — Ask Before Execute, Always
 
 The single most common trust-breaking failure: sometimes asking questions first, sometimes jumping straight to execution, with no visible logic. The sequence below is **fixed** — same order every time, only the *depth* adapts to task size:
 
 ```
-1. ASK      — elicitation questions (micro: 0, small: 0-1, medium: 2-3, large: 3-5 + grill/council)
+1. ASK      — micro: 0 questions · small: 0-1 · medium: 2-3 · large/new product: the five
+              discovery seats (why · constraints · what · data · technical) + council
 2. SPEC     — write it down (micro: none, small: minimal spec + DoD, medium: FSD + DoD, large: full doc suite)
-3. PLAN     — plan file + approval per mode
+3. PLAN     — the written record, approved per mode: tickets (large) or changes/ file (small/medium)
 4. BUILD    — code with guardrails
 5. CHECK    — PROVE pipeline + judgment gate
 ```
@@ -31,7 +32,7 @@ Hard rules:
 
 You are the orchestrator. On every task, you:
 
-0. Check `docs/sdd/config.md` for a `disable:` list — see "Disabled Features" below — before dispatching to anything
+0. If `docs/sdd/config.md` exists, read `skills/orchestrator/config-reference.md` — the `disable:` list (skills turned off project-wide) and the `team:` block (whether saved decisions/memory count as settled consensus) — before dispatching to anything
 1. Detect the **mode** (prototype / vibe / standard / strict / emergency)
 2. Detect the **task size** (micro / small / medium / large)
 3. Detect the **domain** (web / cli / mobile / library / api)
@@ -39,24 +40,9 @@ You are the orchestrator. On every task, you:
 5. Analyze **architecture** (existing patterns / new project proposal)
 6. Check **skill composition** (recommend missing skills if needed)
 7. Offer **SDD Grill** for casual architecture/scope decisions before they lock in
-8. Write **plan** to file and handle approval flow
-9. Run the pipeline at appropriate depth (decompose into tickets first if `large`)
-10. Generate **documents** adaptive to task type
-11. Track decisions (gated by rule-of-three), glossary, stats, and generate outputs
-
-## Disabled Features
-
-`docs/sdd/config.md` can carry a `disable:` list naming skills to turn off project-wide, e.g.:
-
-```
-disable:
-  - insight
-  - performance-check
-  - stats
-  - doc-generator
-```
-
-Read once per session. Every name on it is **actually skipped** (not "run but suppressed"), matched by directory name (`insight`, not `skills/meta/insight/`). A disabled skill's evidence-gate row is skipped too — announce it ("DoD skipped — doc-generator disabled in config.md"), never silently. This is blunter than mode (which dials depth) — `disable:` removes a skill outright.
+8. Produce the **written record** and get it approved — for `large`, that means decomposing into tickets first; for small/medium, the `changes/` file
+9. Run the pipeline at appropriate depth, generating **documents** adaptive to task type
+10. Track decisions (gated by rule-of-three), glossary, stats, and generate outputs
 
 ## Mode Detection
 
@@ -65,13 +51,21 @@ Detect mode from context. User can override explicitly.
 | Signal | Mode |
 |--------|------|
 | User says "prototype", "MVP", "hackathon", "quick and dirty" | prototype |
-| User gives casual prompt with no quality requirements | vibe |
+| User says "vibe", "just wing it", "no ceremony", or otherwise asks for invisible guardrails | vibe |
 | Default for all tasks | standard |
 | User says "production", "critical", "fintech", "healthcare", mentions compliance | strict |
 | User says "down", "broken", "crash", "emergency", "urgent", "fix now", "ASAP" | emergency |
 | `docs/sdd/config.md` specifies a default mode | that mode |
 
+**Tone is not a signal.** A casual prompt does not mean vibe mode, and a terse one does not mean the user waived rigor — someone typing "bikin checkout dong" about a payment system is still building a payment system. `vibe` and `prototype` are entered only when the user *asks* for them or `config.md` sets them as default. Guessing a lower ceremony level from how a message is written is how guardrails come off without anyone deciding they should.
+
 Load the corresponding mode file from `skills/modes/[mode]/SKILL.md` for behavior rules.
+
+### What Mode May and May Not Dial
+
+Mode controls **depth and visibility** — how many rounds, how much is shown, how much ceremony. Mode does **not** control **coverage** — whether a subject was consulted at all.
+
+Concretely: no mode may skip a discovery seat (`skills/commands/discover/`'s Why · Constraints · What · Data · Technical), skip the DoD floor above `micro`, or skip the `OVERRIDE: none` rules. A seat may be skipped only when the product has no such surface (no screens → no UI questions), and that skip is announced with its reason. What prototype/vibe legitimately buy is *one round instead of four, recommendations accepted by default, and nothing narrated* — not an unasked question about the data model.
 
 ## Task Size Detection
 
@@ -135,34 +129,39 @@ If a grill session concludes with the user saying "build it" / "let's do it", it
 
 ## Plan Approval Flow
 
-Before BUILD phase, write a plan — for **large/full** work that's `docs/sdd/plans/current.md`; for **small/medium** work it's the single `docs/sdd/changes/{date}-{slug}.md` file instead (see "`changes/` vs plan+report" below), which folds plan + report into one lightweight artifact rather than requiring both. Everything in this section (mode-based approval behavior, the transparency rule, the archive-naming convention) applies to whichever of the two is the right artifact for the task's size — "plan" below means "the written record," not literally always `plans/current.md`.
+Before BUILD, there is always a **written record of what's about to happen, approved before code**. Which artifact plays that role depends on size — and there is never more than one:
 
-### Plan Contents
+| Size | The written record | Why this one |
+|------|--------------------|--------------|
+| **small / medium** | `docs/sdd/changes/{date}-{slug}.md` | No PRD/SDS/ADR exists at this size, so this file is the *only* record of scope, decisions, and risk. It folds plan + report into one artifact. |
+| **large / full** | **the ticket list** (`docs/sdd/tickets/{feature-slug}/`) | Scope already lives in the PRD, approach and decisions in the SDS + ADRs, risks in the SDS + threat model. A separate plan file would be a summary of five files that already exist — no new information, and one more thing to go stale. |
 
-Use the template at `templates/plan.md`: header (date, mode, size, SDLC, architecture) → Scope (IN/OUT/estimated files) → Approach (3-5 bullets) → Documents to Generate → Key Decisions (pre-declared, with why) → Risks (with mitigations).
+**`plans/current.md` is retired.** It was written before ticket decomposition existed, and for large work it duplicated documents that now carry the same content with more precision. Existing projects with a `plans/` directory keep it (nothing breaks, `check-file-hygiene.mjs` still accepts the shape); nothing new is written there.
 
-### Approval by Mode
+### What Gets Approved
+
+The approval gate does not disappear with the plan file — it moves to the artifact that's actually useful to approve:
+
+- **small/medium** → the `changes/` file's scope + approach section
+- **large/full** → **the ticket breakdown**, shown as a numbered list with blocking edges *before* any ticket file is written (`skills/build/ticket-decomposition/`). This is a better thing to approve than five abstract bullets: the user can merge, split, reorder, or defer individual slices, and what they approve is the actual work order.
 
 | Mode | Approval Behavior |
 |------|-------------------|
-| **prototype** | No plan file generated. Proceed immediately. |
-| **vibe** | Plan written to file. Auto-approved. Proceed immediately. User can review later in `docs/sdd/plans/archive/`. |
-| **standard** | Plan shown to user. Wait for approval or "go". User can modify scope/approach. |
-| **strict** | Plan written and shown. **MUST** be explicitly approved. No proceeding without "approved" / "go" / "yes". |
-| **emergency** | No plan file. Fix first. Post-fix plan retrospective. |
+| **prototype** | Shown, auto-approved, proceed immediately. |
+| **vibe** | Written and auto-approved. Proceed immediately, no wait. |
+| **standard** | Shown to user. Wait for approval or "go". User can modify scope/order. |
+| **strict** | Shown. **MUST** be explicitly approved. No proceeding without "approved" / "go" / "yes". |
+| **emergency** | None. Fix first, retrospective after. |
 
 ### Plan Transparency — Say What Happened, Before Code, Every Time
 
-**Step 0 of BUILD, not a trailing courtesy** — before the first code edit, not an afterthought once code-writing momentum has taken over. The response for any coding task must contain exactly one of these two lines before any file is created/modified:
+**Step 0 of BUILD, not a trailing courtesy** — before the first code edit, not an afterthought once code-writing momentum has taken over. The response for any coding task must contain exactly one of these lines before any file is created/modified:
 
-- Plan created → `Plan written to docs/sdd/plans/current.md` (large/full) or `Change file written to docs/sdd/changes/{date}-{slug}.md` (small/medium)
-- Plan skipped → `No plan/docs — reason: <micro task (1-line change) | prototype mode | ...>`
+- `Change file written to docs/sdd/changes/{date}-{slug}.md` (small/medium)
+- `Tickets written to docs/sdd/tickets/{feature-slug}/ — N tickets, starting with TICKET-xxx` (large/full)
+- `No written record — reason: <micro task (1-line change) | emergency mode | ...>`
 
-Inconsistent behavior ("sometimes it makes a plan, sometimes not, and I don't know why") destroys trust. Fixed rule: **small+ task in vibe/standard/strict → a written record, always** (`plans/current.md` large/full, `changes/{date}-{slug}.md` small/medium — never both). Micro/prototype/emergency → no written record, but say so — and record the reason in stats regardless (`skills/meta/stats/`'s `gates_skipped` field): an inline announcement can scroll out of view, a stats entry doesn't.
-
-### Archive Naming — One Fixed Convention
-
-After task completion, move the plan to `docs/sdd/plans/archive/{YYYY-MM-DD}-{NN}-{slug}.md` — date, then a per-day sequence number, then the kebab-case task slug (e.g. `2026-08-19-01-user-auth.md`, `2026-08-19-02-fix-logout-bug.md`). Never any other format, never left as `current.md` after the task ends.
+Inconsistent behavior ("sometimes it makes a plan, sometimes not, and I don't know why") destroys trust. Fixed rule: **small+ task in vibe/standard/strict → a written record, always**, exactly one of the two forms — never both, never neither. Micro/emergency → no written record, but say so, and record the reason in stats regardless (`skills/meta/stats/`'s `gates_skipped` field): an inline announcement can scroll out of view, a stats entry doesn't.
 
 ## Pipeline Execution
 
@@ -291,29 +290,11 @@ Tree conventions are **mechanically enforced**: run `check-file-hygiene.mjs` (bu
 
 **Language**: specs, plans, and user-facing docs follow the **user's language**; code-level artifacts are **always English** — identifiers, JSDoc/comments, commit messages, branch slugs — so the code stays portable and reviewable regardless of conversation language.
 
-**`changes/` vs plan+report** — for a small/medium change, one dated self-contained file in `changes/` replaces the separate plan + report pair, using the template at `templates/changes.md` (header → What Changed → Gate List → IDs → Inline Decisions → What Was Tested), and one row in `index.md` registers it. One topic = one file, updated in place — no `-v2` near-duplicate slugs. Large/full work keeps the full structure (plans/, reports/, design/, tickets/).
-
-## Team Support
-
-When `docs/sdd/config.md` is committed to the repository:
-- All team members share the same mode defaults, constraint overrides, and project conventions
-- Decision log is shared — team can reference past decisions
-- Memory is shared — SDD Pipeline doesn't re-ask questions another team member already answered
-- Stats aggregate across team usage
-
-`config.md` can narrow this with a `team:` block:
-
-```
-team:
-  shared-decisions: true
-  shared-memory: true
-```
-
-Both default to `true` the moment `config.md` is committed (the behavior above). Set either to `false` to stop treating that store as settled team consensus for THIS project — concretely: `shared-memory: false` means `skills/think/elicitation/`'s "check memory first, use silently if found" rule changes to "check memory first, but surface it as *someone's* prior answer and confirm it still applies, don't silently reuse it"; `shared-decisions: false` means `skills/meta/decision-log/`'s "Searching Decisions" step still shows what's in `docs/sdd/decisions/` but doesn't treat a past entry as binding on the current task without asking. Use this for a repo shared across people/teams who don't want each other's saved answers auto-applied to their own work — e.g. a monorepo with genuinely separate sub-teams.
+**The `changes/` file** — for a small/medium change, one dated self-contained file replaces the separate plan + report pair, using `templates/changes.md` (header → What Changed → Gate List → IDs → Inline Decisions → What Was Tested), with one row in `index.md`. One topic = one file, updated in place — no `-v2` near-duplicate slugs. Large/full work keeps the full structure (design/, tickets/, reports/).
 
 ## What SDD Pipeline Does NOT Do
 
-- **Aesthetic judgment** — compose with Taste, UI/UX Pro Max, or design system skills (SDD Pipeline will recommend if needed)
-- **Communication style** — compose with Caveman (terse), or other persona skills
-- **Deployment** — SDD Pipeline is for code quality, not DevOps
+- **Aesthetic judgment** — compose with a design skill (SDD Pipeline will recommend one)
+- **Communication style** — compose with a persona skill
+- **Running the deploy** — `build/infra` wires CI/IaC/observability to the same gates, but provisioning, deploying, and spending are hard stops requiring explicit human confirmation; SDD Pipeline never executes them
 - **Ethical judgment** — relies on agent's built-in safety layer

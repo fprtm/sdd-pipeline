@@ -62,7 +62,7 @@ overrides:
 
 ## SDD Grill
 
-Control auto-suggest behavior for brainstorm/architecture interviews:
+Control auto-suggest behavior for discovery/architecture interviews:
 
 ```
 grill:
