@@ -3,6 +3,59 @@
 All notable changes to SDD Pipeline. Versioning is [SemVer](https://semver.org/).
 Plain-language where possible.
 
+## [5.4.0] — 2026-08-25
+
+Tests were superficial — just enough to pass, not enough to find bugs. A test
+plan that says "a logged-in user does X" when the FSD defines admin, regular
+user, and anonymous is testing one perspective and hoping the others work. No
+performance tests, no security tests — just checklist audits and static scans.
+Build output still had bugs because the tests never exercised the conditions
+where bugs actually live.
+
+### Added
+
+- **Multi-perspective coverage** (`build/test-plan`). Per-flow actor coverage:
+  every role the FSD defines gets at least one test (admin succeeds, regular
+  user gets 403, anonymous gets 401). Condition matrix per flow: entity state,
+  data volume, ownership, timing — test where behavior changes, not the full
+  cartesian product.
+- **Security test cases** (`build/test-plan`). Every High/Critical SEC-xxx
+  control becomes an executable test that attempts the attack and asserts it
+  fails correctly. Not a checklist item — actual runnable test code.
+  IDOR, injection, auth bypass, rate limiting.
+- **Performance test cases** (`build/test-plan`). Executable assertions against
+  REQ-NF targets with realistic data volumes. Response time, query count,
+  memory, concurrent load. An endpoint tested only on an empty database is
+  untested.
+- **Executable security test verification** (`prove/security-check`). Runs
+  the test plan's security cases and verifies each SEC control has a passing
+  test. A SEC control with no test is flagged as a gap even if the checklist
+  passes.
+- **Executable performance test verification** (`prove/performance-check`).
+  Runs the test plan's performance cases and verifies actual measurements
+  against REQ-NF targets. Static pattern scan + executable test = two layers.
+- **Entity State and Concurrency categories** (`prove/adversarial`). Tests
+  for actions on cancelled/deleted/expired entities, prerequisite-state
+  violations, double-submit, race conditions, stale data.
+
+### Changed
+
+- **Adversarial test counts raised**: standard 3-5 → 5-8, strict 5-10 → 8-15+.
+  9 categories (was 7: added Entity State, Concurrency/Timing).
+- **Coverage gate honesty checks** (`prove/coverage-check`) now enforce
+  multi-perspective coverage (tests from each actor role) and flag missing
+  security/performance executable tests.
+- **Test plan traceability** now requires executable security tests per
+  High/Critical SEC and performance tests per REQ-NF, not just checklist
+  coverage.
+
+### Migration
+
+No breaking changes. All additions are additive — test plans will now include
+more cases (condition matrices, security tests, performance tests), and the
+coverage gate will flag more gaps. Existing test plans remain valid; new tasks
+will generate richer plans.
+
 ## [5.3.0] — 2026-08-25
 
 AI generates code 10x faster than a developer can review it. Spec-in-front

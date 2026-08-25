@@ -33,10 +33,12 @@ A passing percentage is necessary but not sufficient:
 
 1. **Every FSD error/alternate flow has a test that hits it.** Cross-check the plan's edge cases against actually-executed lines.
 2. **Every flow has both a positive and a negative case.** Per `skills/build/test-plan/`'s positive-AND-negative rule: a flow whose FSD defines an error path but whose suite only proves the happy path is a **gate failure**, not a rounding error. An all-green suite of exclusively passing-input tests is the most common way an 80% number means nothing.
-3. **Every High/Critical SEC control has a passing security/regression test.** Failing this = gate failure *regardless of the percentage*.
-4. **No fake passes** — grep for skipped/`.only`/commented-out/always-true assertions; flag them.
-5. **New code isn't dragging coverage down** — if the diff added uncovered lines, name them even when the global number still clears the gate.
-6. **UI product: every Must-priority journey is browser-verified** (via `skills/prove/browser-qa/`) or its gap explicitly flagged. A green unit suite doesn't prove a user can complete the journey in a browser.
+3. **Multi-perspective coverage is not optional.** If the FSD defines multiple actors/roles (admin, user, anonymous), tests from only one role's perspective = gate failure. Check the plan's condition matrix against executed tests — a flow with a 5-row matrix but only 1 test is undertested.
+4. **Every High/Critical SEC control has a passing executable security test** (not just a checklist pass — an actual test function). Failing this = gate failure *regardless of the percentage*.
+5. **Performance test cases exist for endpoints/queries with REQ-NF targets.** A list endpoint tested only with an empty database and no response-time assertion is untested.
+6. **No fake passes** — grep for skipped/`.only`/commented-out/always-true assertions; flag them.
+7. **New code isn't dragging coverage down** — if the diff added uncovered lines, name them even when the global number still clears the gate.
+8. **UI product: every Must-priority journey is browser-verified** (via `skills/prove/browser-qa/`) or its gap explicitly flagged. A green unit suite doesn't prove a user can complete the journey in a browser.
 
 ## Step 4 — Verdict
 

@@ -60,13 +60,112 @@ This doesn't eliminate the need for code review (🔴 items still need deep revi
 - Skipping implementation review entirely (🔴 items still need deep review)
 - Writing only happy-path tests (the positive+negative rule still applies)
 
+## Multi-Perspective Coverage — Every Actor, Every State
+
+A test plan that says "a logged-in user" when the FSD defines admin, regular user, and anonymous is testing one perspective and hoping the others work the same way. They don't.
+
+### Per-Flow Actor Coverage
+
+For each FSD flow, enumerate every **actor/role** that can interact with it (from the FSD's actors list, the ERD's role enum, or the auth model). Each actor gets at least one test:
+
+| Actor | What the test proves |
+|---|---|
+| **The intended user** | The happy path works for the role the flow was designed for |
+| **A different role** | The flow correctly allows or denies based on role (admin can do X, regular user can't — or vice versa) |
+| **Another user of the same role** | User A cannot access/modify user B's data (IDOR prevention) |
+| **Unauthenticated** | Protected flows reject with 401, not 500 or silent success |
+
+A flow that the FSD says "only admin can do" needs at minimum: admin succeeds, regular user gets 403, anonymous gets 401. If the plan only has "admin succeeds," the other two are untested assumptions.
+
+### Condition Matrix — Test Where Behavior Changes
+
+For each flow, enumerate the **conditions that vary** and test the intersections where behavior changes:
+
+| Dimension | Examples | Why it matters |
+|---|---|---|
+| **Entity state** | pending / active / cancelled / archived / soft-deleted | An action on a cancelled order should behave differently than on an active one |
+| **Data volume** | empty (0) / single (1) / at-boundary / over-limit | Empty lists, pagination boundaries, and rate limits are where bugs hide |
+| **Ownership** | own resource / other user's / shared / no-owner | Authorization logic fails at ownership boundaries |
+| **Timing** | before prerequisite / during concurrent op / after expiry / after soft-delete | Expired tokens, stale caches, race conditions |
+| **Input shape** | minimal valid / maximal valid / unicode / special characters / nested | Validation often passes for "normal" input and crashes on edge shapes |
+
+**Not the full cartesian product** — that's combinatorial explosion. Test the **important intersections**: the ones where behavior changes. A good heuristic: if two conditions produce different code paths (different `if` branches, different error codes, different DB queries), their intersection needs a test.
+
+For each flow, produce a mini-matrix in the plan:
+
+```
+### FSD-003 — Add to Cart
+| Condition | Test |
+|---|---|
+| active product, logged-in owner | TEST-031 (happy path) |
+| archived product, logged-in | TEST-032 (should fail: "product unavailable") |
+| active product, anonymous | TEST-033 (should redirect to login) |
+| active product, quantity > stock | TEST-034 (should fail: "insufficient stock") |
+| active product, concurrent add by same user | TEST-035 (should not double-add) |
+```
+
+A flow with only one row in its condition matrix is undertested — name the gap.
+
 ## Test Classes — Label Every Case
 
-- **Happy path** — the main flow works with valid input. One per FSD main flow.
+- **Happy path** — the main flow works with valid input. One per FSD main flow, **per actor role** (not just "a user" — name the role).
 - **Regression** — locks previously-agreed behavior; every bug fixed gets one so it can't come back. Includes each High/Critical SEC control's expected behavior.
-- **Edge / negative** — boundaries, empty/max, invalid input, the FSD's error/alternate flows, authorization denials. **This is where most defects hide — weight effort here.**
+- **Edge / negative** — boundaries, empty/max, invalid input, the FSD's error/alternate flows, authorization denials. **This is where most defects hide — weight effort here.** Includes entity-state tests (acting on cancelled/deleted/expired entities), ownership boundaries (user A on user B's resource), and data-volume boundaries (empty list, at-limit, over-limit).
 - **E2E** — a real user journey across the whole stack, each mirroring the FSD/SDS's key flow or sequence diagram (**the sequence diagram is the backbone of the e2e test** — if you can't map the test to a diagram, one of the two is wrong). Few, but they must cover each Must-priority journey. **For a product with a UI, "the outer interface" means a real browser, not the API underneath** — plan these for `skills/prove/browser-qa/`, prefer a committed Playwright/Cypress spec so CI keeps guarding it. An e2e case verified only at API/SSR level for a UI product is an integration test wearing an e2e label — say so, don't count it as browser-verified.
-- **Non-functional** — performance (assert the REQ-NF p95/throughput target) and security cases derived from `skills/think/threat-model/`.
+- **Security** — executable tests derived from `skills/think/threat-model/` SEC-xxx controls. Not a checklist — runnable test code that proves the control works. See "Security Test Cases" below.
+- **Performance** — executable assertions against REQ-NF targets. Not static analysis — test code that measures actual response time, query count, or memory under realistic data. See "Performance Test Cases" below.
+
+## Security Test Cases — SEC-xxx as Executable Tests
+
+Every High/Critical SEC-xxx control from `skills/think/threat-model/` becomes at least one runnable test case — not a checklist item, not a "verify manually" note. The test proves the mitigation actually works in the code.
+
+### What a Security Test Looks Like
+
+For each SEC control, test **the attack it mitigates, not just the happy path**:
+
+| SEC control type | Test pattern | Example |
+|---|---|---|
+| **Authentication** | Unauthenticated request → 401 (not 500, not silent success) | `POST /api/orders` without token → 401 |
+| **Authorization / IDOR** | User A's token + user B's resource ID → 403 (not user B's data) | `GET /api/users/B/profile` with A's token → 403 |
+| **Input sanitization** | Malicious input stored → retrieved safely | Store `<script>alert(1)</script>` in name → renders as escaped text |
+| **SQL injection** | SQL payload in user input → parameterized, no data leak | `' OR 1=1 --` in search → empty result, no error |
+| **Rate limiting** | Burst N+1 requests → 429 after threshold | 101 login attempts in 1 minute → 429 on attempt 101 |
+| **Crypto/secrets** | Sensitive data at rest → not plaintext | Password stored → bcrypt hash, not plaintext; token in DB → hashed |
+
+```
+### TEST-050 — IDOR: user cannot access other user's orders  [class: security]
+Proves: SEC-012 (resource-level authorization) · Level: integration
+Given: user A authenticated, user B has order ORD-999
+When: user A requests GET /api/orders/ORD-999
+Then: 403 Forbidden (not 200 with B's data, not 404 pretending it doesn't exist)
+```
+
+**A SEC control without a test is a claim without evidence.** The security-check skill (`skills/prove/security-check/`) audits code against its checklist; the test plan generates the test that **proves it mechanically**.
+
+## Performance Test Cases — Measure, Don't Just Scan
+
+Static pattern detection (`skills/prove/performance-check/`) catches code-level anti-patterns (N+1, missing index, unbounded cache). That's necessary but insufficient — it doesn't prove the endpoint is actually fast enough. Performance test cases are **executable assertions** against realistic conditions.
+
+### What a Performance Test Looks Like
+
+| Target | Test pattern | What to assert |
+|---|---|---|
+| **Response time** | Seed DB with realistic data volume (not empty), hit endpoint, measure | p95 < threshold from REQ-NF (or default 200ms for API, 3s for page load) |
+| **Query count** | Instrument/count DB queries for a list operation | N items → exactly K queries (not N+K — that's N+1) |
+| **Memory** | Process a large dataset (1000+ records), measure heap | Memory stays bounded (no linear growth with input size) |
+| **Concurrent load** | Fire N parallel requests to same endpoint | No 500s, no deadlocks, response time stays within 2x of single-request |
+
+```
+### TEST-060 — List orders p95 < 200ms with 500 records  [class: performance]
+Proves: REQ-NF-003 (API response time) · Level: integration
+Given: 500 seeded orders in test DB
+When: GET /api/orders?page=1&limit=20 is called 50 times
+Then: p95 response time < 200ms; query count = 2 (list + count)
+```
+
+**Performance tests need realistic data.** An endpoint that returns in 5ms on an empty database and 5 seconds on 10,000 rows is not fast — it's untested. Seed the test DB with a volume that matches realistic usage (from REQ-NF or discovery).
+
+**When to include**: medium+ tasks that add API endpoints, database queries, list/search operations, or data processing. Micro/small tasks that don't touch performance-sensitive code: skip, but name the skip.
 
 ## Anatomy of a Test Case
 
@@ -109,8 +208,8 @@ For any product with a UI, the test plan names the **`data-testid` anchors** eac
 
 ## Traceability (Both Directions)
 
-Every Must FSD flow → ≥1 happy + relevant edge tests · every High/Critical SEC → ≥1 security/regression test · every ticket's acceptance criteria → the TEST-xxx that verifies it. Any FSD with no test is a red row in the matrix — surface it, don't paper over it.
+Every Must FSD flow → ≥1 happy + relevant edge tests **per actor role** · every High/Critical SEC → ≥1 **executable security test** (not just checklist, actual test code) · every REQ-NF → ≥1 **executable performance test** with realistic data · every ticket's acceptance criteria → the TEST-xxx that verifies it. Any FSD with no test is a red row in the matrix — surface it, don't paper over it.
 
 ## Exit Gate
 
-Each Must FSD flow and each High/Critical SEC has planned cases across the right classes; coverage target + command written; e2e cases exist for Must journeys; the LOCAL-only env is stated. Update `skills/meta/traceability/`, then implementation can begin against these targets.
+Each Must FSD flow has planned cases across the right classes **and across actor roles** (condition matrix); each High/Critical SEC has an executable security test; performance targets from REQ-NF have executable assertions with realistic data volumes; coverage target + command written; e2e cases exist for Must journeys; the LOCAL-only env is stated. Update `skills/meta/traceability/`, then implementation can begin against these targets.

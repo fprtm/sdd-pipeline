@@ -1,6 +1,6 @@
 # Performance Check
 
-Detect performance anti-patterns in generated code. This is static analysis — detection, not profiling.
+Two layers: **static pattern detection** (scan code for anti-patterns) and **executable performance verification** (run the test plan's performance cases and check actual measurements).
 
 ## Patterns to Detect
 
@@ -64,21 +64,48 @@ Detect performance anti-patterns in generated code. This is static analysis — 
 - **FIX**: Use connection pool.
 - **SEVERITY**: LIKELY ISSUE for any multi-request server.
 
-## Output Format
+## Output Format — Static Scan
 
 ```
-PERFORMANCE CHECK:
+PERFORMANCE CHECK — STATIC:
 - [LIKELY ISSUE] N+1 query in getUserOrders() — line 42. FIX: batch query.
 - [WORTH CHECKING] Unbounded array in processResults() — line 88. Check if data source is bounded.
 - No issues detected in other areas.
 ```
 
+## Layer 2 — Executable Performance Verification
+
+If the test plan includes performance test cases (class: performance), run them and verify actual measurements. This is not static analysis — this is running test code that measures real response times, query counts, and memory usage.
+
+### What to Verify
+
+1. **Response time assertions** — run the performance test, check p95 is under the REQ-NF threshold (default 200ms for API, 3s for page load). Report the actual measured value.
+2. **Query count assertions** — count actual DB queries during a list/search operation with realistic data. Report the number. N items triggering N+K queries (where K > 2-3) is a flag.
+3. **Memory assertions** — if the test plan includes a memory test, run it and check heap stays bounded.
+4. **Concurrent load** — if tested, report whether responses stayed within threshold under parallel load.
+
+### How to Run
+
+Use the same LOCAL-only test environment as verification (`skills/prove/verification/`). Performance tests use seeded data — the seed must be part of the test setup, not dependent on manual DB state.
+
+The performance test report appends to the static scan:
+
+```
+PERFORMANCE CHECK — EXECUTABLE:
+- [PASS] GET /api/orders p95=45ms (target <200ms) — 500 seeded records, 50 runs
+- [FAIL] GET /api/products/search p95=890ms (target <200ms) — missing index on `name` column
+- [PASS] List orders query count: 2 (list + count) for 500 records — no N+1
+- [SKIP] Memory test — no REQ-NF memory target defined
+```
+
+**A static scan that passes while the executable test fails is not a pass.** The static scan catches patterns; the executable test proves actual performance. Both are needed.
+
 ## Mode Behavior
 
-| Mode | Behavior |
-|------|----------|
-| prototype | Skip |
-| vibe | Skip |
-| standard | Detect and flag |
-| strict | Detect, flag, require resolution before proceeding |
-| emergency | Skip |
+| Mode | Static scan | Executable tests |
+|------|-------------|------------------|
+| prototype | Skip | Skip |
+| vibe | Skip | Skip |
+| standard | Detect and flag | Run if test plan has performance cases; report results |
+| strict | Detect, flag, require resolution | Run and require all PASS before proceeding |
+| emergency | Skip | Skip |

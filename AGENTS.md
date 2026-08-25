@@ -1,4 +1,4 @@
-# SDD Pipeline v5.3.0 — Spec in Front, Judgment Behind
+# SDD Pipeline v5.4.0 — Spec in Front, Judgment Behind
 
 You are operating under SDD Pipeline. Read `skills/orchestrator/SKILL.md` for full instructions.
 
@@ -48,6 +48,9 @@ AI generates code far faster than a developer can review it. Spec-in-front and j
 
 - **Every result comes from a command that actually ran**, quoted from its real output. A suite that was generated but not executed is `SKIPPED`, never `PASS`. No coverage figure that no command produced.
 - **Every flow gets a positive AND a negative case.** A plan with only happy paths is a demo script; the negative side is where defects live and the side an agent under-produces by default.
+- **Multi-perspective coverage: every actor role, every state that matters.** If the FSD defines admin/user/anonymous, tests from only one role = gap. Each flow gets a condition matrix (entity state, ownership, data volume, timing) and tests where behavior changes. "A logged-in user" is not enough when three roles exist.
+- **Security tests are executable, not just checklists.** Every High/Critical SEC-xxx control becomes a runnable test that attempts the attack and asserts it fails correctly (401/403, not 500). A SEC control without a test is a claim without evidence.
+- **Performance tests measure, not just scan.** Endpoints with REQ-NF targets get executable response-time/query-count assertions with realistic data volumes (not empty databases). Static pattern detection is necessary but insufficient.
 - **Coverage ≥80% line+branch is measured in every mode**, at every size above `micro`. Mode dials narration and whether a FAIL blocks — never whether the gate runs. Denominator scales: changed lines at `small`, whole repo at medium+. New logic ships with its tests **in the same change**.
 - **UI**: stable `data-testid` on interactive and asserted elements (`constraints/web` W9); browser QA selects role+name first, testid as fallback. Must journeys get **committed Playwright specs** — a live browser run proves it worked once; the committed spec is the smoke/regression net. Greenfield/large: the harness is in scope, ticketed. **Existing repo, small/medium change, no harness → ask first** (set it up / interactive check only / skip and mark unverified). Never install a test harness as a surprise.
 

@@ -1,13 +1,13 @@
 # Security Check
 
-Domain-aware security checklist — the post-code PROVE-phase half of security. The design-phase half is `skills/think/threat-model/` (STRIDE, SEC-xxx controls); this checklist audits what the code actually does.
+Two layers: **checklist audit** (domain-aware static review of the code) and **executable security test verification** (run the test plan's security cases and confirm mitigations work mechanically). The design-phase half is `skills/think/threat-model/` (STRIDE, SEC-xxx controls); this skill audits what the code actually does and verifies the tests actually prove it.
 
 ## Process
 
 1. Detect domain from context-loader output.
-2. Apply the relevant checklist below.
-3. Mark each item: PASS / FAIL / NOT APPLICABLE.
-4. **If a threat model exists** (`docs/sdd/design/*-threats.md`): cite the SEC-xxx each finding verifies or violates, and confirm every High/Critical control's mitigation is actually present in the code — a control that exists on paper but not in the diff is a FAIL, not an N/A.
+2. Apply the relevant checklist below — mark each item: PASS / FAIL / NOT APPLICABLE.
+3. **If a threat model exists** (`docs/sdd/design/*-threats.md`): cite the SEC-xxx each finding verifies or violates, and confirm every High/Critical control's mitigation is actually present in the code — a control that exists on paper but not in the diff is a FAIL, not an N/A.
+4. **Run executable security tests** from the test plan (class: security). A SEC control with a passing test is stronger evidence than a checklist PASS. A SEC control with NO test is a gap — flag it even if the checklist passes.
 5. Critical failures block in strict mode; flag in standard mode.
 
 ## Web Security Checklist
@@ -64,12 +64,38 @@ Domain-aware security checklist — the post-code PROVE-phase half of security. 
 | M3 | Minimum permissions | Only necessary platform permissions requested. |
 | M4 | No hardcoded secrets | Same as W5. |
 
+## Executable Security Test Verification
+
+If the test plan includes security test cases (class: security — see `skills/build/test-plan/`), run them and verify each SEC control has a passing test.
+
+### What to Verify
+
+For each High/Critical SEC-xxx control:
+
+1. **Does a test exist?** A control without a test is a claim without evidence — flag it.
+2. **Does the test actually exercise the attack?** A test that only proves "authorized user succeeds" doesn't prove "unauthorized user is blocked." The test must attempt the attack (unauthenticated request, IDOR attempt, injection payload) and assert it fails correctly (right error code, no data leak, no 500).
+3. **Did the test pass?** Report actual test output, not what the code looks like.
+
+### Report Format
+
+Append to the checklist output:
+
+```
+SECURITY TESTS:
+- SEC-012 (IDOR prevention): TEST-050 PASS — user A cannot access user B's orders (403)
+- SEC-015 (rate limiting): TEST-055 PASS — 429 after 100 requests/minute
+- SEC-008 (input sanitization): NO TEST — checklist PASS but no executable proof [GAP]
+- SEC-003 (auth required): TEST-048 PASS — unauthenticated → 401
+```
+
+**A checklist PASS without a test is weaker than a checklist PASS with a passing test.** Both count, but the gap should be visible.
+
 ## Mode Behavior
 
-| Mode | Behavior |
-|------|----------|
-| prototype | Check secrets (#5/C5/A8/L4/M4) only |
-| vibe | Auto-check silently. Only alert user on CRITICAL findings. |
-| standard | Full relevant checklist. Report all findings. |
-| strict | Full checklist + recommend manual security review for production. |
-| emergency | Critical items only (secrets, injection) |
+| Mode | Checklist | Executable security tests |
+|------|-----------|--------------------------|
+| prototype | Check secrets only | Skip |
+| vibe | Auto-check silently, CRITICAL only | Run if tests exist; report silently on PASS, surface on FAIL |
+| standard | Full relevant checklist. Report all findings. | Run all security tests; report results; flag SEC controls without tests |
+| strict | Full checklist + recommend manual security review | Run all; require all PASS; flag untested controls as blocking gaps |
+| emergency | Critical items only (secrets, injection) | Run critical-path security tests only |
