@@ -21,6 +21,45 @@ Concretely, per FSD flow:
 
 A flow with only positive cases is an incomplete row: name it in the plan as a gap rather than leaving the imbalance implicit. `skills/prove/coverage-check/` treats a flow whose FSD defines an error path but whose plan has no negative case as a gate failure, not a rounding error.
 
+## Tests Before Code — The Developer Reviews Intent, Not Implementation
+
+The fundamental review problem: AI generates 500 lines of implementation code, the developer has to understand all 500 lines. No amount of post-hoc review tooling changes this arithmetic.
+
+**Tests-first changes what the developer reviews.** Instead of reviewing the implementation (complex, dense, implementation-specific), the developer reviews the test code (shorter, expresses intent, maps directly to the spec they helped create through deliberation).
+
+### The Protocol
+
+For medium+ tasks in standard/strict mode:
+
+1. **Test plan** is written from spec (this already happens — see above).
+2. **Test code is generated from the test plan BEFORE implementation.** Concrete test functions, using the stack's test framework, asserting the behaviors defined in the plan. These tests should FAIL — there's no implementation yet.
+3. **Developer reviews the test code.** This is the key moment: the developer is reviewing 50-100 lines of intent-expressing test code, not 500 lines of implementation. The question is: "do these tests capture what we agreed on during deliberation?" — a question they can answer because they participated in the deliberation.
+4. **Developer approves the tests** (standard: shown, proceed after presenting; strict: explicit approval required).
+5. **Implementation is generated to make the tests pass.** The tests are the acceptance criteria, already approved.
+6. **Tests pass = spec is mechanically verified.** The developer's review burden for the implementation drops to the review guide's trust tiers — 🔴 items still get deep review, but 🟡 items that have approved tests covering them need only an intent check.
+
+### Mode Behavior for Tests-First
+
+| Mode | Tests-first behavior |
+|------|---------------------|
+| **prototype** | Skip — code and tests generated together |
+| **vibe** | Tests written first, auto-approved, no pause |
+| **standard** | Tests written first, shown to developer, proceed after presenting |
+| **strict** | Tests written first, developer must explicitly approve before implementation begins |
+
+### Why This Works
+
+The test code is a **translation of the spec into executable assertions**. The spec came from deliberation (which the developer participated in). So the developer is reviewing a translation of their own decisions — not an opaque implementation of their decisions. If the translation is faithful, the implementation is constrained to match.
+
+This doesn't eliminate the need for code review (🔴 items still need deep review — tests can pass while containing a security flaw). But it **shifts the bulk of review** from "is this implementation correct?" to "do these tests capture what I asked for?" — a question that's both faster to answer and one the developer is better positioned to judge.
+
+### Tests-First Does NOT Mean
+
+- Writing tests for code that already exists (that's normal TDD)
+- Writing tests without a spec (that's testing without intent)
+- Skipping implementation review entirely (🔴 items still need deep review)
+- Writing only happy-path tests (the positive+negative rule still applies)
+
 ## Test Classes — Label Every Case
 
 - **Happy path** — the main flow works with valid input. One per FSD main flow.

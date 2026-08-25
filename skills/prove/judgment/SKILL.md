@@ -58,11 +58,74 @@ Do not generate faster than the user can judge:
 - Multi-agent dispatch multiplies output volume — the agent cap in `skills/agents/orchestration/` exists partly for this reason. More agents than review capacity = comprehension debt factory.
 - User can always override (see orchestrator's override policy) — the throttle informs, never blocks.
 
+**Review debt tracking**: when the review guide is produced (§5), it also checks whether the *prior* task's review guide had any 🔴 items the user hasn't acknowledged. Stacking unreviewed 🔴 code is the specific failure mode this throttle exists to prevent — light-scan 🟢 code stacking is fine; unacknowledged auth changes stacking is not. State the debt in the review guide's "Unreviewed from prior task" line.
+
+### 5. Review Guide — The Developer's Verification Map
+
+The comprehension aid explains *what was built*. The review guide tells the developer *what to verify and where to focus*. Without it, the developer either reads everything at equal depth (impossible at 10x generation speed) or skims and hopes (theater, not review).
+
+**Produce a review guide for every task that generated code**, appended to the verification report alongside the judgment block. Skip only for micro tasks and emergency fixes (those get the review guide in the post-fix follow-up).
+
+#### Trust Tiers — Not All Code Needs Equal Review Depth
+
+Tag every changed file (or function, for large files) with a tier:
+
+| Tier | Tag | Criteria | Developer action |
+|------|-----|----------|------------------|
+| 🔴 | **DEEP REVIEW** | Auth/session/token, payment/financial, data mutation at trust boundary, crypto, SQL construction, deserialization, anything touching a High/Critical SEC control | Read every line. Verify logic, not just shape. |
+| 🟡 | **VERIFY INTENT** | Business logic, validation rules, error handling, state transitions, API contract implementation | Verify the logic matches the spec. Tests should cover it — check that they do. |
+| 🟢 | **LIGHT SCAN** | Boilerplate, config, type definitions, re-exports, pure UI layout with no logic, scaffolding, test fixtures | Scan for anything surprising. If nothing stands out, move on. Tests covering it raise confidence further. |
+
+Tier assignment follows the same zones as Security Prior Escalation (§3) — code that would get flagged for security review is always 🔴. The tiers exist so the developer spends 80% of their review time on the 20% of code that actually carries risk.
+
+#### Review Guide Format
+
+```
+### Review Guide
+
+**Review order** (most critical first):
+1. 🔴 `src/checkout/service.ts:42-78` — order creation + payment charge
+   Implements: FSD-003 "checkout flow" · Ticket: TICKET-018
+   VERIFY: order total computed server-side (ADR-005), idempotency key present
+   RISK: double-charge if retry logic is wrong
+
+2. 🔴 `src/auth/middleware.ts:15-30` — session validation change
+   Implements: SEC-002 "session integrity"
+   VERIFY: token expiry check matches auth spec, no bypass path
+
+3. 🟡 `src/cart/validation.ts:12-40` — cart validation rules
+   Implements: FSD-003 edge case "empty cart", "max quantity"
+   VERIFY: error responses match FE↔BE contract
+   COVERED BY: TEST-031, TEST-032 (positive + negative)
+
+4. 🟢 `src/checkout/types.ts` — TypeScript interfaces
+   Matches: FE↔BE contract from arch deliberation
+   Covered by type-checking — light scan only
+
+5. 🟢 `src/checkout/index.ts` — re-exports
+   No logic — skip unless something looks wrong
+
+**Spec coverage**: 4/4 FSD flows mapped · 2/2 SEC controls mapped
+**Test coverage for 🟡 items**: 3/3 have positive + negative cases
+**Unreviewed from prior task**: none
+```
+
+#### Rules for the Review Guide
+
+1. **Every 🔴 item names the specific thing to verify** — not "review this file" but "verify that X does Y because Z." A review guide that just lists files with trust tiers is a legend, not a guide.
+2. **Every 🟡 item names its test coverage** — if tests exist for it, say which ones. The developer can review the test instead of the implementation.
+3. **Map every item to a spec item** (FSD, SEC, ticket, ADR). A code change with no spec mapping is either scope creep or a missing spec — both worth flagging.
+4. **State the review order explicitly** — most critical first, not file order. The developer who runs out of review time should have covered the highest-risk code.
+5. **Include "unreviewed from prior task"** — if the prior task's code hasn't been reviewed yet, say so. Stacking unreviewed code is how comprehension debt compounds invisibly.
+
 ## Output Addition to Report
 
 Append to the verification report (`skills/prove/report/`):
 
 ```
+### Review Guide
+[Trust-tiered file list with spec mapping, verification targets, and review order — see §5 format]
+
 ### Judgment
 - Weakest point: [the one part of this change most worth a human's skepticism]
 - Hallucination-risk zones: [APIs/patterns generated from memory, not verified against this project]

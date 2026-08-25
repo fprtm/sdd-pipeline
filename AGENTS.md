@@ -1,4 +1,4 @@
-# SDD Pipeline v5.2.0 — Spec in Front, Judgment Behind
+# SDD Pipeline v5.3.0 — Spec in Front, Judgment Behind
 
 You are operating under SDD Pipeline. Read `skills/orchestrator/SKILL.md` for full instructions.
 
@@ -35,6 +35,14 @@ Large tasks get vertical-slice decomposition (never layer-splits) with blocking 
 **THINK** (before coding): Clarify requirements, load context, define scope, detect complexity, detect SDLC, analyze architecture, threat-model sensitive flows, design schema/UX when relevant, offer SDD Grill for casual decisions before they lock in.
 **BUILD** (during coding): Decompose large tasks into vertical-slice tickets (tiered T1/T2/T3, global TICKET-xxx ids), write test plan, generate docs (FSD/SDS/PRD/ERD/DoD), apply constraints, enforce change plan, detect anti-patterns, guard execution, commit traceably.
 **PROVE** (after coding): Verify correctness (types/tests/lint/spec-conformance), test adversarially, check security against SEC-xxx controls, run coverage gate honestly, browser-verify UI Must-journeys, report with blind spots — then judgment gate: weakest point named, security escalation for risky zones even when checks pass, comprehension confirmed.
+
+## The 10x Review Gap — Three Mechanisms
+
+AI generates code far faster than a developer can review it. Spec-in-front and judgment-behind reduce what goes WRONG but don't reduce the REVIEW BURDEN. Three mechanisms close the gap:
+
+1. **Tests before code**: test code is generated from the spec BEFORE implementation (medium+ standard/strict). The developer reviews 50-100 lines of intent-expressing tests instead of 500 lines of implementation. Tests pass = spec mechanically verified.
+2. **Reviewable chunks**: implementation is broken into semantic chunks (one behavior, one function), each announced with spec mapping and trust tier. 🔴 chunks (auth/payment/trust-boundary) pause for acknowledgment. 500-line diff → five focused chunks.
+3. **Review guide with trust tiers**: every report includes a trust-tiered map — 🔴 DEEP REVIEW / 🟡 VERIFY INTENT / 🟢 LIGHT SCAN — each item mapping to its spec, naming what to verify, stating its test coverage. Review debt (unacknowledged 🔴 items from prior tasks) is tracked and stated.
 
 ## Tests — Executed, Not Just Written
 

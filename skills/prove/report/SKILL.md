@@ -18,6 +18,9 @@ Generate a concise, actionable verification report. NOT a verbose document — a
 - Performance: [PASS/FAIL/SKIPPED] — [N concerns]
 - Adversarial: [PASS/FAIL/SKIPPED] — [N/M passed]
 
+### Review Guide
+[Trust-tiered review map from skills/prove/judgment/ §5 — 🔴 deep / 🟡 verify intent / 🟢 light scan, with spec mapping and review order. This is the section the developer reads FIRST.]
+
 ### You should verify (top 2-3)
 1. [Specific thing to check] — [how to check it]
 2. [Specific thing to check] — [how to check it]

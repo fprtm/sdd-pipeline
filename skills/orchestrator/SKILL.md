@@ -167,13 +167,20 @@ Inconsistent behavior ("sometimes it makes a plan, sometimes not, and I don't kn
 THINK (parallel)               BUILD (sequential)            PROVE (parallel)
 ├─ elicitation ──┐             ├─ doc-generator (adaptive)   ├─ verification ──┐
 ├─ context-loader ├─ merge ──→ ├─ test-plan (medium+)        ├─ adversarial    ├─ merge → REPORT
-├─ scope-guard   ─┤            ├─ constraints check          ├─ security-check ┤      + JUDGMENT
-├─ complexity    ─┤            ├─ change-plan                ├─ coverage-check ┤
-├─ sdlc-detector ─┤            ├─ anti-pattern check          ├─ performance   ─┘
-├─ arch-analyzer ─┤            ├─ execution (code)
-└─ threat-model ──┘            ├─ git-workflow (commits)
-   (gated, see below)          └─ model-router (advisory)
+├─ scope-guard   ─┤            ├─ TESTS FIRST (medium+) ←─┐ ├─ security-check ┤      + REVIEW GUIDE
+├─ complexity    ─┤            ├─ constraints check      │ ├─ coverage-check ┤      + JUDGMENT
+├─ sdlc-detector ─┤            ├─ change-plan            │ ├─ performance   ─┘
+├─ arch-analyzer ─┤            ├─ anti-pattern check     │
+└─ threat-model ──┘            ├─ execution (CHUNKS) ────┘
+   (gated, see below)          ├─ git-workflow (commits)
+                               └─ model-router (advisory)
 ```
+
+**Three mechanisms close the 10x review gap** — AI generates code far faster than a developer can review it. Spec-in-front and judgment-behind don't change this arithmetic. These three do:
+
+1. **Tests before code** (`build/test-plan`'s tests-first protocol): test code is generated from the spec BEFORE implementation, developer reviews the tests (50-100 lines of intent) instead of the implementation (500 lines of logic). When tests pass, the spec is mechanically verified. The developer's implementation review drops to trust-tiered verification (§3 below).
+2. **Reviewable chunks** (`build/execution-guard`'s chunk protocol): implementation is broken into semantic chunks (one behavior, one function, one spec item), each announced with its spec mapping and trust tier. 🔴 chunks pause for acknowledgment; 🟡/🟢 proceed with announcement. A 500-line diff is unreviewable; five focused chunks are not.
+3. **Review guide with trust tiers** (`prove/judgment` §5): every report includes a trust-tiered review map — 🔴 DEEP REVIEW (auth, payment, trust boundary) / 🟡 VERIFY INTENT (business logic, validation) / 🟢 LIGHT SCAN (boilerplate, config, types). Each item maps to its spec, names what to verify, and states its test coverage. The developer spends 80% of review time on the 20% of code that carries risk.
 
 **The SPEC step deliberates before it documents.** Whether reached via `/sdd-pipeline:spec` or run inline here, every step that produces a document first **deliberates** the domain with the user — using grill's frontier/round mechanics, the deliberation agenda from the relevant think/ skill, every question carrying a recommendation — and only then writes the artifact from what was settled. Discover settled WHICH (entities, stack, approach); spec's deliberation settles HOW (relationships, patterns, interaction states). A document written without deliberation is the agent making design decisions alone.
 

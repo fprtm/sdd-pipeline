@@ -3,6 +3,61 @@
 All notable changes to SDD Pipeline. Versioning is [SemVer](https://semver.org/).
 Plain-language where possible.
 
+## [5.3.0] — 2026-08-25
+
+AI generates code 10x faster than a developer can review it. Spec-in-front
+(v5.2.0's deliberation) and judgment-behind reduce what goes WRONG but don't
+reduce the REVIEW BURDEN. The judgment gate is self-reported (same AI judges
+its own code). The user complaint: "AI bisa 10 kali lebih cepat membuat
+daripada kemampuan developer mereview, terutama soal kodingan yang dihasilkan."
+
+This release attacks the arithmetic from three angles: change what the
+developer reviews, break generation into reviewable units, and provide a
+trust-tiered review map.
+
+### Added
+
+- **Tests before code** (`build/test-plan`). For medium+ tasks in
+  standard/strict mode: test code is generated from the spec BEFORE
+  implementation. The developer reviews 50-100 lines of intent-expressing
+  tests instead of 500 lines of implementation. Tests pass = spec mechanically
+  verified. Mode table: prototype skips, vibe auto-approves, standard shows
+  + proceeds, strict requires explicit approval.
+- **Reviewable chunks** (`build/execution-guard`). Implementation broken into
+  semantic chunks — one behavior, one function — each announced with spec
+  mapping and trust tier. 🔴 chunks (auth/payment/trust-boundary) pause for
+  acknowledgment. Mode table: prototype/emergency no chunking, vibe announced
+  no pause, standard pauses on 🔴, strict pauses on all.
+- **Review guide with trust tiers** (`prove/judgment` §5). Every report
+  includes a trust-tiered map:
+  - 🔴 DEEP REVIEW — auth, payment, crypto, raw SQL, trust boundary code
+  - 🟡 VERIFY INTENT — business logic, validation, error handling
+  - 🟢 LIGHT SCAN — boilerplate, config, types, re-exports
+  Each item maps to its spec, names what to verify, states test coverage.
+  Review order is explicit. Unreviewed 🔴 items from prior tasks are stated.
+- **Review debt tracking** (`build/execution-guard`). Unacknowledged 🔴
+  chunks tracked across tasks. Throttle activates on 2+ unacknowledged 🔴
+  items — pause and state the debt before generating more 🔴 code.
+- **Review Guide section in verification report** (`prove/report`). The
+  developer reads this FIRST — before "You should verify" or blind spots.
+- **10x Review Gap section in AGENTS.md.** Three mechanisms described at the
+  project-level entry point.
+
+### Changed
+
+- **`prove/judgment` §4 Review-Capacity Throttle** now tracks review debt
+  for 🔴 items specifically (was: general "large diff on unreviewed one").
+- **`skills/orchestrator` pipeline diagram** updated to show TESTS FIRST,
+  CHUNKS, REVIEW GUIDE as mechanisms.
+
+### Migration
+
+No breaking changes. All three mechanisms are additive — they add phases
+and sections, don't remove anything. Existing `docs/sdd/` content is
+unaffected. The behavioral change: the pipeline will generate tests before
+implementation (medium+ standard/strict), break implementation into announced
+chunks, and include a review guide in every report.
+
 ## [5.2.0] — 2026-08-25
 
 Spec was writing documents without discussing the design decisions inside them.
