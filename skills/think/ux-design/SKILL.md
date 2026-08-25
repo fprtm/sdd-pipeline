@@ -8,12 +8,40 @@ Output: **`docs/sdd/design-system/design.md`** (the one entry doc for the UI —
 
 When spec reaches the UX step, these topics seed the grill frontier (see `skills/think/grill/SKILL.md`, "technical domain deliberation" subject type). Each topic carries a recommendation with a concrete preview. The UX documents are written only after the frontier is empty.
 
+**Granularity rule: discussing "interaction design" without naming the specific interactions per screen is not deliberation — it's labeling.** Each topic below has a **depth requirement**: the minimum concrete detail before the topic counts as settled.
+
 1. **Interaction design per screen** — what happens on tap, swipe, long-press, hover. What's the primary action? What's secondary? What's the destructive action and how is it guarded? A screen with no interaction spec is half-designed — the FE still invents the behavior.
+   
+   **Depth requirement**: per screen, present a concrete interaction table:
+   ```
+   Screen: Product Detail
+   | Element | Action | Result |
+   |---------|--------|--------|
+   | "Add to Cart" button | tap | add item, show toast "Added!", update cart badge |
+   | Quantity stepper | tap +/- | increment/decrement (min 1, max = stock) |
+   | Product image | tap | open fullscreen gallery |
+   | "Delete" (cart page) | tap | confirm dialog → remove item |
+   ```
+
 2. **State management per screen** — which states exist (empty, loading, error, success, partial, offline), transitions between them, what triggers each. These become the FSD's error/alternate flows and then test cases; a design showing only the full-data state hides most of the real work.
+   
+   **Depth requirement**: per screen, present every state and what triggers it. Not "has empty state" — but "empty state shows illustration + 'No orders yet' + 'Browse Products' CTA."
+
 3. **Error handling UX** — how errors surface to the user (toast, inline, full-page, modal), what the user can do about them (retry, edit, navigate away), recovery paths. Every error state in the FSD must have a designed user experience, not a generic "error occurred."
+   
+   **Depth requirement**: per error type, name the presentation and recovery. Present as a table mapping error → UX treatment → recovery action.
+
 4. **Flow detail with edge cases** — complete user journeys including conditional screens, branching paths based on user state or data, what happens at boundaries (first use, max items, expired session). Discover settled WHICH flows; this settles what each flow actually looks like step by step.
+   
+   **Depth requirement**: per flow, a step-by-step walkthrough naming each screen transition, conditional branch, and terminal state. (Same depth as spec's FSD deliberation — see `skills/commands/spec/SKILL.md`.)
+
 5. **Responsive strategy** — what changes at each breakpoint and why (not just "it stacks"). Mobile-first or desktop-first? Which components hide/show/reflow? Touch targets and spacing at mobile size.
+   
+   **Depth requirement**: name the breakpoints (e.g., 640/768/1024) and per screen what changes. Not "responsive" — but "product grid: 1 col mobile, 2 col tablet, 4 col desktop."
+
 6. **Navigation model** — tab bar, drawer, stack, breadcrumb, or hybrid. How deep the navigation goes. How the user knows where they are. Back button behavior.
+   
+   **Depth requirement**: present the navigation structure as a tree/diagram showing every reachable screen and how the user gets there.
 
 **Topic skipped only when the product has no screens.** Mode controls depth (one round vs full rounds), not whether the topic is raised. Even in prototype mode, every relevant topic gets one question with a recommendation.
 

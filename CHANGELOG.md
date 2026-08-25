@@ -3,6 +3,42 @@
 All notable changes to SDD Pipeline. Versioning is [SemVer](https://semver.org/).
 Plain-language where possible.
 
+## [5.4.1] — 2026-08-25
+
+Deliberation agendas had the right topics but no enforced granularity. The agent
+could "discuss" database design by saying "User has Orders, 1:N" and move on to
+writing the ERD — settling topics at headline level, not at column/FK/contract
+level. The user complaint: "kita ga perlu bahas database design? ERDnya gimana,
+relasinya gimana, table-tablenya isinya apa aja, dan gimana flow appnya?"
+
+### Added
+
+- **Depth requirements** on every deliberation agenda topic. Each topic in
+  `think/database-design`, `think/arch-analyzer`, `think/ux-design`, and
+  `commands/spec` (FSD deliberation) now has a **minimum granularity** before
+  the topic counts as settled:
+  - DB: present every table with columns/types/constraints, every FK with
+    cascade behavior, every index with the query it serves
+  - Architecture: present every endpoint as typed request/response/error,
+    every module boundary with its public API, comparison table per tool choice
+  - UX: present every screen with interaction table (element/action/result),
+    every state per screen, navigation as a tree diagram
+  - App flows: step-by-step walkthrough per flow naming screen, data, actions,
+    branches — not "login → dashboard" but every decision point
+- **Depth check in spec**: before declaring a frontier empty, verify each
+  topic was settled at its depth-requirement level. A topic answered at
+  headline level stays in the frontier.
+- **Depth enforcement in grill**: technical domain deliberation now checks
+  that topics were settled at concrete detail level, not just named.
+- **Concrete examples** in each agenda: markdown table templates showing what
+  "settled at the right depth" looks like (column tables, FK cascade tables,
+  typed endpoint contracts, screen interaction tables).
+
+### Migration
+
+No breaking changes. Deliberation will now go deeper before writing documents,
+which is the whole point. Existing documents are unaffected.
+
 ## [5.4.0] — 2026-08-25
 
 Tests were superficial — just enough to pass, not enough to find bugs. A test

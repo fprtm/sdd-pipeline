@@ -12,13 +12,42 @@ Detect existing project architecture, flag inconsistencies, and propose architec
 
 When spec reaches the architecture step, these topics seed the grill frontier (see `skills/think/grill/SKILL.md`, "technical domain deliberation" subject type). Each topic carries a recommendation backed by this skill's own heuristics (deletion test, adapter-count rule, decision matrix). The SDS document is written only after the frontier is empty.
 
+**Granularity rule: "we'll use the repository pattern" is not a deliberation — it's a label.** Each topic below has a **depth requirement**: the minimum concrete detail before the topic counts as settled.
+
 1. **Code pattern choice** — which pattern for which module (repository, service, factory, strategy, etc.) and **why it earns its keep** (apply the deletion test: if deleting the pattern leaves the same code inlined everywhere, it was earning its place; if the complexity vanishes, it was ceremony). Discover settled the high-level architecture; this settles how each module is internally structured.
+   
+   **Depth requirement**: per module/domain, name the pattern and show a concrete code structure example (not just the pattern name).
+
 2. **Module boundaries** — what's a module, how modules communicate (direct imports? defined interfaces? event bus?), what crosses boundaries vs what stays internal. This is where "modular monolith" either has real boundaries or is a monolith with folders.
+   
+   **Depth requirement**: present a module map showing every module, its public API (what it exports), and who can import it. Not "modules communicate via interfaces" — but "`auth` exports `AuthService.verifyToken()`, consumed by `orders` and `cart`; `cart` never imports `orders` directly."
+
 3. **Dependency direction** — who imports whom, what's the inversion strategy, where are the seams. Flag any circular dependency or upward import before it becomes load-bearing.
+   
+   **Depth requirement**: present a dependency diagram or table showing allowed import directions.
+
 4. **Deep stack selection** — not "Next.js" but the layer below: which ORM and why (Prisma vs Drizzle vs TypeORM — each has real trade-offs in migration story, type safety, query flexibility), which auth approach and library, which state management, which component library, which testing framework, which build tool. Each with a recommendation naming the trade-off, not just a name. Discover settled the stack direction; this settles the specific tools.
-5. **FE↔BE contract** — per endpoint: route + method, request shape, response shape, error shapes + status codes. Contract-first, decided at design time, not discovered during integration. Each contract a short typed snippet.
+   
+   **Depth requirement**: per tool choice, present 2-3 candidates with their trade-offs in a comparison table. The user picks, not the agent.
+
+5. **FE↔BE contract** — per endpoint: route + method, request shape, response shape, error shapes + status codes. Contract-first, decided at design time, not discovered during integration.
+   
+   **Depth requirement**: present every endpoint as a typed snippet:
+   ```
+   POST /api/orders
+   Request: { items: Array<{productId: string, quantity: number}>, shippingAddressId: string }
+   Response 201: { orderId: string, status: 'pending', total: number }
+   Response 400: { error: 'EMPTY_CART' | 'INVALID_ADDRESS' | 'OUT_OF_STOCK', details: string }
+   Response 401: { error: 'UNAUTHORIZED' }
+   ```
+
 6. **Directory structure** — the actual top-level paths this project will use, concrete enough that a ticket's `Files likely touched:` list resolves without guessing.
+   
+   **Depth requirement**: present a concrete directory tree (3 levels deep minimum), not "we'll use feature-based structure."
+
 7. **Performance architecture** — caching strategy (what's cached, when invalidated, where the cache lives), connection pooling, code splitting targets, lazy loading strategy, performance budgets (response time targets, page load targets). These are architecture decisions, not optimization afterthoughts.
+   
+   **Depth requirement**: per concern, name the specific mechanism and its target. "Product list cached in Redis, TTL 5min, invalidated on product update" — not "we'll add caching."
 
 **Topic skipped only when the product has no such surface** — a CLI with no frontend skips FE↔BE contract and component library. Mode controls depth (one round vs full rounds), not whether the topic is raised.
 

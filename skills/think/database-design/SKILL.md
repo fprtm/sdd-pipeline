@@ -10,13 +10,70 @@ Bad schemas don't start bad — they get **crowded**: one table absorbing every 
 
 When spec reaches the database step, these topics seed the grill frontier (see `skills/think/grill/SKILL.md`, "technical domain deliberation" subject type). Each topic carries a recommendation; the user settles it. The ERD document is written only after the frontier is empty.
 
-1. **Entity relationships + cardinality** — how entities connect (1:1, 1:N, M:N), who owns whom, whether join tables are needed, how deep the nesting goes. Discover settled *which* entities exist; this settles *how they relate*.
-2. **Normalization decisions** — which relationships are 3NF (the default) and which are deliberately denormalized. Every denormalization gets a written reason tied to a specific query pattern — "it's faster" without naming which query is not a reason.
-3. **Cascade behavior** — per FK, explicitly: CASCADE / RESTRICT / SET NULL. What happens when a parent is deleted? This is a domain decision (does deleting a user delete their orders?), not a technical default.
-4. **Soft delete vs hard delete** — per entity type. What's the retention requirement? Is there a legal/compliance reason to hard-delete? Is there a UX reason to undo? Different entities often have different answers.
-5. **Indexing strategy** — which queries are performance-critical (from the FSD's read paths and REQ-NF targets), what composite indexes are needed, column order matching filter order. An index no query justifies is write-cost with no read benefit.
-6. **Migration approach** — additive-first or destructive? Zero-downtime requirement? Multi-tenant isolation at schema or query layer?
-7. **Data access patterns** — the most common queries: list/filter/search/aggregate. Which need pagination? Which might hit N+1? Which are write-heavy vs read-heavy? These shape the schema as much as the entities do.
+**Granularity rule: deliberation at the topic level is not deliberation.** "Entity relationships: User has many Orders, 1:N" is a sentence, not a discussion. Each topic below has a **depth requirement** — the minimum granularity before the topic counts as settled. An agenda topic answered at headline-level ("we'll use 3NF", "cascade on delete") without going through each entity is not settled.
+
+1. **Entity table-by-table** — present every entity as a table with its columns. Per entity:
+   - Name every column, its type (narrowest correct — not `text` for everything), required/nullable, default value
+   - State the entity's single responsibility (what it represents, what it doesn't)
+   - Name the primary key and any natural keys / unique constraints
+   
+   **Depth requirement**: the user sees a concrete table for EACH entity (not just entity names) and confirms the columns are right. Present as a markdown table per entity with a recommendation, get confirmation or correction.
+
+   ```
+   Recommendation for `orders` table:
+   | Column | Type | Required | Default | Notes |
+   |--------|------|----------|---------|-------|
+   | id | UUID | yes | gen_random_uuid() | PK |
+   | user_id | UUID | yes | — | FK → users.id |
+   | status | ENUM('pending','paid','shipped','cancelled') | yes | 'pending' | |
+   | total_amount | DECIMAL(12,2) | yes | — | |
+   | created_at | TIMESTAMPTZ | yes | now() | |
+   | updated_at | TIMESTAMPTZ | yes | now() | |
+   
+   Is this right, or should we add/remove/change columns?
+   ```
+
+2. **Relationships + cardinality** — per pair of related entities, explicitly:
+   - Which entity owns which (parent → child direction)
+   - Cardinality: 1:1, 1:N, M:N (and if M:N, the join table with its own columns)
+   - The FK column name and which table it lives on
+   - Whether the relationship is required (FK NOT NULL) or optional (FK nullable)
+   
+   **Depth requirement**: present a relationship list with every FK named. Not "User has Orders" — but "`orders.user_id` → `users.id`, 1:N, NOT NULL, CASCADE on delete."
+
+3. **Cascade behavior** — per FK, explicitly: CASCADE / RESTRICT / SET NULL / SET DEFAULT. What happens when a parent is deleted? What happens when a parent's PK is updated? This is a domain decision (does deleting a user delete their orders?) that the user must answer.
+   
+   **Depth requirement**: every FK from topic 2 gets an explicit cascade decision. Present as a table:
+   ```
+   | FK | On Delete | On Update | Reason |
+   |----|-----------|-----------|--------|
+   | orders.user_id → users.id | RESTRICT | CASCADE | Can't delete user with orders |
+   | order_items.order_id → orders.id | CASCADE | CASCADE | Items die with the order |
+   ```
+
+4. **Normalization decisions** — which relationships are 3NF (the default) and which are deliberately denormalized. Every denormalization gets a written reason tied to a specific query pattern — "it's faster" without naming which query is not a reason.
+   
+   **Depth requirement**: if recommending denormalization, name the specific query it speeds up and the trade-off (data can drift).
+
+5. **Soft delete vs hard delete** — per entity type. What's the retention requirement? Is there a legal/compliance reason to hard-delete? Is there a UX reason to undo? Different entities often have different answers.
+   
+   **Depth requirement**: answer per entity (users: soft delete because account recovery; sessions: hard delete because no retention need).
+
+6. **Indexing strategy** — which queries are performance-critical (from the FSD's read paths and REQ-NF targets), what composite indexes are needed, column order matching filter order.
+   
+   **Depth requirement**: present each index with the query it serves:
+   ```
+   | Index | Columns | Serves query |
+   |-------|---------|-------------|
+   | idx_orders_user_status | (user_id, status) | "list my pending orders" — FSD-003 |
+   | idx_products_category | (category_id, created_at DESC) | "browse by category" — FSD-007 |
+   ```
+
+7. **Migration approach** — additive-first or destructive? Zero-downtime requirement? Multi-tenant isolation at schema or query layer?
+
+8. **Data access patterns** — the most common queries: list/filter/search/aggregate. Which need pagination? Which might hit N+1? Which are write-heavy vs read-heavy? These shape the schema as much as the entities do.
+   
+   **Depth requirement**: list the top 5-10 queries the app will run most, each mapped to an FSD flow.
 
 **Topic skipped only when the product has no such surface** — no persistent data means no DB deliberation. Mode controls depth (one round vs full rounds), not whether the topic is raised.
 

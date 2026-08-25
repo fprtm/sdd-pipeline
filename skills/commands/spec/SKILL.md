@@ -63,6 +63,8 @@ Steps that don't produce a document (ticket decomposition) use the existing anno
 
 The deliberation is grill's **third subject type** — not a single decision (mid-session) and not a whole product (the five-seat agenda). It's a technical domain being shaped before its document is written. The frontier is seeded by the agenda topics in the think/ skill. Questions enter the frontier as their prerequisites settle. The session ends when every topic is settled and the document can be written from shared understanding.
 
+**Depth check before writing**: before declaring the frontier empty and moving to document writing, verify that each agenda topic was settled at its **depth requirement** level (see the agenda in each think/ skill). A topic discussed at headline level ("we'll use 3NF", "cascade on delete") without going through each entity/endpoint/screen is NOT settled — push it back to the frontier. The depth requirements exist because the agent's natural tendency is to label topics as settled after one sentence and move to writing the document. The document is only as good as the deliberation that preceded it.
+
 **Topics are domain-gated, not mode-gated.** If the product has a database, DB deliberation happens regardless of mode. Mode controls depth:
 
 | Mode | Deliberation behavior |
@@ -76,12 +78,52 @@ The deliberation is grill's **third subject type** — not a single decision (mi
 
 FSD is the one document whose deliberation agenda isn't in a separate think/ skill — it's here, because the FSD IS the domain:
 
-Before writing each FSD, deliberate:
-1. **User journeys** — complete flows from entry to completion, including all branches. Not "login → dashboard" but every decision point, conditional screen, and terminal state.
-2. **Edge cases** — what happens at boundaries: empty data, max limits, concurrent access, partial failures, timeout.
+Before writing each FSD, deliberate — with **depth requirements** enforced per topic:
+
+1. **User journeys — step by step, not summary** — walk through the complete flow from entry to completion. Per step:
+   - What screen/page/state is the user on?
+   - What data is displayed (and where does it come from)?
+   - What actions are available (primary, secondary, destructive)?
+   - What happens when the user takes each action? Where do they go next?
+   - What conditions change the flow (role, entity state, data presence)?
+   
+   **Depth requirement**: present the journey as a numbered step list with branches, not "user logs in → sees dashboard." Every conditional branch is named:
+   ```
+   Flow: Place Order
+   1. User is on Cart page (data: cart items from API /cart)
+   2. User clicks "Checkout" → redirect to Checkout page
+      - If cart is empty → show empty state, disable checkout button
+      - If user not logged in → redirect to Login, then back to Checkout
+   3. Checkout page shows: shipping address (pre-filled if saved), payment method, order summary
+   4. User fills/confirms address → validates (required fields, format)
+      - Invalid → inline errors, stay on page
+   5. User selects payment → confirms order
+      - Payment fails → show error, allow retry
+      - Payment succeeds → redirect to Order Confirmation
+   6. Order Confirmation shows: order number, estimated delivery, "continue shopping" link
+   ```
+
+2. **Edge cases** — what happens at boundaries: empty data, max limits, concurrent access, partial failures, timeout. Per edge case, name the trigger and the expected behavior.
+   
+   **Depth requirement**: list specific scenarios, not just categories. Not "handle empty data" — but "cart page with 0 items: show illustration + 'Your cart is empty' + 'Browse Products' button."
+
 3. **Error flows** — every error path the flow can hit: what triggers it, what the user sees, how they recover. These become the negative test cases in `build/test-plan`.
+   
+   **Depth requirement**: per error, name: the trigger condition, the error message/screen, the recovery path. Present as a table:
+   ```
+   | Trigger | User sees | Recovery |
+   |---------|-----------|----------|
+   | Payment gateway timeout | "Payment could not be processed. Try again." + retry button | Retry or choose different payment |
+   | Out of stock (after cart) | "Some items are no longer available" + list affected items | Remove items or go back to cart |
+   ```
+
 4. **Business rules** — the logic that governs decisions within flows: pricing rules, validation rules, access rules, rate limits. Each one a question to the user, not an assumption.
+   
+   **Depth requirement**: present each rule as an if/then statement the user can confirm or correct. "If order total > 100, free shipping" — not "we'll handle shipping logic."
+
 5. **Performance requirements** — what needs to be fast and how fast, what can be lazy-loaded, what's the acceptable latency for each operation.
+   
+   **Depth requirement**: per operation, name the target. "Product list page loads in < 2s with 1000 products" — not "should be fast."
 
 **Ask, don't assume, at the moments that matter.** Deliberation surfaces most forks naturally, but these specific forks must *always* reach the user even if the deliberation round didn't surface them — because getting them wrong invalidates everything downstream:
 
