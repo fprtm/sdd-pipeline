@@ -3,6 +3,69 @@
 All notable changes to SDD Pipeline. Versioning is [SemVer](https://semver.org/).
 Plain-language where possible.
 
+## [5.2.0] — 2026-08-25
+
+Spec was writing documents without discussing the design decisions inside them.
+Database relationships, code patterns, cascade behavior, interaction states,
+deep stack choices — all decided silently by the agent while writing ERD/SDS/FSD/UX
+docs. The user complaint: "why didn't we discuss database design, software
+architecture, performance, UI design, app flow, deep stack selection?"
+
+The agent's defense ("those are formalization, not decisions") was wrong. Choosing
+between 3NF and denormalization IS a decision. Choosing cascade behavior IS a
+decision. Choosing a code pattern IS a decision. This release closes the
+deliberation gap.
+
+### Added
+
+- **"Deliberate Before You Document" protocol in spec.** Every step that produces
+  a document now first **deliberates** the domain with the user — grill's
+  frontier/round mechanics, the deliberation agenda from the relevant think/ skill,
+  every question carrying a recommendation, adversarial toward the agent's own
+  defaults. When the frontier is empty, the document is written from what was
+  settled. A document written without deliberation is the agent making design
+  decisions alone.
+- **Deliberation agendas in three think/ skills.** Each owns its domain's topics:
+  - `think/arch-analyzer`: code patterns + why, module boundaries, dependency
+    rules, deep stack selection (ORM, auth lib, state management, testing
+    framework — each with trade-offs, not just a name), FE↔BE contract per
+    endpoint, directory structure, performance architecture (caching, pooling,
+    code splitting).
+  - `think/database-design`: entity relationships + cardinality, normalization
+    decisions, cascade behavior per FK, soft/hard delete per entity, indexing
+    strategy tied to real query patterns, migration approach, data access patterns.
+  - `think/ux-design`: interaction design per screen, state management
+    (empty/loading/error/success + transitions), error handling UX, flow detail
+    with edge cases, responsive strategy, navigation model.
+- **FSD deliberation agenda in spec.** Before each FSD: user journeys end-to-end,
+  edge cases, error flows, business rules, performance requirements.
+- **Grill's third subject type: "technical domain deliberation."** Not a single
+  decision (mid-session) and not a whole product (five seats) — it's a domain
+  being shaped before its document is written. The frontier is seeded by the
+  agenda topics in the think/ skill.
+- **WHICH vs HOW boundary in discover.** Explicit section: discover settles WHICH
+  (entities, stack, approach), spec's deliberation settles HOW (relationships,
+  patterns, states). Neither is more or less rigorous; they operate at different
+  levels of detail with the same grill mechanics.
+- **Deliberation is domain-gated, not mode-gated.** If the product has a database,
+  DB deliberation happens in every mode. Mode controls depth (one round vs full
+  rounds), not whether the topic is raised.
+
+### Changed
+
+- **Spec's step protocol**: announce → deliberate → document → report (was:
+  announce → run → report → check-in). The deliberation replaces the "check-in
+  on forks" step — forks now surface naturally during deliberation.
+- **Spec's mode dial** now has separate columns for deliberation behavior and
+  document-writing behavior.
+
+### Migration
+
+No breaking changes. The deliberation protocol is additive — it adds a phase
+before document writing, doesn't remove anything. Existing `docs/sdd/` content
+is unaffected. The only behavioral change: spec will now ask more questions
+before writing documents, which is the whole point.
+
 ## [5.1.0] — 2026-08-23
 
 Testing was the layer most able to *look* done while proving nothing. Five

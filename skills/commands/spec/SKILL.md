@@ -1,6 +1,6 @@
 ---
 name: spec
-description: Turn a settled decision into written specs — architecture analysis, FSD/SDS/PRD/ERD, threat model, UX, and (when large) vertical-slice tickets. Runs step by step, announcing and confirming each one. This is the SPEC step of the pipeline, not visual/UI design.
+description: Deliberate each domain with the user, then write it down — architecture, database, UX, app flows, threat model, and (when large) vertical-slice tickets. Each domain is grilled using frontier/round mechanics before its document is written. This is the SPEC step of the pipeline, not visual/UI design.
 disable-model-invocation: true
 ---
 
@@ -10,28 +10,80 @@ Manual entry point to the **SPEC step** of the fixed sequence (`ASK → SPEC →
 
 > **Why this isn't called `/design`.** "Design" reads as *visual/UI design* to most people, and this command's main job is written specs (FSD/SDS/PRD/ERD/threat model). Visual design is one optional part of it, handled by `skills/think/ux-design/` — and when that part runs, it produces its own `docs/sdd/design-system/design.md`, which is what someone asking for "the design doc" actually means. Same-shaped words, two different artifacts; the command name now says which one it is.
 
-## Run It Step by Step — Never One Silent Batch
+## Run It Step by Step — Deliberate, Then Document
 
-This command can produce a dozen files. Emitting them all at once and only then showing the user gives them a wall of finished artifacts built on assumptions they never got to correct — every wrong assumption at step 1 is baked into everything after it. **The steps below run one at a time, each announced before it runs and confirmed after it lands.**
+This command can produce a dozen files. Emitting them all at once and only then showing the user gives them a wall of finished artifacts built on assumptions they never got to correct — every wrong assumption at step 1 is baked into everything after it. **The steps below run one at a time, and every step that produces a document first deliberates its domain with the user.**
+
+### Why Spec Is Not Just Document Writing
+
+The agent's natural defense is: "ERD is formalization, not a decision." Wrong. Choosing between 3NF and denormalization **is** a decision. Choosing cascade behavior **is** a decision. Choosing a code pattern **is** a decision. They're decisions at a more detailed level than discover handles, but they are still decisions with real trade-offs the user should weigh.
+
+The boundary between discover and spec's deliberation:
+
+| | Discover (WHICH) | Spec deliberation (HOW) |
+|---|---|---|
+| Database | Which entities exist, which DB engine | How entities relate, normalization, indexes, cascades, migration approach |
+| Architecture | Which approach (monolith, modular), which stack | Which code patterns, module boundaries, dependency rules, deep stack choices (ORM, auth lib, state management) |
+| UI | Which direction (mobile-first, existing system), which flows in v1 | Interaction design per screen, states, error UX, responsive strategy, flow detail with edge cases |
+| App flow | Which flows, which are Must/Should/Could | Complete user journeys, edge cases, error paths, business rules, performance requirements |
+
+Discover settles WHICH. Spec's deliberation settles HOW. The document captures what was settled. **A document written without deliberation is the agent making decisions alone while writing.**
+
+### The Step Protocol
 
 Before starting, announce the plan for the run itself:
 
 ```
 SPEC run — [N] steps for this task:
-  1. Architecture analysis        4. Threat model
-  2. UX design (has screens)      5. Test-relevant docs (DoD)
-  3. Specs: PRD + FSD ×3          6. Ticket decomposition (scope is large)
+  1. Architecture (deliberate + SDS)     4. Threat model
+  2. Database design (deliberate + ERD)  5. App flows (deliberate + FSD ×3)
+  3. UX design (deliberate + design.md)  6. Ticket decomposition (scope is large)
 Starting step 1.
 ```
 
-Then, for **every** step:
+Then, for **every** step that produces a document:
 
-1. **Announce before**: `Step 3/6 — Specs. Writing PRD-001 + FSD-003/004/005.` Say what's about to be written and why that doc type.
-2. **Run the step.**
-3. **Report after**: what landed (filenames), the decisions the step made that the user didn't explicitly state, and anything it had to assume.
-4. **Check in before the next step** — per `skills/think/elicitation/`'s "How to Ask" rule (native question tool first, plain text fallback). Not a ceremonial "shall I continue?": ask about the *specific* forks this step opened. If the step surfaced no real fork, say so in one line and continue without a question — a checkpoint with nothing to decide is ceremony, and this framework doesn't add ceremony for its own sake.
+1. **Announce the domain**: `Step 2/6 — Database design. Deliberating schema before writing ERD.`
+2. **Deliberate**: Load the domain's **deliberation agenda** from its think/ skill and run it as a grill session — frontier/round mechanics per `skills/think/grill/SKILL.md` (the "technical domain deliberation" subject type), every question carrying a recommendation, adversarial toward the agent's own defaults. When the frontier is empty, the domain is settled.
+3. **Document**: Write the artifact based on what was settled. The document is a record of deliberation, not a creative work done in isolation.
+4. **Report**: What landed (filenames), what was settled during deliberation, and anything that was assumed.
 
-**Ask, don't assume, at the moments that matter.** These are the forks that must reach the user rather than being silently resolved, because getting them wrong invalidates everything downstream:
+Steps that don't produce a document (ticket decomposition) use the existing announce → run → report → check-in protocol.
+
+**Where the deliberation agendas live** — each think/ skill owns its domain's agenda:
+
+| Domain | Skill | Agenda section |
+|---|---|---|
+| Software architecture | `skills/think/arch-analyzer/` | Code patterns + why, module boundaries, dependency rules, deep stack choices, FE↔BE contract, performance budgets |
+| Database design | `skills/think/database-design/` | Entity relationships + cardinality, normalization decisions, cascade behavior, indexing strategy, migration approach, data access patterns |
+| UI/UX design | `skills/think/ux-design/` | Interaction design per screen, state management, error UX, responsive strategy, flow detail, navigation model |
+| App flows | FSD writing step | User journeys end-to-end, edge cases, error flows, business rules, performance requirements |
+
+### Deliberation Uses Grill Mechanics, Scoped to One Domain
+
+The deliberation is grill's **third subject type** — not a single decision (mid-session) and not a whole product (the five-seat agenda). It's a technical domain being shaped before its document is written. The frontier is seeded by the agenda topics in the think/ skill. Questions enter the frontier as their prerequisites settle. The session ends when every topic is settled and the document can be written from shared understanding.
+
+**Topics are domain-gated, not mode-gated.** If the product has a database, DB deliberation happens regardless of mode. Mode controls depth:
+
+| Mode | Deliberation behavior |
+|------|----------------------|
+| **prototype** | One round per topic, recommendations accepted by default unless the user objects. Fast, but every relevant topic still asked. |
+| **vibe** | Same as prototype. No council unless a decision is genuinely hard to reverse. |
+| **standard** | Full frontier rounds per topic. Council on rule-of-three decisions. |
+| **strict** | Full rounds + explicit confirmation per topic before writing the document. |
+
+### The FSD Deliberation — App Flow Before Spec
+
+FSD is the one document whose deliberation agenda isn't in a separate think/ skill — it's here, because the FSD IS the domain:
+
+Before writing each FSD, deliberate:
+1. **User journeys** — complete flows from entry to completion, including all branches. Not "login → dashboard" but every decision point, conditional screen, and terminal state.
+2. **Edge cases** — what happens at boundaries: empty data, max limits, concurrent access, partial failures, timeout.
+3. **Error flows** — every error path the flow can hit: what triggers it, what the user sees, how they recover. These become the negative test cases in `build/test-plan`.
+4. **Business rules** — the logic that governs decisions within flows: pricing rules, validation rules, access rules, rate limits. Each one a question to the user, not an assumption.
+5. **Performance requirements** — what needs to be fast and how fast, what can be lazy-loaded, what's the acceptable latency for each operation.
+
+**Ask, don't assume, at the moments that matter.** Deliberation surfaces most forks naturally, but these specific forks must *always* reach the user even if the deliberation round didn't surface them — because getting them wrong invalidates everything downstream:
 
 | Fork | When it appears |
 |---|---|
@@ -46,13 +98,13 @@ Anything **not** on that list — filenames, numbering, doc formats, diagram sha
 
 **Mode dial** — the ceremony scales like everything else in this framework:
 
-| Mode | Step behavior |
-|------|---------------|
-| **prototype** | Run straight through, announce steps only, no checkpoints |
-| **vibe** | Announce steps, batch the artifacts, one summary at the end; ask only on a fork from the table above |
-| **standard** | Full step protocol: announce → run → report → check in on real forks |
-| **strict** | Full protocol + explicit approval required between steps, not just a check-in |
-| **emergency** | Not applicable — emergency skips SPEC entirely |
+| Mode | Deliberation | Document writing |
+|------|-------------|-----------------|
+| **prototype** | One round per topic, recommendations accepted by default | Run straight through, announce only |
+| **vibe** | Same as prototype, no council unless genuinely hard to reverse | Batch artifacts, one summary at end |
+| **standard** | Full frontier rounds, council on rule-of-three | Full protocol: announce → deliberate → write → report |
+| **strict** | Full rounds + explicit confirmation per topic | Full protocol + explicit approval before writing |
+| **emergency** | Not applicable — emergency skips SPEC entirely | — |
 
 ## What Happens When Called
 

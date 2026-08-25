@@ -56,6 +56,14 @@ Gear 2 works through five seats, in dependency order. A seat earns its place by 
 
 **Nothing is forced.** A session that ends "this idea isn't worth it," or just trails off, succeeded. Never steer toward "so, ready to build?" — the ADRs and glossary that already passed their gates persist either way.
 
+## Boundary — WHICH, Not HOW
+
+Discover settles **WHICH**: which entities exist, which architecture approach, which stack, which flows are in v1. It does **not** settle **HOW**: how entities relate in detail, which code patterns apply, what cascade behavior to use, what interaction states each screen has. Those are design decisions that belong to the SPEC step's deliberation — where each think/ skill has a deliberation agenda that gets grilled before its document is written.
+
+The reason for the split: discover operates before the shape is firm enough to make detailed design decisions. Choosing cascade behavior when the entity model isn't settled yet is premature. But by the time spec runs, the entities, the stack, and the scope are settled — and now detailed design decisions have enough foundation to be meaningful.
+
+**This means discover is not the only place decisions get made.** Spec's deliberation is equally rigorous — same grill mechanics, same recommendations, same council on hard decisions. The difference is scope: discover settles the product's shape, spec's deliberation settles each domain's design detail within that shape.
+
 ## Hand-off
 
 When the user signals they want to build ("oke gua mau seriusin ini", "let's do it"), the next step is `/sdd-pipeline:spec` — where settled decisions become PRD/SDS/FSD/ERD and, for large work, tickets. Never suggest `/sdd-pipeline:implement` from here: discover produces decisions, not a plan or spec, and jumping there skips the step spec exists for.

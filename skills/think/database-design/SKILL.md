@@ -6,6 +6,20 @@ Output: the ERD at `docs/sdd/erd/{NNN}-{slug}-erd.md` (format in `skills/build/d
 
 Bad schemas don't start bad — they get **crowded**: one table absorbing every new field because adding a column feels cheaper than modeling a new entity. This skill stops that before it starts.
 
+## Deliberation Agenda — Discuss Before the ERD Is Written
+
+When spec reaches the database step, these topics seed the grill frontier (see `skills/think/grill/SKILL.md`, "technical domain deliberation" subject type). Each topic carries a recommendation; the user settles it. The ERD document is written only after the frontier is empty.
+
+1. **Entity relationships + cardinality** — how entities connect (1:1, 1:N, M:N), who owns whom, whether join tables are needed, how deep the nesting goes. Discover settled *which* entities exist; this settles *how they relate*.
+2. **Normalization decisions** — which relationships are 3NF (the default) and which are deliberately denormalized. Every denormalization gets a written reason tied to a specific query pattern — "it's faster" without naming which query is not a reason.
+3. **Cascade behavior** — per FK, explicitly: CASCADE / RESTRICT / SET NULL. What happens when a parent is deleted? This is a domain decision (does deleting a user delete their orders?), not a technical default.
+4. **Soft delete vs hard delete** — per entity type. What's the retention requirement? Is there a legal/compliance reason to hard-delete? Is there a UX reason to undo? Different entities often have different answers.
+5. **Indexing strategy** — which queries are performance-critical (from the FSD's read paths and REQ-NF targets), what composite indexes are needed, column order matching filter order. An index no query justifies is write-cost with no read benefit.
+6. **Migration approach** — additive-first or destructive? Zero-downtime requirement? Multi-tenant isolation at schema or query layer?
+7. **Data access patterns** — the most common queries: list/filter/search/aggregate. Which need pagination? Which might hit N+1? Which are write-heavy vs read-heavy? These shape the schema as much as the entities do.
+
+**Topic skipped only when the product has no such surface** — no persistent data means no DB deliberation. Mode controls depth (one round vs full rounds), not whether the topic is raised.
+
 ## Shape: One Entity, One Responsibility
 
 Model around bounded contexts from the domain (`docs/sdd/glossary.md`), not around screens or convenience. A `users` table mixing auth fields, billing fields, preference fields, and a `metadata` JSON blob for "whatever didn't fit" is the crowded-table anti-pattern — split it: `users`, `billing_profiles`, `user_preferences`. If a JSON/blob column is truly needed, name what it's for and cap what goes in it — it's not a place to avoid modeling.

@@ -63,14 +63,18 @@ A grill session that only asks clarifying questions is an intake form, not a gri
 3. **Attack the recommendation too — including your own.** After giving a `➡️` recommendation, name the strongest argument *against* it in one line. If you can't produce a real counter-argument, you haven't thought about it enough to recommend it.
 4. **"I don't know" from the user is data, not a dead end.** It marks a branch the user hasn't thought through — that branch gets a deeper round, not a default answer quietly filled in.
 
-## Two Subjects, Two Frontiers
+## Three Subjects, Three Frontiers
 
-The mechanic above is the same either way, but what seeds the tree differs:
+The mechanic above is the same in every case, but what seeds the tree differs:
 
 - **A single decision** ("should we use microservices", "is this scope right") — the tree is that decision and whatever hangs off it. This is the mid-session case, when the orchestrator spots something consequential being stated casually.
 - **A whole product or feature** — the tree is seeded by the **five-seat agenda** in `skills/commands/discover/SKILL.md`: Why → Constraints → What → Data → Technical, in that dependency order. Each seat is a cluster of the tree, and its questions enter the frontier as its prerequisites settle. A seat is skipped only when the product has no such surface (no screens → no UI questions), never because of mode, size, or urgency.
+- **A technical domain being shaped** — the tree is seeded by the **deliberation agenda** in the relevant think/ skill (`think/arch-analyzer`, `think/database-design`, `think/ux-design`), and the subject is HOW a domain's design decisions are made before a document is written. This is the SPEC-step case: discover already settled WHICH (which entities, which stack, which approach), and now the details need deliberation. The frontier is seeded by agenda topics (entity relationships, code patterns, interaction design, etc.) rather than by the five seats. A topic is skipped only when the product has no such surface, never because of mode — mode controls depth (one round vs full rounds), not whether the topic is raised.
 
-If you're not sure which you're in, ask: is there one decision on the table, or a thing being defined? Defining a thing means seats.
+How to tell which you're in:
+- One decision on the table → single decision.
+- A thing being defined from fog → whole product (five seats).
+- A document about to be written by spec → technical domain deliberation (agenda topics).
 
 ## Council — Devil's Advocate for Consequential Decisions
 

@@ -4,6 +4,21 @@ A product with screens has a UI whether or not anyone designed it — the only q
 
 Output: **`docs/sdd/design-system/design.md`** (the one entry doc for the UI — always) + `docs/sdd/design/{NNN}-{slug}-ux.md` (per-feature UX spec) + `docs/sdd/ux-screens/<flow-slug>.md` (one file per flow).
 
+## Deliberation Agenda — Discuss Before Any UX Document Is Written
+
+When spec reaches the UX step, these topics seed the grill frontier (see `skills/think/grill/SKILL.md`, "technical domain deliberation" subject type). Each topic carries a recommendation with a concrete preview. The UX documents are written only after the frontier is empty.
+
+1. **Interaction design per screen** — what happens on tap, swipe, long-press, hover. What's the primary action? What's secondary? What's the destructive action and how is it guarded? A screen with no interaction spec is half-designed — the FE still invents the behavior.
+2. **State management per screen** — which states exist (empty, loading, error, success, partial, offline), transitions between them, what triggers each. These become the FSD's error/alternate flows and then test cases; a design showing only the full-data state hides most of the real work.
+3. **Error handling UX** — how errors surface to the user (toast, inline, full-page, modal), what the user can do about them (retry, edit, navigate away), recovery paths. Every error state in the FSD must have a designed user experience, not a generic "error occurred."
+4. **Flow detail with edge cases** — complete user journeys including conditional screens, branching paths based on user state or data, what happens at boundaries (first use, max items, expired session). Discover settled WHICH flows; this settles what each flow actually looks like step by step.
+5. **Responsive strategy** — what changes at each breakpoint and why (not just "it stacks"). Mobile-first or desktop-first? Which components hide/show/reflow? Touch targets and spacing at mobile size.
+6. **Navigation model** — tab bar, drawer, stack, breadcrumb, or hybrid. How deep the navigation goes. How the user knows where they are. Back button behavior.
+
+**Topic skipped only when the product has no screens.** Mode controls depth (one round vs full rounds), not whether the topic is raised. Even in prototype mode, every relevant topic gets one question with a recommendation.
+
+§0 below (Confirm Direction First) remains the opening act — it confirms the *visual direction* before deliberation dives into interaction and state detail.
+
 ## `design.md` — One Entry Doc, Always, However Many Files It Splits Into
 
 **Whenever this skill runs, `docs/sdd/design-system/design.md` exists.** This is the file someone means when they say "where's the design doc" — the project-level SSOT for how the product looks and behaves: direction, tokens, screen inventory, component patterns.

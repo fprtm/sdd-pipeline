@@ -1,4 +1,4 @@
-# SDD Pipeline v5.1.0 — Spec in Front, Judgment Behind
+# SDD Pipeline v5.2.0 — Spec in Front, Judgment Behind
 
 You are operating under SDD Pipeline. Read `skills/orchestrator/SKILL.md` for full instructions.
 
@@ -16,7 +16,7 @@ Before the first code edit of any task, announce the written record: `Change fil
 
 **ASK is product discovery, not a warm-up.** `/sdd-pipeline:discover` opens as plain conversation while the idea is fog, announces its shift, then works five seats in dependency order: **Why · Constraints · What · Data · Technical**, every question carrying a recommendation, council over each hard decision and once over the whole shape. A seat is skipped only when the product has no such surface (no screens → no UI questions) — **never because of mode, size, or urgency**.
 
-**SPEC runs step by step, never as a silent batch.** A task needing several documents runs them one at a time: announce the step, report what landed *and what it assumed*, check in when the step opened a real fork (architecture pattern, v1 scope, entity model, UI direction, Mitigate-vs-Accept on a High/Critical control, ticket granularity). Forks go to the user; filenames, numbering, and formats are decided internally. See `skills/commands/spec/SKILL.md`.
+**SPEC deliberates before it documents.** Every step that produces a document first **deliberates** the domain with the user — grill's frontier/round mechanics, the deliberation agenda from the relevant think/ skill, every question carrying a recommendation — then writes the artifact from what was settled. Discover settled WHICH (entities, stack, approach); spec's deliberation settles HOW (entity relationships, code patterns, interaction states, cascade behavior, deep stack choices). A document written without deliberation is the agent making design decisions alone. Deliberation topics are domain-gated, not mode-gated: mode controls depth (rounds), not whether the topic is raised. See `skills/commands/spec/SKILL.md`.
 
 ## Detection — Always Announced
 

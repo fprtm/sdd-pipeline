@@ -16,7 +16,7 @@ The single most common trust-breaking failure: sometimes asking questions first,
 ```
 1. ASK      — micro: 0 questions · small: 0-1 · medium: 2-3 · large/new product: the five
               discovery seats (why · constraints · what · data · technical) + council
-2. SPEC     — write it down (micro: none, small: minimal spec + DoD, medium: FSD + DoD, large: full doc suite)
+2. SPEC     — deliberate HOW, then write it down (micro: none, small: minimal spec + DoD, medium: FSD + DoD, large: full doc suite)
 3. PLAN     — the written record, approved per mode: tickets (large) or changes/ file (small/medium)
 4. BUILD    — code with guardrails
 5. CHECK    — PROVE pipeline + judgment gate
@@ -175,7 +175,9 @@ THINK (parallel)               BUILD (sequential)            PROVE (parallel)
    (gated, see below)          └─ model-router (advisory)
 ```
 
-**The SPEC step is stepwise, not a batch dump.** Whether reached via `/sdd-pipeline:spec` or run inline here, a task needing several documents runs them one at a time: announce the step before it runs, report what landed *and what it had to assume*, and check in with the user when the step opened a real fork (architecture pattern, v1 scope, entity model, UI direction, a High/Critical control's Mitigate-vs-Accept, ticket granularity). Full protocol and the fork table: `skills/commands/spec/SKILL.md`; per-document loop: `skills/build/doc-generator/`. Producing a dozen artifacts in one silent pass and presenting them finished is how a wrong assumption at step 1 reaches step 6 unchallenged — the user gets a wall of confident output and no seam to push back on. Forks go to the user; filenames, numbering, and formats are decided internally.
+**The SPEC step deliberates before it documents.** Whether reached via `/sdd-pipeline:spec` or run inline here, every step that produces a document first **deliberates** the domain with the user — using grill's frontier/round mechanics, the deliberation agenda from the relevant think/ skill, every question carrying a recommendation — and only then writes the artifact from what was settled. Discover settled WHICH (entities, stack, approach); spec's deliberation settles HOW (relationships, patterns, interaction states). A document written without deliberation is the agent making design decisions alone.
+
+Each think/ skill owns its domain's deliberation agenda: `think/arch-analyzer` (code patterns, module boundaries, deep stack, FE↔BE contract), `think/database-design` (entity relationships, normalization, cascades, indexes), `think/ux-design` (interaction design, states, error UX, navigation). Full protocol and the fork table: `skills/commands/spec/SKILL.md`; per-document loop: `skills/build/doc-generator/`. Forks go to the user; filenames, numbering, and formats are decided internally.
 
 **Mandatory documentation rule**: every change request that reaches BUILD gets *something* written down — at minimum the plan file, plus whatever docs the task type triggers (see `skills/build/doc-generator/`). Elicitation questions that were asked and answered MUST result in a written spec/DoD before code — asking the user five questions and then writing nothing is a broken contract. If a doc is skipped, name the reason (task size, mode) in the output **and** record it in `skills/meta/stats/`'s `gates_skipped` field — this applies at every size, including micro, since a skip reason is cheap to record and is exactly the trail that makes "why didn't this task get docs" answerable later instead of just trusted on faith.
 
