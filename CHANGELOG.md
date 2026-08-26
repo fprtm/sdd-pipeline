@@ -3,6 +3,48 @@
 All notable changes to SDD Pipeline. Versioning is [SemVer](https://semver.org/).
 Plain-language where possible.
 
+## [5.5.0] — 2026-08-25
+
+A deeper bug than deliberation depth: even a thoroughly-deliberated decision
+could end up wrong on paper, because nothing verified that the *written
+document* actually matched what was *settled in conversation*. Writing "based
+on what was discussed" is reconstruction from memory, not transcription — and
+reconstruction drifts: a cascade rule becomes the "usual" one, a threshold
+gets rounded, a status code gets swapped for a more common one. The same drift
+could happen again between the document and the code that implements it. User
+report: results sometimes don't match what was actually discussed — a fatal
+gap, not a cosmetic one.
+
+### Added
+
+- **Fidelity check** (`commands/spec`, `build/doc-generator`). New explicit
+  step between "write the document" and "report": re-read every settled
+  decision from deliberation against what was just written, one by one.
+  Specific values (names, numbers, cascade rules, status codes, thresholds)
+  must trace back to an actual answer, not a plausible reconstruction. Silent
+  drift gets fixed before the report step; real contradictions go back to the
+  user as a fork, never resolved unilaterally.
+- **Spec-conformance strengthened to correctness, not just existence**
+  (`prove/verification` Layer 4). A requirement with a passing test can still
+  FAIL this layer if the test or code doesn't match the spec's *specific*
+  decided value — "there's a test for cancellation" is not "the test asserts
+  cancellation is blocked after shipping, per FSD-003.4." Explicit
+  cross-references added: ERD cascade table vs actual migrations, FE↔BE
+  contract vs actual endpoint code.
+- **Fidelity question in the judgment gate's Plausibility Discount**
+  (`prove/judgment`). New self-audit question: does every specific value in
+  this output trace to something the user settled, or did a plausible default
+  get filled in silently? This is where drift is hardest to catch, because it
+  reads as correct without being correct.
+
+### Migration
+
+No breaking changes. The fidelity check is a new required step inside
+existing document-writing flows — it adds a verification pass, it doesn't
+change what gets written when deliberation and drift-free writing already
+agree. Existing documents are unaffected; new spec runs will explicitly
+re-check for drift before reporting done.
+
 ## [5.4.1] — 2026-08-25
 
 Deliberation agendas had the right topics but no enforced granularity. The agent

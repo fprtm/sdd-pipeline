@@ -36,6 +36,7 @@ Explicitly self-audit against the plausibility trap before presenting results:
 - Does this *look* done because it's complete, or because it's neat?
 - Which parts did I generate from pattern-memory rather than from this project's actual context? (Those are the hallucination-risk zones — name them.)
 - What would a hostile reviewer poke at first?
+- **Does every specific value here trace back to something the user actually settled, or did I fill in a plausible default?** Status codes, cascade rules, thresholds, error messages, field names — a value that "sounds right for this kind of feature" but wasn't actually confirmed during deliberation is exactly the kind of drift the plausibility trap produces, because it reads as correct without being correct. If unsure whether a specific value was settled or assumed, say so — don't round it up to "settled" because it's plausible.
 
 Name the weakest part of the output in the report. Every report must contain a "weakest point" line — an output with no named weak point means the self-audit didn't happen.
 

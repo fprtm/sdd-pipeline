@@ -40,6 +40,9 @@ Run these in parallel when multi-agent is available. Sequential otherwise.
 - **If `docs/sdd/traceability.md` exists, run the mechanical check first** — `node tools/check-traceability.mjs docs/sdd` (bundled with `skills/meta/traceability/`) — instead of re-tracing by hand; its findings (orphans, broken refs, freelance tickets/tests) are this layer's findings.
 - Then trace each requirement identified in the THINK phase to at least one test or verifiable check (covers work the matrix doesn't, e.g. small tasks with no matrix).
 - Requirements with no corresponding test = **red flag**. List them explicitly.
+- **Existence of a test is not conformance — correctness of the test against the spec's decided values is.** A requirement with a passing test still fails this layer if the test (or the code) doesn't match the *specific* value the FSD/SDS/ERD settled on: the actual status code, the actual cascade rule, the actual threshold number, the actual error message, the actual role check. Check the code and its tests against the document's specifics, not just against its topic. "There's a test for order cancellation" is not the same claim as "the test asserts cancellation is blocked after shipping, per FSD-003.4."
+- **Cross-reference the ERD's cascade table against actual migrations** when a DB change is in scope — a migration that used `CASCADE` where the ERD settled on `RESTRICT` is a spec-conformance FAIL, not a style nit, even if every test passes (the tests may have been written against the same wrong assumption).
+- **Cross-reference the arch deliberation's FE↔BE contracts against actual endpoint code** — request/response shape, status codes, error bodies. A contract drift here breaks the FE without either side's tests necessarily catching it if both were written from the same drifted understanding.
 - This is the most judgment-heavy layer — if multi-model is available, route to STRONG tier.
 
 ## Aggregation
