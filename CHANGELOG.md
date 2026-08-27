@@ -3,6 +3,43 @@
 All notable changes to SDD Pipeline. Versioning is [SemVer](https://semver.org/).
 Plain-language where possible.
 
+## [5.7.0] — 2026-08-27
+
+Follow-up to v5.6.0's file-count discussion: even when the file count is
+justified (checked with real numbers — a `large` feature's spec bundle
+isn't bloated, it's proportionate), a human landing on 15-20 files with
+only a flat, undifferentiated filename list has no idea what order to
+read them in. `docs/sdd/index.md` lists every file in the project with a
+one-line description — a directory, not a reading guide — and nothing
+else told a reviewer "start with the FSD, then the ERD if you're
+reviewing data, skip the UX doc if you're not touching UI." Compare to
+the code-review side: `prove/judgment`'s Review Guide (v5.3.0) already
+gives an explicit, trust-tiered reading order for changed *code* — the
+*spec* side had no equivalent.
+
+### Added
+
+- **`00-index.md` formalized as the feature's entry point**
+  (`build/ticket-decomposition`). Previously emergent/ad-hoc (agents wrote
+  something like it in practice, but no skill defined its shape). Now a
+  required template: spec/ERD/ADR references, a **"How to Review This
+  Feature"** reading-order section (which doc answers what question, honest
+  read-time estimate, skip rows for docs that don't exist), the ticket status
+  table, and the frontier/blocking order — written in the same run as the
+  ticket breakdown, never deferred.
+- **"How to Review This Feature" in spec's closing report**
+  (`commands/spec`). For medium-scope runs that generate 2+ documents but
+  don't reach ticket decomposition (no `00-index.md` exists at that size),
+  the same reading-order guide is stated once in the run's final chat
+  message instead of a separate file.
+
+### Migration
+
+No breaking changes. Additive to the SPEC step's closing report and to the
+(previously undefined) `00-index.md` shape — existing `00-index.md` files
+without a "How to Review" section aren't invalid, they just predate the
+convention; the next SPEC run for that feature adds it.
+
 ## [5.6.0] — 2026-08-27
 
 Two user complaints about a real run (`petfirst`, 19 generated files for one

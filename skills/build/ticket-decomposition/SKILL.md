@@ -119,6 +119,39 @@ born there. No implementation code, just the manifest:]
 - [Explicitly excluded from this ticket — usually deferred to a later ticket]
 ```
 
+## The Feature Index (`00-index.md`) — The Human's Entry Point
+
+A `large` feature produces a spec bundle of several documents (FSD, SDS, ERD, threats, UX, ux-screens) plus a directory of tickets — easily 10-20 files. Nobody should have to guess which one to open first. `docs/sdd/tickets/{feature-slug}/00-index.md` is the **one required entry point** for the whole feature: written alongside the ticket breakdown, in the same run, never skipped for `large` scope.
+
+```markdown
+# [Feature Name] — Work Order
+
+**Spec**: `docs/sdd/specs/{NNN}-{slug}-{sds,fsd,ux,threats}.md` [only the ones that exist]
+**ERD**: `docs/sdd/erd/{NNN}-{slug}-erd.md` [if a DB change]
+**ADR**: [any decision log entries this feature depends on, if any]
+**Next free ticket ID**: TICKET-0NN
+
+## How to Review This Feature
+[The reading order, tailored to what actually exists for this feature — skip any row whose doc wasn't generated. Each row states what question that doc answers and an honest read-time estimate, so a reviewer can stop once they have what they need instead of reading everything at equal depth:]
+
+1. **FSD** (~3 min) — what this does, user flows, edge cases. Start here always.
+2. **SDS** (~3 min) — the technical shape: architecture, components, key decisions. Read if reviewing the implementation approach.
+3. **ERD** (~2 min) — schema, relationships, cascade behavior. Read if reviewing data changes.
+4. **Threats** (~1 min) — security controls (SEC-xxx). Read if reviewing anything auth/payment/trust-boundary.
+5. **UX spec + ux-screens** (~2 min each) — screens, states, interactions. Read if reviewing UI.
+6. **Tickets below** — in the dependency order shown in Frontier/Blocking Order, only the ones relevant to what you're actually doing. A ticket is self-contained (rule #6 below) — you shouldn't need to re-read the full FSD to understand one.
+
+## Status
+[Ticket table — ID, title, tier, status, dependencies]
+
+## Frontier / Blocking Order
+[Dependency graph — which tickets are unblocked now, which wait on what, which can run in parallel]
+```
+
+**Why this file, not a longer `docs/sdd/index.md` entry**: the project-level `index.md` lists every feature in the whole project with a one-line description each — it's a directory, not a reading guide, and it shouldn't try to be one (it would grow unreadable itself). `00-index.md` is scoped to one feature, so it can afford to actually tell a reader what order to go in. `index.md` links to it; it doesn't duplicate it.
+
+**Applies below `large` too, in a lighter form**: medium-scope work that generates 2+ documents (no tickets) doesn't get a `00-index.md` — the spec run's final chat report includes the same "how to review" ordering instead, inline, at the point the run reports what landed. A single-document task (just an FSD, or just a change file) doesn't need either — there's nothing to order.
+
 ## Where Do Tickets Live? Ask, Don't Assume
 
 Before writing ticket files, ask — per `skills/think/elicitation/`'s "How to Ask" rule: native question tool first, plain text only as fallback: **local files only** (default — `docs/sdd/tickets/`, no external dependency) or **also mirror to GitHub Issues** (visible on the repo's board, assignable, commentable by the team).
