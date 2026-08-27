@@ -44,16 +44,18 @@ All generated docs go to the structured docs/sdd/ directory, **with a sequence n
 
 | Doc Type | Location |
 |----------|----------|
-| FSD | `docs/sdd/design/{NNN}-{slug}-fsd.md` |
-| SDS | `docs/sdd/design/{NNN}-{slug}-sds.md` |
-| PRD | `docs/sdd/design/{NNN}-{slug}-prd.md` |
+| FSD | `docs/sdd/specs/{NNN}-{slug}-fsd.md` |
+| SDS | `docs/sdd/specs/{NNN}-{slug}-sds.md` |
+| PRD | `docs/sdd/specs/{NNN}-{slug}-prd.md` |
 | ERD | `docs/sdd/erd/{NNN}-{slug}-erd.md` |
 | DoD | `docs/sdd/dod/{NNN}-{slug}-dod.md` |
 | Test Plan | `docs/sdd/test-plans/{NNN}-{slug}-tests.md` |
 
 - **NNN**: zero-padded sequence per directory (`001`, `002`, …) — next number = highest existing + 1
 - **slug**: kebab-case of the feature name (e.g., `user-auth`, `payment-flow`)
-- Example: `docs/sdd/design/003-payment-refund-fsd.md`
+- Example: `docs/sdd/specs/003-payment-refund-fsd.md`
+
+**Why `specs/`, not `design/`**: this directory holds *written specifications* — FSD/SDS/PRD/threat model, none of them visual — while `docs/sdd/design-system/` holds the actual visual design (tokens, screens, UI patterns). Naming both "design" was the same collision the `/design`→`/spec` command rename fixed in v4.0.0, just one level down in the file tree; `specs/` closes it for good. (v5.6.0+ only — pre-5.6.0 projects still use `design/`; see the CHANGELOG migration note if renaming an existing tree.)
 
 **Why numbered**: a bare `{slug}-fsd.md` convention means the 100th feature touching "auth" appends to or overwrites the same file, and the file bloats until reading one small section requires reading everything. One numbered file per feature keeps every doc small, scoped, and individually readable — an AI (or human) looking for the refund spec opens exactly one short file, not a 2000-line accretion.
 
@@ -80,7 +82,7 @@ The numbered filenames double as the traceability spine (`skills/meta/traceabili
 
 | ID | What it names | Where it's defined |
 |----|---------------|--------------------|
-| `FSD-003` | The FSD *file* `design/003-{slug}-fsd.md` — the number IS the ID | Filename |
+| `FSD-003` | The FSD *file* `specs/003-{slug}-fsd.md` — the number IS the ID | Filename |
 | `SDS-003` / `PRD-003` / `ERD-003` | Same rule for SDS/PRD/ERD files | Filename |
 | `FSD-003.2` | Flow/behavior #2 *inside* FSD-003 — use when the matrix needs a finer link | `### FSD-003.2 — …` heading in the file |
 | `ADR-005` | Decision file `decisions/005-{slug}.md` (see `skills/meta/decision-log/`) | Filename |

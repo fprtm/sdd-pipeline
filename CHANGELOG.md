@@ -3,6 +3,61 @@
 All notable changes to SDD Pipeline. Versioning is [SemVer](https://semver.org/).
 Plain-language where possible.
 
+## [5.6.0] — 2026-08-27
+
+Two user complaints about a real run (`petfirst`, 19 generated files for one
+feature): "itu namanya ambigu" (the naming is ambiguous) and "perlukah file
+sebanyak itu?" (are that many files necessary?).
+
+### The naming bug
+
+`docs/sdd/design/` (the numbered FSD/SDS/PRD/threat-model/UX bundle — none of
+it visual) and `docs/sdd/design-system/` (the actual visual design — tokens,
+screens, patterns) both had "design" in the name, one directory apart. This
+was the *exact* ambiguity the `/design`→`/spec` command rename fixed in
+v4.0.0 ("design reads as visual design to most people") — except the rename
+only touched the command, not the directory tree, so the same collision sat
+one level down the whole time. A fresh reader landing in `docs/sdd/` has no
+way to tell `design/001-x-ux.md` and `design-system/design.md` apart by name
+alone.
+
+### Fixed
+
+- **Renamed `docs/sdd/design/` → `docs/sdd/specs/`.** This directory holds
+  *written specifications* (FSD/SDS/PRD/threat model/UX), never anything
+  visual. `docs/sdd/design-system/` (visual design system) and
+  `docs/sdd/ux-screens/` (per-screen detail) are unaffected and unambiguous
+  once `specs/` no longer overlaps their name. Updated everywhere: both
+  mechanical checkers (`check-file-hygiene.mjs`, `check-traceability.mjs` +
+  their test suites, all passing), every skill that writes to or reads from
+  the directory (`doc-generator`, `spec`, `discover`, `traceability`,
+  `security-check`, `threat-model`, `ux-design`, `vibe` mode, `orchestrator`),
+  and every doc (`README.md`, `docs/ARCHITECTURE.md`, `docs/INSTALL.md`,
+  `docs/examples/*.md`, `templates/index.md`).
+- **Ticket right-sizing guidance** (`build/ticket-decomposition`). New
+  section: before finalizing a breakdown, check whether any ticket exists
+  only to say "wire the thing from ticket N" rather than representing
+  independently demoable work — that's layer-splitting recursed one level
+  deeper, the same mistake the skill's first rule already warns against.
+  Not a hard cap on ticket count — genuine complexity still gets as many
+  tickets as it needs — but a check against padding.
+
+### Migration (BREAKING for existing `docs/sdd/design/` trees)
+
+No backward alias, consistent with this project's past breaking renames
+(SDD→SDS in v3.0.0, `/design`→`/spec` in v4.0.0). For an existing project:
+
+```bash
+git mv docs/sdd/design docs/sdd/specs
+# then fix internal links: any [text](design/NNN-slug-fsd.md) style link
+# in index.md, decisions/, or elsewhere now points at specs/
+node tools/check-file-hygiene.mjs docs/sdd   # confirm clean after the move
+```
+
+Projects that don't rename keep working as long as they don't upgrade the
+plugin — `check-file-hygiene.mjs` post-5.6.0 expects `specs/`, not `design/`,
+and will flag a leftover `design/` directory as unknown.
+
 ## [5.5.0] — 2026-08-25
 
 A deeper bug than deliberation depth: even a thoroughly-deliberated decision

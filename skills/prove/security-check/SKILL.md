@@ -6,7 +6,7 @@ Two layers: **checklist audit** (domain-aware static review of the code) and **e
 
 1. Detect domain from context-loader output.
 2. Apply the relevant checklist below — mark each item: PASS / FAIL / NOT APPLICABLE.
-3. **If a threat model exists** (`docs/sdd/design/*-threats.md`): cite the SEC-xxx each finding verifies or violates, and confirm every High/Critical control's mitigation is actually present in the code — a control that exists on paper but not in the diff is a FAIL, not an N/A.
+3. **If a threat model exists** (`docs/sdd/specs/*-threats.md`): cite the SEC-xxx each finding verifies or violates, and confirm every High/Critical control's mitigation is actually present in the code — a control that exists on paper but not in the diff is a FAIL, not an N/A.
 4. **Run executable security tests** from the test plan (class: security). A SEC control with a passing test is stronger evidence than a checklist PASS. A SEC control with NO test is a gap — flag it even if the checklist passes.
 5. Critical failures block in strict mode; flag in standard mode.
 

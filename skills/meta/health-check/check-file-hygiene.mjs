@@ -11,10 +11,10 @@
 //      traceability, HANDOFF, stack-guide, analytics, insights — no stray
 //      docs dumped at the root. (memory is a directory, not a root file —
 //      see #9.)
-//   2. Only known subdirectories: design, erd, dod, test-plans, tickets,
+//   2. Only known subdirectories: specs, erd, dod, test-plans, tickets,
 //      plans, reports, decisions, changes, stats, ux-screens, design-system,
 //      memory.
-//   3. design/   {NNN}-{slug}-(fsd|sds|prd|threats|ux).md
+//   3. specs/   {NNN}-{slug}-(fsd|sds|prd|threats|ux).md
 //   4. erd/      {NNN}-{slug}-erd.md · dod/ {NNN}-{slug}-dod.md ·
 //      test-plans/ {NNN}-{slug}-tests.md
 //   5. decisions/ {NNN}-{slug}.md
@@ -32,7 +32,7 @@
 //      every note listed in INDEX.md.
 //  10. reports/  YYYY-MM-DD-{slug}.md · stats/ YYYY-MM.md
 //  11. tickets/  {feature-slug}/{NN}-{slug}.md, each containing a TICKET-xxx id
-//  12. index.md exists, and every design/ + changes/ file is referenced in it
+//  12. index.md exists, and every specs/ + changes/ file is referenced in it
 //      (no orphan docs the index doesn't know about).
 // Exits non-zero on any problem.
 
@@ -42,9 +42,9 @@ import { join, relative, basename } from 'node:path';
 const dir = process.argv[2] ?? 'docs/sdd';
 const SLUG = '[a-z0-9][a-z0-9-]*';
 const ROOT_MD = new Set(['index.md', 'config.md', 'glossary.md', 'traceability.md', 'HANDOFF.md', 'stack-guide.md', 'analytics.md', 'insights.md']);
-const KNOWN_DIRS = new Set(['design', 'erd', 'dod', 'test-plans', 'tickets', 'plans', 'reports', 'decisions', 'changes', 'stats', 'ux-screens', 'design-system', 'memory']);
+const KNOWN_DIRS = new Set(['specs', 'erd', 'dod', 'test-plans', 'tickets', 'plans', 'reports', 'decisions', 'changes', 'stats', 'ux-screens', 'design-system', 'memory']);
 const DIR_RULES = {
-  design: new RegExp(`^\\d{3}-${SLUG}-(fsd|sds|prd|threats|ux)\\.md$`),
+  specs: new RegExp(`^\\d{3}-${SLUG}-(fsd|sds|prd|threats|ux)\\.md$`),
   erd: new RegExp(`^\\d{3}-${SLUG}-erd\\.md$`),
   dod: new RegExp(`^\\d{3}-${SLUG}-dod\\.md$`),
   'test-plans': new RegExp(`^\\d{3}-${SLUG}-tests\\.md$`),
@@ -86,7 +86,7 @@ for (const e of ls(dir)) {
   if (isDir(p)) {
     if (!KNOWN_DIRS.has(e)) flag(`unknown directory: ${e}/ — not part of the docs/sdd tree`);
   } else if (isMarkdownFile(p, e)) {
-    if (!ROOT_MD.has(e)) flag(`stray file at root: ${e} — docs belong in a subdirectory (design/, changes/, …)`);
+    if (!ROOT_MD.has(e)) flag(`stray file at root: ${e} — docs belong in a subdirectory (specs/, changes/, …)`);
   }
 }
 
@@ -104,7 +104,7 @@ for (const [d, re] of Object.entries(DIR_RULES)) {
 // ux-screens/ — one flow per file, kebab slug (flows aren't chronological, so no
 // date/number), frontmatter with description + priority (Must/Should/Could) +
 // updated (bumped whenever the flow file is revised in place — same "is this
-// still current" signal as the Updated/Version header on design/ docs, just
+// still current" signal as the Updated/Version header on specs/ docs, just
 // in frontmatter form since ux-screens/ files don't use the bolded-field shape).
 for (const e of ls(join(dir, 'ux-screens'))) {
   const p = join(dir, 'ux-screens', e);
@@ -210,7 +210,7 @@ if (!existsSync(indexPath)) {
   flag(`index.md missing — the index is how anyone finds the right doc`);
 } else {
   const index = readText(indexPath);
-  for (const d of ['design', 'changes']) {
+  for (const d of ['specs', 'changes']) {
     for (const e of ls(join(dir, d))) {
       if (isMarkdownFile(join(dir, d, e), e) && !index.includes(e)) flag(`orphan: ${d}/${e} not referenced in index.md`);
     }

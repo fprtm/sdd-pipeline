@@ -60,4 +60,4 @@ The written record (`changes/{date}-{slug}.md` for small/medium, tickets for lar
 
 ## Document Handling
 
-Docs (FSD, SDS, etc.) are generated silently to `docs/sdd/design/`, `docs/sdd/erd/`, etc. Not mentioned to user unless they ask. Available for later review.
+Docs (FSD, SDS, etc.) are generated silently to `docs/sdd/specs/`, `docs/sdd/erd/`, etc. Not mentioned to user unless they ask. Available for later review.

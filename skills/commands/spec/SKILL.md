@@ -164,10 +164,12 @@ Anything **not** on that list — filenames, numbering, doc formats, diagram sha
 
 ## Output
 
-- Architecture findings → `docs/sdd/design/` or, for multi-candidate decisions, a self-contained HTML report with confidence badges (Strong/Worth exploring/Speculative)
-- Specs → `docs/sdd/design/{NNN}-{slug}-fsd.md`, `-sds.md`, or `-prd.md` as applicable — numbered, behavior-focused, each with a compact Mermaid diagram
-- Threat model → `docs/sdd/design/{NNN}-{slug}-threats.md` (note the suffix: `-threats`, not `-threat-model` — `check-file-hygiene.mjs` enforces it)
-- UI work → `docs/sdd/design-system/design.md` (the entry doc) + `docs/sdd/design/{NNN}-{slug}-ux.md` + one file per flow in `docs/sdd/ux-screens/`
+- Architecture findings → `docs/sdd/specs/` or, for multi-candidate decisions, a self-contained HTML report with confidence badges (Strong/Worth exploring/Speculative)
+- Specs → `docs/sdd/specs/{NNN}-{slug}-fsd.md`, `-sds.md`, or `-prd.md` as applicable — numbered, behavior-focused, each with a compact Mermaid diagram
+- Threat model → `docs/sdd/specs/{NNN}-{slug}-threats.md` (note the suffix: `-threats`, not `-threat-model` — `check-file-hygiene.mjs` enforces it)
+- UI work → `docs/sdd/design-system/design.md` (the entry doc) + `docs/sdd/specs/{NNN}-{slug}-ux.md` + one file per flow in `docs/sdd/ux-screens/`
+
+**Why `specs/` and not `design/`**: this directory is the numbered spec bundle (FSD/SDS/PRD/threat model/UX — none of them visual). Visual design lives in `docs/sdd/design-system/` (project-wide) and `docs/sdd/ux-screens/` (per-screen). Naming the spec bundle "design" was the exact ambiguity the `/design`→`/spec` command rename (v4.0.0) tried to kill — this closes the same gap at the file-tree level (v5.6.0+).
 - Database-touching work → `docs/sdd/erd/{NNN}-{slug}-erd.md`
 - Large scope → tickets at `docs/sdd/tickets/{feature-slug}/` with a frontier work order, announced as: "Scope is large — split into N tickets, starting with the unblocked ones."
 

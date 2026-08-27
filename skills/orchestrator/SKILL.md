@@ -282,7 +282,7 @@ docs/sdd/
 ├── tickets/               # Vertical-slice ticket breakdowns for large tasks
 │   └── {feature-slug}/{NN}-{ticket-slug}.md   # each carries a global TICKET-xxx id
 ├── reports/              # Verification reports per task
-├── design/               # FSD, SDS, PRD, threat models, UX direction per feature (file number = spine ID)
+├── specs/                # FSD, SDS, PRD, threat models, UX direction per feature (file number = spine ID) — written specs, not visual
 ├── ux-screens/           # One priority-tagged flow file per user journey (skills/think/ux-design/)
 ├── design-system/        # UI design. design.md is the entry doc, required whenever there's a UI
 │   └── design.md         # direction + tokens SSOT + screen inventory (skills/think/ux-design/)

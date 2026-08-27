@@ -68,33 +68,33 @@ test('unknown subdirectory is flagged', () => {
   assert.match(out, /unknown directory: scratch\//);
 });
 
-test('bad filename in design/ (missing NNN- prefix) is flagged', () => {
+test('bad filename in specs/ (missing NNN- prefix) is flagged', () => {
   const dir = scratch();
-  mkdirSync(join(dir, 'design'), { recursive: true });
+  mkdirSync(join(dir, 'specs'), { recursive: true });
   withIndex(dir);
-  writeFileSync(join(dir, 'design', 'my-feature-fsd.md'), '# FSD');
+  writeFileSync(join(dir, 'specs', 'my-feature-fsd.md'), '# FSD');
   const { code, out } = run(dir);
   assert.equal(code, 1);
-  assert.match(out, /bad filename: design\/my-feature-fsd\.md/);
+  assert.match(out, /bad filename: specs\/my-feature-fsd\.md/);
 });
 
-test('correctly-named design/ doc referenced in index.md passes', () => {
+test('correctly-named specs/ doc referenced in index.md passes', () => {
   const dir = scratch();
-  mkdirSync(join(dir, 'design'), { recursive: true });
-  writeFileSync(join(dir, 'design', '001-my-feature-fsd.md'), '# FSD: My Feature');
-  withIndex(dir, '- [My Feature FSD](design/001-my-feature-fsd.md)');
+  mkdirSync(join(dir, 'specs'), { recursive: true });
+  writeFileSync(join(dir, 'specs', '001-my-feature-fsd.md'), '# FSD: My Feature');
+  withIndex(dir, '- [My Feature FSD](specs/001-my-feature-fsd.md)');
   const { code } = run(dir);
   assert.equal(code, 0);
 });
 
-test('design/ doc NOT referenced in index.md is an orphan', () => {
+test('specs/ doc NOT referenced in index.md is an orphan', () => {
   const dir = scratch();
-  mkdirSync(join(dir, 'design'), { recursive: true });
-  writeFileSync(join(dir, 'design', '001-my-feature-fsd.md'), '# FSD');
+  mkdirSync(join(dir, 'specs'), { recursive: true });
+  writeFileSync(join(dir, 'specs', '001-my-feature-fsd.md'), '# FSD');
   withIndex(dir);
   const { code, out } = run(dir);
   assert.equal(code, 1);
-  assert.match(out, /orphan: design\/001-my-feature-fsd\.md/);
+  assert.match(out, /orphan: specs\/001-my-feature-fsd\.md/);
 });
 
 test('ux-screens/ file missing updated: frontmatter is flagged', () => {

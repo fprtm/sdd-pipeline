@@ -40,7 +40,7 @@ A hand-maintained matrix drifts. This skill bundles a zero-dependency validator,
 node tools/check-traceability.mjs docs/sdd
 ```
 
-It flags: spine IDs (REQ/REQ-NF/FSD/SEC) defined but missing from the matrix; broken references (a matrix ID never defined — typo or rename); tickets/tests that trace to nothing upstream; duplicate ID definitions (a renumbering/copy-paste bug); and dead relative markdown links. It understands the v2 ID spine: file-level IDs from filenames (`design/003-x-fsd.md` defines FSD-003, `decisions/005-y.md` defines ADR-005) and item-level IDs from headings/table rows. Treat a non-zero exit as a real defect, not a nuisance.
+It flags: spine IDs (REQ/REQ-NF/FSD/SEC) defined but missing from the matrix; broken references (a matrix ID never defined — typo or rename); tickets/tests that trace to nothing upstream; duplicate ID definitions (a renumbering/copy-paste bug); and dead relative markdown links. It understands the v2 ID spine: file-level IDs from filenames (`specs/003-x-fsd.md` defines FSD-003, `decisions/005-y.md` defines ADR-005) and item-level IDs from headings/table rows. Treat a non-zero exit as a real defect, not a nuisance.
 
 ## Checks Each Run (the script automates most)
 

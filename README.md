@@ -4,7 +4,9 @@
 
 A skill framework that gives you control over — and trust in — AI-generated code. Works with Claude Code, Codex, OpenCode, Cursor, and any agent that reads Markdown.
 
-> **Naming note**: "SDD" here is *Spec-Driven Development* — the framework's name. One of the document types the pipeline generates used to also be called "SDD" (Software Design Document) — same three letters, unrelated meaning, a real collision. That document type is now called **SDS (Software Design Specification)** instead (`docs/sdd/design/{NNN}-{slug}-sds.md`, spine ID `SDS-003`) specifically to avoid it; "SDD" unqualified always means the framework from here on.
+> **Naming note**: "SDD" here is *Spec-Driven Development* — the framework's name. One of the document types the pipeline generates used to also be called "SDD" (Software Design Document) — same three letters, unrelated meaning, a real collision. That document type is now called **SDS (Software Design Specification)** instead (`docs/sdd/specs/{NNN}-{slug}-sds.md`, spine ID `SDS-003`) specifically to avoid it; "SDD" unqualified always means the framework from here on.
+>
+> **Second naming note**: `docs/sdd/specs/` (the numbered FSD/SDS/PRD/threat-model bundle, none of it visual) is a different directory from `docs/sdd/design-system/` (the actual visual design — tokens, screens, UI patterns). Both used to sit under a directory literally named `design/`, which was the same "design" ambiguity the `/design`→`/spec` command rename fixed in v4.0.0 — just one level down, in the file tree instead of the command name. v5.6.0 renamed the directory too: `specs/` = written specs, `design-system/` = how it looks.
 
 ## The Problem
 
@@ -39,7 +41,7 @@ The order is **fixed**. Only the *depth* adapts to task size — a typo gets zer
 | Step | What happens | What it leaves behind | Skip it and… |
 |---|---|---|---|
 | **ASK** | Product discovery: five seats — **why · constraints · what · data · technical** — worked in dependency order, every question carrying a recommendation, council review at the end. Opens as plain conversation when the idea is still fog, then shifts into decisions. | glossary terms, ADRs | you build the wrong thing, precisely and efficiently |
-| **SPEC** | Each domain is **deliberated** with the user before its document is written — database design, architecture, UX, app flows — using grill mechanics, every question carrying a recommendation, held to a **depth requirement per topic** (every table's columns, every FK's cascade, every endpoint's contract, every screen's interactions — not a one-line label), then a **fidelity check** confirms the written document actually matches what was settled, value for value, before it's reported done. Discover settled WHICH; spec settles HOW, then captures it as FSD/SDS/PRD/ERD, threat model, UX, DoD. | `docs/sdd/design/`, `erd/`, `dod/`, `design-system/design.md` | five answered questions evaporate into the chat, the agent invents design decisions while writing, a topic gets named without concrete detail, or the write-up silently drifts from what was actually agreed |
+| **SPEC** | Each domain is **deliberated** with the user before its document is written — database design, architecture, UX, app flows — using grill mechanics, every question carrying a recommendation, held to a **depth requirement per topic** (every table's columns, every FK's cascade, every endpoint's contract, every screen's interactions — not a one-line label), then a **fidelity check** confirms the written document actually matches what was settled, value for value, before it's reported done. Discover settled WHICH; spec settles HOW, then captures it as FSD/SDS/PRD/ERD, threat model, UX, DoD. | `docs/sdd/specs/`, `erd/`, `dod/`, `design-system/design.md` | five answered questions evaporate into the chat, the agent invents design decisions while writing, a topic gets named without concrete detail, or the write-up silently drifts from what was actually agreed |
 | **PLAN** | The work order, approved before any code: the ticket breakdown for large work, the change file for small/medium. | `tickets/` (large) or `changes/{date}-{slug}.md` (small/medium) | "done" becomes wherever the agent felt like stopping |
 | **BUILD** | Code, under guardrails: constraints, change plan, anti-pattern scan, execution guard, traceable commits. Large work splits into vertical-slice tickets first. | code, commits, `tickets/` | scope drift with no seam to catch it |
 | **CHECK** | Types, tests, lint, spec conformance → coverage gate, adversarial, security, performance, browser QA → report → **judgment gate**. | `reports/`, a green (or honestly red) matrix | "all tests pass" mistaken for "it's safe" |
@@ -143,7 +145,7 @@ docs/sdd/
 ├── HANDOFF.md · stack-guide.md · analytics.md · insights.md
 ├── changes/              # Small/medium work: ONE dated self-contained file per topic
 ├── decisions/            # One file per decision (rule-of-three gated) — 005-x.md IS ADR-005
-├── design/               # FSD/SDS/PRD/threat models/UX (numbered — file number IS the spine ID)
+├── specs/                # FSD/SDS/PRD/threat models/UX (numbered — file number IS the spine ID; written specs, not visual design — see design-system/ for that)
 ├── ux-screens/           # One file per user journey, priority-tagged
 ├── design-system/design.md   # UI entry doc — direction, tokens, screen inventory (when there's a UI)
 ├── tickets/              # Vertical-slice tickets with global TICKET-xxx ids

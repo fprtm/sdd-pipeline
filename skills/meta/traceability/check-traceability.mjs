@@ -5,7 +5,7 @@
 //   node tools/check-traceability.mjs [docs/sdd]
 //
 // Understands the v2 hybrid ID spine:
-//   - FILE-level IDs from filenames: design/003-x-fsd.md defines FSD-003 (same
+//   - FILE-level IDs from filenames: specs/003-x-fsd.md defines FSD-003 (same
 //     for -sds/-prd), erd/003-x-erd.md defines ERD-003, decisions/005-y.md
 //     defines ADR-005.
 //   - ITEM-level IDs from headings/table rows: REQ/REQ-NF/SEC/TEST/TICKET, and
@@ -44,7 +44,7 @@ const NON_DEFINING_FILES = new Set([MATRIX, 'index.md', 'glossary.md', 'config.m
 const NON_DEFINING_DIRS = new Set(['plans', 'reports', 'stats', 'dod', 'memory']);
 // Filename -> file-level ID definitions.
 const FILE_ID_RULES = [
-  { dir: 'design', re: /^(\d{3})-.+-(fsd|sds|prd)\.md$/, type: (m) => m[2].toUpperCase() },
+  { dir: 'specs', re: /^(\d{3})-.+-(fsd|sds|prd)\.md$/, type: (m) => m[2].toUpperCase() },
   { dir: 'erd', re: /^(\d{3})-.+-erd\.md$/, type: () => 'ERD' },
   { dir: 'decisions', re: /^(\d{3})-.+\.md$/, type: () => 'ADR' },
 ];

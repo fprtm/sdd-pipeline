@@ -50,6 +50,16 @@ Ticket 2 and Ticket 3: no edge between them — can proceed in parallel
 
 Work the **frontier**: at any point, the workable set is every ticket whose blockers are all resolved. This is the same frontier concept as SDD Grill — compute what's unblocked, work it, recompute.
 
+## Right-Sizing — More Files Isn't More Rigor
+
+Splitting further always *feels* like more thoroughness, but a ticket that exists only to say "wire the thing from ticket N" adds a file to open without adding independent value. Before finalizing the breakdown, check each ticket against:
+
+- **Could this be a step inside an adjacent ticket instead of its own file?** If ticket B is never workable, reviewable, or demoable without ticket A being done first *and* B is small (a helper function, a config change, a one-line wiring), it's a strong candidate to fold into A rather than stand alone.
+- **Does the ticket count match the feature's actual seams, or the decomposer's default granularity?** A feature with 3 real vertical slices (distinct user-facing capabilities) shouldn't become 8 tickets because each slice got split by technical layer again inside itself — that's the exact layering mistake this skill's first rule warns against, just recursed one level deeper.
+- **Would a solo builder actually want this many separate handoffs?** Vertical-slice tickets exist for independent workability and parallel dispatch. A solo/small-team project (see `sdlc-detector`) gets less benefit from fine slicing than a team parallelizing across agents — bias toward fewer, more substantial tickets when there's no one to parallelize with.
+
+This is a judgment call, not a hard cap — some features genuinely need 8+ tickets (schema + several distinct endpoints + several distinct UI surfaces, each independently demoable). The check is against **padding**, not against genuine complexity: if every ticket in the breakdown is independently demoable and represents real, distinct work, the count is whatever it is.
+
 ## Presenting the Breakdown
 
 Show the full decomposition as a numbered list before publishing, and confirm with the user:

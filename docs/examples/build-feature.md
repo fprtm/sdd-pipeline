@@ -88,7 +88,7 @@ User reviews and approves: "go"
 ### 3. BUILD Phase
 
 **Doc Generator** creates:
-- `docs/sdd/design/001-user-auth-fsd.md`
+- `docs/sdd/specs/001-user-auth-fsd.md`
 - `docs/sdd/dod/001-user-auth-dod.md`
 - `docs/sdd/test-plans/001-user-auth-tests.md`
 

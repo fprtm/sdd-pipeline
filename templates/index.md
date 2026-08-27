@@ -15,7 +15,7 @@ _No change topics yet. One row per `changes/` file._
 
 ## Documents
 
-_No documents generated yet. One row per `design/`, `erd/`, `test-plans/` file._
+_No documents generated yet. One row per `specs/`, `erd/`, `test-plans/` file._
 
 ## Decisions
 

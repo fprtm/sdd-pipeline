@@ -36,9 +36,9 @@ test('no dir at all -> exit 0 (nothing to check)', () => {
 
 test('a REQ defined with no traceability.md at all -> not flagged as orphan (size-tier exemption)', () => {
   const dir = scratch();
-  mkdirSync(join(dir, 'design'), { recursive: true });
+  mkdirSync(join(dir, 'specs'), { recursive: true });
   writeFileSync(
-    join(dir, 'design', '001-login-fsd.md'),
+    join(dir, 'specs', '001-login-fsd.md'),
     '# FSD: Login\n\n| REQ-001 | User can log in | Must |\n'
   );
   const { code, out } = run(dir);
@@ -48,8 +48,8 @@ test('a REQ defined with no traceability.md at all -> not flagged as orphan (siz
 
 test('REQ defined and cited in an existing matrix -> passes', () => {
   const dir = scratch();
-  mkdirSync(join(dir, 'design'), { recursive: true });
-  writeFileSync(join(dir, 'design', '001-login-fsd.md'), '# FSD: Login\n\n| REQ-001 | Login | Must |\n');
+  mkdirSync(join(dir, 'specs'), { recursive: true });
+  writeFileSync(join(dir, 'specs', '001-login-fsd.md'), '# FSD: Login\n\n| REQ-001 | Login | Must |\n');
   writeFileSync(
     join(dir, 'traceability.md'),
     '| REQ | FSD | ADR | SEC | Ticket | Test | Status |\n|---|---|---|---|---|---|---|\n| REQ-001 | FSD-001 | - | - | - | - | not built |\n'
@@ -60,9 +60,9 @@ test('REQ defined and cited in an existing matrix -> passes', () => {
 
 test('REQ defined but missing from an EXISTING matrix -> flagged as orphan', () => {
   const dir = scratch();
-  mkdirSync(join(dir, 'design'), { recursive: true });
+  mkdirSync(join(dir, 'specs'), { recursive: true });
   writeFileSync(
-    join(dir, 'design', '001-login-fsd.md'),
+    join(dir, 'specs', '001-login-fsd.md'),
     '# FSD: Login\n\n| REQ-001 | Login | Must |\n| REQ-002 | Logout | Must |\n'
   );
   writeFileSync(
@@ -114,9 +114,9 @@ test('a TICKET citing its parent FSD nearby is not freelance', () => {
 
 test('the same id defined in two different files -> duplicate', () => {
   const dir = scratch();
-  mkdirSync(join(dir, 'design'), { recursive: true });
-  writeFileSync(join(dir, 'design', '001-a-fsd.md'), '# FSD: A\n\n| REQ-001 | thing | Must |\n');
-  writeFileSync(join(dir, 'design', '002-b-fsd.md'), '# FSD: B\n\n| REQ-001 | different thing | Must |\n');
+  mkdirSync(join(dir, 'specs'), { recursive: true });
+  writeFileSync(join(dir, 'specs', '001-a-fsd.md'), '# FSD: A\n\n| REQ-001 | thing | Must |\n');
+  writeFileSync(join(dir, 'specs', '002-b-fsd.md'), '# FSD: B\n\n| REQ-001 | different thing | Must |\n');
   const { code, out } = run(dir);
   assert.equal(code, 1);
   assert.match(out, /Duplicate ID definitions|duplicate/i);
@@ -164,8 +164,8 @@ test('regression: a [text](path) example inside a fenced code block is not a dea
 
 test('regression: an ID reference INSIDE a code span is still tracked (unlike link-checking, this must not be stripped)', () => {
   const dir = scratch();
-  mkdirSync(join(dir, 'design'), { recursive: true });
-  writeFileSync(join(dir, 'design', '001-a-fsd.md'), '# FSD: A\n\n| REQ-001 | thing | Must |\n');
+  mkdirSync(join(dir, 'specs'), { recursive: true });
+  writeFileSync(join(dir, 'specs', '001-a-fsd.md'), '# FSD: A\n\n| REQ-001 | thing | Must |\n');
   writeFileSync(
     join(dir, 'traceability.md'),
     '| REQ | FSD | ADR | SEC | Ticket | Test | Status |\n|---|---|---|---|---|---|---|\n| `REQ-001` | FSD-001 | - | - | - | - | not built |\n'
@@ -176,9 +176,9 @@ test('regression: an ID reference INSIDE a code span is still tracked (unlike li
 
 test('regression: Updated/Version/Status doc-header lines produce no phantom ids', () => {
   const dir = scratch();
-  mkdirSync(join(dir, 'design'), { recursive: true });
+  mkdirSync(join(dir, 'specs'), { recursive: true });
   writeFileSync(
-    join(dir, 'design', '001-a-fsd.md'),
+    join(dir, 'specs', '001-a-fsd.md'),
     '# FSD: A\n\n**Date**: 2026-08-20\n**Updated**: 2026-08-20\n**Version**: v1\n**Status**: DRAFT\n\n| REQ-001 | thing | Must |\n'
   );
   const { code, out } = run(dir);
@@ -191,8 +191,8 @@ test('regression: Updated/Version/Status doc-header lines produce no phantom ids
 
 test('a -sds.md file defines SDS-NNN (Software Design Specification, not FSD/PRD)', () => {
   const dir = scratch();
-  mkdirSync(join(dir, 'design'), { recursive: true });
-  writeFileSync(join(dir, 'design', '002-payment-sds.md'), '# SDS: Payment Refund\n\n**Date**: 2026-08-20\n');
+  mkdirSync(join(dir, 'specs'), { recursive: true });
+  writeFileSync(join(dir, 'specs', '002-payment-sds.md'), '# SDS: Payment Refund\n\n**Date**: 2026-08-20\n');
   const { code, out } = run(dir);
   assert.equal(code, 0, out);
   assert.match(out, /defined: 1/);

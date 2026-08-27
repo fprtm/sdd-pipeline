@@ -51,7 +51,7 @@ Gear 2 works through five seats, in dependency order. A seat earns its place by 
 
 - New domain terms → `docs/sdd/glossary.md`, written live, not batched
 - Decisions passing the rule-of-three gate → `docs/sdd/decisions/{NNN}-{slug}.md`
-- **Optional idea brief**, only if the user wants to keep a Gear-1 result: `docs/sdd/design/{NNN}-{slug}-idea.md` (the idea in two sentences · what makes it interesting · prior art found · fog that remains · hard parts spotted early). Unprompted, produce nothing.
+- **Optional idea brief**, only if the user wants to keep a Gear-1 result: `docs/sdd/specs/{NNN}-{slug}-idea.md` (the idea in two sentences · what makes it interesting · prior art found · fog that remains · hard parts spotted early). Unprompted, produce nothing.
 - **No plan, no spec, no FSD.** Those belong to `/sdd-pipeline:spec`.
 
 **Nothing is forced.** A session that ends "this idea isn't worth it," or just trails off, succeeded. Never steer toward "so, ready to build?" — the ADRs and glossary that already passed their gates persist either way.

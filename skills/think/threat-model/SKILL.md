@@ -12,7 +12,7 @@ Bake security into the design instead of bolting it on after code exists. Every 
 | strict mode | Mandatory at medium+ regardless of zone |
 | User asks: "threat model", "is this secure by design", "security review of the design" | Run at matching depth |
 
-Write to `docs/sdd/design/{NNN}-{slug}-threats.md` using `threat-model.template.md` (bundled with this skill). SEC-xxx IDs are item-level and global (counter in `docs/sdd/traceability.md`).
+Write to `docs/sdd/specs/{NNN}-{slug}-threats.md` using `threat-model.template.md` (bundled with this skill). SEC-xxx IDs are item-level and global (counter in `docs/sdd/traceability.md`).
 
 ## Step 1 — Enumerate Threats with STRIDE (Lightweight)
 

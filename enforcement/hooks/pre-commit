@@ -192,7 +192,7 @@ check_change_record() {
   local has_record=false
   for file in "${STAGED_FILES[@]}"; do
     case "$file" in
-      docs/sdd/changes/*|docs/sdd/plans/*|docs/sdd/decisions/*|docs/sdd/design/*|docs/sdd/tickets/*)
+      docs/sdd/changes/*|docs/sdd/plans/*|docs/sdd/decisions/*|docs/sdd/specs/*|docs/sdd/tickets/*)
         has_record=true ;;
     esac
   done

@@ -102,7 +102,7 @@ User reviews and approves.
 
 **Doc Generator** creates:
 
-**PRD** (`docs/sdd/design/001-ecommerce-api-prd.md`):
+**PRD** (`docs/sdd/specs/001-ecommerce-api-prd.md`):
 ```
 Problem: Small online store needs API for product catalog, orders, payments.
 Solution: RESTful API with Stripe integration, PostgreSQL backend.
@@ -122,7 +122,7 @@ erDiagram
     ORDER ||--o| SHIPMENT : has
 ```
 
-**SDS** (`docs/sdd/design/001-ecommerce-api-sds.md`):
+**SDS** (`docs/sdd/specs/001-ecommerce-api-sds.md`):
 Architecture decisions, module boundaries, API design patterns.
 
 **DoD** (`docs/sdd/dod/001-ecommerce-api-dod.md`):

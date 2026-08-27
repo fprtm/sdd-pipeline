@@ -2,7 +2,7 @@
 
 A product with screens has a UI whether or not anyone designed it — the only question is whether it was decided deliberately or fell out of ad-hoc component choices. This is the design-phase peer of `skills/think/arch-analyzer/` for the interface: the FE gets built to a system, not improvised. Runs whenever there IS a UI (medium+ with screens; skip only for API-only/CLI), or on "design the UI / design system / palette / wireframe / UX".
 
-Output: **`docs/sdd/design-system/design.md`** (the one entry doc for the UI — always) + `docs/sdd/design/{NNN}-{slug}-ux.md` (per-feature UX spec) + `docs/sdd/ux-screens/<flow-slug>.md` (one file per flow).
+Output: **`docs/sdd/design-system/design.md`** (the one entry doc for the UI — always) + `docs/sdd/specs/{NNN}-{slug}-ux.md` (per-feature UX spec, bundled with its FSD/SDS/threats siblings under the same number) + `docs/sdd/ux-screens/<flow-slug>.md` (one file per flow).
 
 ## Deliberation Agenda — Discuss Before Any UX Document Is Written
 
@@ -83,16 +83,18 @@ If an external UI/UX skill owns these, that file is the SSOT and this section ci
 [Contrast, touch targets, focus order, keyboard operability, breakpoint reflow — the project-wide rules.]
 
 ## Per-Feature UX Specs
-- [FSD-adjacent UX docs: `design/{NNN}-{slug}-ux.md`, one row each]
+- [FSD-adjacent UX docs: `specs/{NNN}-{slug}-ux.md`, one row each]
 ```
 
-**Relationship to `-ux.md`**: `design.md` is **project-level and singular** (the design system, updated in place forever); `design/{NNN}-{slug}-ux.md` is **per-feature and numbered** (this feature's screens, frozen with its FSD). One product has exactly one `design.md` and as many `-ux.md` files as it has UI features. When only one small feature has a UI, `design.md` is still written — short is fine, absent is not.
+**Relationship to `-ux.md`**: `design.md` is **project-level and singular**, living in `docs/sdd/design-system/` (the design system, updated in place forever); `specs/{NNN}-{slug}-ux.md` is **per-feature and numbered** (this feature's screens, frozen with its FSD, living in `docs/sdd/specs/` next to that FSD). One product has exactly one `design.md` and as many `-ux.md` files as it has UI features. When only one small feature has a UI, `design.md` is still written — short is fine, absent is not.
 
 `check-file-hygiene.mjs` enforces this: a `design-system/` directory with no `design.md` is a flagged problem.
 
+**Why the per-feature UX doc lives in `specs/`, not `design-system/`**: it's frozen with its FSD/SDS/threats siblings under the same `{NNN}` — one glance at `specs/003-*` shows the whole feature's spec bundle, UX included. `design-system/` stays reserved for what's genuinely project-wide (tokens, principles, the screen inventory) — never a per-feature accretion.
+
 ## Document Shape
 
-`-ux.md` is a numbered design doc that sits in `docs/sdd/design/` next to its FSD/SDS/threats siblings — same metadata header as those (see `skills/build/doc-generator/formats.md`), so a reader scanning the folder can tell at a glance how current each one is instead of the UX doc looking like the odd one out.
+`-ux.md` is a numbered design doc that sits in `docs/sdd/specs/` next to its FSD/SDS/threats siblings — same metadata header as those (see `skills/build/doc-generator/formats.md`), so a reader scanning the folder can tell at a glance how current each one is instead of the UX doc looking like the odd one out.
 
 ```markdown
 # UX: [Feature Name]
