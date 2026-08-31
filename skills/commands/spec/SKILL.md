@@ -164,14 +164,14 @@ Anything **not** on that list — filenames, numbering, doc formats, diagram sha
 
 ## Output
 
-- Architecture findings → `docs/sdd/specs/` or, for multi-candidate decisions, a self-contained HTML report with confidence badges (Strong/Worth exploring/Speculative)
-- Specs → `docs/sdd/specs/{NNN}-{slug}-fsd.md`, `-sds.md`, or `-prd.md` as applicable — numbered, behavior-focused, each with a compact Mermaid diagram
-- Threat model → `docs/sdd/specs/{NNN}-{slug}-threats.md` (note the suffix: `-threats`, not `-threat-model` — `check-file-hygiene.mjs` enforces it)
-- UI work → `docs/sdd/design-system/design.md` (the entry doc) + `docs/sdd/specs/{NNN}-{slug}-ux.md` + one file per flow in `docs/sdd/ux-screens/`
-- Database-touching work → `docs/sdd/erd/{NNN}-{slug}-erd.md`
-- Large scope → tickets at `docs/sdd/tickets/{feature-slug}/` with a frontier work order, announced as: "Scope is large — split into N tickets, starting with the unblocked ones."
+- Architecture findings → `docs/sdd/specs/{NNN}-{slug}/` or, for multi-candidate decisions, a self-contained HTML report with confidence badges (Strong/Worth exploring/Speculative)
+- Specs → `docs/sdd/specs/{NNN}-{slug}/fsd.md`, `sds.md`, or `prd.md` as applicable — one folder per feature, behavior-focused, each with a compact Mermaid diagram
+- Threat model → `docs/sdd/specs/{NNN}-{slug}/threats.md` (note the bare filename: `threats.md`, not `threat-model.md` — `check-file-hygiene.mjs` enforces it)
+- UI work → `docs/sdd/design-system/design.md` (the entry doc) + `docs/sdd/specs/{NNN}-{slug}/ux.md` + one file per flow in `docs/sdd/design-system/ux-screens/`
+- Database-touching work → `docs/sdd/specs/{NNN}-{slug}/erd.md`
+- Large scope → tickets at `docs/sdd/specs/{NNN}-{slug}/tickets/` with a frontier work order, announced as: "Scope is large — split into N tickets, starting with the unblocked ones."
 
-**Why `specs/` and not `design/`**: this directory is the numbered spec bundle (FSD/SDS/PRD/threat model/UX — none of them visual). Visual design lives in `docs/sdd/design-system/` (project-wide) and `docs/sdd/ux-screens/` (per-screen). Naming the spec bundle "design" was the exact ambiguity the `/design`→`/spec` command rename (v4.0.0) tried to kill — this closes the same gap at the file-tree level (v5.6.0+).
+**Why `specs/{NNN}-{slug}/`, not a flat `design/`**: this folder is the whole numbered spec bundle for one feature (FSD/SDS/PRD/threat model/UX/ERD/tickets — none of the written specs visual). Visual design lives in `docs/sdd/design-system/` (project-wide) — `design.md` and `ux-screens/`, both there because they aren't owned by one feature number the way `fsd.md`/`sds.md`/etc. are. Naming the spec bundle "design" was the exact ambiguity the `/design`→`/spec` command rename (v4.0.0) tried to kill; folding everything else — ERD, tests, DoD, tickets — into one folder per feature (rather than five separate top-level directories that happen to share a number) closes the remaining fragmentation.
 
 **Run `check-file-hygiene.mjs` before declaring the run complete.** This command writes more files in one pass than any other, which makes it the most likely place for a filename to drift from convention — and a convention followed "probabilistically" is exactly what the mechanical checker exists to catch. A run that ends without the checker passing isn't finished.
 
@@ -186,10 +186,10 @@ A run that produces 2+ documents for one feature and ends with just a filename l
 3. ERD (~2 min) — schema/cascades, if reviewing data changes.
 4. Threats (~1 min) — SEC-xxx controls, if reviewing anything auth/payment/trust-boundary.
 5. UX spec + ux-screens (~2 min each) — screens/states, if reviewing UI.
-6. Tickets (docs/sdd/tickets/{slug}/) — in dependency order, only the ones relevant to what you're doing next.
+6. Tickets (docs/sdd/specs/{NNN}-{slug}/tickets/) — in dependency order, only the ones relevant to what you're doing next.
 ```
 
-Skip any row whose document wasn't generated for this task — a bug fix that only produced an FSD gets a one-line "just the FSD, 3 min" instead of the full six-row table. **Where this guide lives**: `large` scope writes it into `tickets/{feature-slug}/00-index.md` as a permanent section (see `skills/build/ticket-decomposition/SKILL.md`'s "The Feature Index" — it's the file a reviewer, or a future agent, actually lands on). Medium scope (2+ documents, no tickets) states it once in this run's closing chat message — there's no dedicated index file at that size, so the guide is the message, not a separate artifact.
+Skip any row whose document wasn't generated for this task — a bug fix that only produced an FSD gets a one-line "just the FSD, 3 min" instead of the full six-row table. **Where this guide lives**: `large` scope writes it into `specs/{NNN}-{slug}/tickets/00-index.md` as a permanent section (see `skills/build/ticket-decomposition/SKILL.md`'s "The Feature Index" — it's the file a reviewer, or a future agent, actually lands on). Medium scope (2+ documents, no tickets) states it once in this run's closing chat message — there's no dedicated index file at that size, so the guide is the message, not a separate artifact.
 
 ## Spec-Only Is a Complete Deliverable
 

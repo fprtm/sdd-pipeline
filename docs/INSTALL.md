@@ -51,7 +51,7 @@ Run this **from inside the project you want SDD Pipeline to guard**, not from th
 ./install/install.sh --agent claude --with-templates
 ```
 
-Creates `docs/sdd/` in your project: `config.md`, `glossary.md`, `memory/INDEX.md`, `index.md`, and empty `decisions/`, `plans/`, `tickets/`, `reports/`, `specs/`, `test-plans/`, `dod/`, `stats/`, `erd/` directories. Without this, SDD Pipeline still works, but has nowhere to persist plans, decisions, or stats — it'll create these on first use anyway, so this step is just "set it up now vs. let it happen automatically."
+Creates `docs/sdd/` in your project: `config.md`, `glossary.md`, `memory/INDEX.md`, `index.md`, and empty `decisions/`, `plans/`, `reports/`, `specs/`, `design-system/`, `stats/` directories (`specs/` holds one folder per feature — `{NNN}-{slug}/fsd.md`, `sds.md`, `erd.md`, `tickets/`, etc. — created as features are worked on, not pre-scaffolded). Without this, SDD Pipeline still works, but has nowhere to persist plans, decisions, or stats — it'll create these on first use anyway, so this step is just "set it up now vs. let it happen automatically."
 
 ### Step 4 — Add enforcement (optional)
 

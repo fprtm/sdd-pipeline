@@ -84,7 +84,7 @@ Warning: Refund logic must handle Stripe webhook for async refund completion
 
 SDD Pipeline pauses and waits:
 ```
-Tickets written to docs/sdd/tickets/payment-refund/ — 4 tickets, starting with TICKET-018.
+Tickets written to docs/sdd/specs/002-payment-refund/tickets/ — 4 tickets, starting with TICKET-018.
 
 ⚠️ STRICT MODE: Please review the breakdown carefully.
 - Scope is correct?
@@ -99,18 +99,18 @@ User: "approved"
 
 ### 3. BUILD Phase — With Checkpoints
 
-**Doc Generator** creates full suite:
-- `docs/sdd/specs/002-payment-refund-fsd.md`
-- `docs/sdd/specs/002-payment-refund-sds.md`
-- `docs/sdd/erd/002-payment-refund-erd.md` (ERD update with Refund entity)
-- `docs/sdd/dod/002-payment-refund-dod.md`
-- `docs/sdd/test-plans/002-payment-refund-tests.md`
+**Doc Generator** creates full suite, all inside `docs/sdd/specs/002-payment-refund/`:
+- `fsd.md`
+- `sds.md`
+- `erd.md` (ERD update with Refund entity)
+- `dod.md`
+- `tests.md`
 
 **Strict checkpoint 1** (before writing code):
 ```
 FSD and SDS generated. Please review:
-- docs/sdd/specs/002-payment-refund-fsd.md
-- docs/sdd/specs/002-payment-refund-sds.md
+- docs/sdd/specs/002-payment-refund/fsd.md
+- docs/sdd/specs/002-payment-refund/sds.md
 
 Proceed with implementation? (yes/no/modify)
 ```

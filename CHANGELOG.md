@@ -3,6 +3,90 @@
 All notable changes to SDD Pipeline. Versioning is [SemVer](https://semver.org/).
 Plain-language where possible.
 
+## [5.8.0] — 2026-08-27
+
+Follow-up to the design/→specs/ rename (v5.6.0) and the reading-order guide
+(v5.7.0): a `large` feature's artifacts were still split across five
+top-level directories that happened to share a number (`specs/`, `erd/`,
+`test-plans/`, `dod/`, `tickets/{feature-slug}/`) — even though `tickets/`
+had already proven, since v2, that folder-per-feature groups a fitur's
+files far better than files merely sharing a filename prefix. User asked
+for the same treatment applied consistently, then raised a sharp concern
+before implementation: with folder-per-feature, an agent that regenerates
+a feature's slug instead of looking up its existing folder by number could
+silently create a duplicate folder for the same feature — a failure mode
+the old flat-file layout didn't have (same-number files still sorted
+together regardless of slug drift).
+
+### Added
+
+- **`docs/sdd/specs/{NNN}-{slug}/` — one folder per feature.** Every
+  document tied to a feature's spine number now lives inside one folder as
+  a bare filename: `fsd.md`, `sds.md`, `prd.md`, `threats.md`, `ux.md`,
+  `erd.md`, `tests.md`, `dod.md`, `idea.md`, plus a `tickets/` subdirectory
+  for `large` scope (`00-index.md` + `{NN}-{slug}.md`). The `erd/`,
+  `test-plans/`, `dod/`, and top-level `tickets/{feature-slug}/`
+  directories are gone — folded into the feature folder.
+- **`design-system/ux-screens/`** — flow files move from a top-level
+  `ux-screens/` into `design-system/`, alongside `design.md`. A flow isn't
+  owned by one feature's number the way `fsd.md`/`sds.md` are — it can be
+  revisited by a later feature — so it stays project-level with the rest
+  of the visual design, not inside a specs/ feature folder.
+- **Number-First Lookup rule** (`build/doc-generator`). A new document for
+  an existing feature is found by globbing `specs/{NNN}-*` for the
+  already-known number — never by independently reconstructing the slug
+  and searching by full folder name. A re-derived slug can drift
+  ("employee-branch-backup" vs "branch-backup-employee"), and with
+  folder-per-feature that drift creates a whole separate folder, not just
+  a differently-named file that still sorts next to its siblings.
+- **Duplicate-feature-number check** (`check-file-hygiene.mjs`). Two
+  `specs/` folders sharing the same leading `{NNN}` with different slugs
+  is flagged mechanically — the collision the lookup rule exists to
+  prevent, caught automatically if it happens anyway.
+- **`00-index.md` required once a feature has ticket files**
+  (`check-file-hygiene.mjs`). Strengthens v5.7.0's prose-only rule into a
+  mechanical gate.
+
+### Changed
+
+- **`check-traceability.mjs`** — file-level IDs (`FSD-003`, `SDS-003`,
+  `PRD-003`, `ERD-003`) are now derived from the feature folder's number
+  plus the bare filename, not from a prefixed filename. `dod.md` and
+  `00-index.md` are non-defining by basename wherever they live (a
+  checklist and a status-table index cite ids, they don't mint them) —
+  found via dogfooding this release: without this, `00-index.md`'s ticket
+  status table collided with the ticket file's own definition as a false
+  "duplicate," and read as a ticket with no upstream ref as a false
+  "freelance."
+- **`check-parallel-safety.mjs`** — default scan path changed from
+  `docs/sdd/tickets` to `docs/sdd/specs` (its ticket-file walk is fully
+  recursive, so this is the only change needed).
+
+### Migration (BREAKING — manual, no script)
+
+No automated migration tool — reorganize existing projects by hand,
+validated by the mechanical checkers:
+
+```bash
+# For each existing numbered feature (example: 001-employee-branch-backup):
+mkdir -p docs/sdd/specs/001-employee-branch-backup
+git mv docs/sdd/specs/001-employee-branch-backup-fsd.md   docs/sdd/specs/001-employee-branch-backup/fsd.md
+git mv docs/sdd/specs/001-employee-branch-backup-sds.md   docs/sdd/specs/001-employee-branch-backup/sds.md
+git mv docs/sdd/erd/001-employee-branch-backup-erd.md     docs/sdd/specs/001-employee-branch-backup/erd.md
+git mv docs/sdd/test-plans/001-employee-branch-backup-tests.md docs/sdd/specs/001-employee-branch-backup/tests.md
+git mv docs/sdd/dod/001-employee-branch-backup-dod.md     docs/sdd/specs/001-employee-branch-backup/dod.md
+git mv docs/sdd/tickets/employee-branch-backup            docs/sdd/specs/001-employee-branch-backup/tickets
+git mv docs/sdd/ux-screens                                docs/sdd/design-system/ux-screens
+
+node tools/check-file-hygiene.mjs docs/sdd   # confirm clean after the move
+node tools/check-traceability.mjs docs/sdd
+```
+
+Projects that don't migrate keep working as long as they don't upgrade the
+plugin — the checkers post-5.8.0 expect the folder shape and will flag a
+leftover flat `specs/*-fsd.md` file or a top-level `erd/`/`tickets/`
+directory as unknown.
+
 ## [5.7.0] — 2026-08-27
 
 Follow-up to v5.6.0's file-count discussion: even when the file count is

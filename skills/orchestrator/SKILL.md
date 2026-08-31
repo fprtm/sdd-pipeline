@@ -132,7 +132,7 @@ Before BUILD, there is always a **written record of what's about to happen, appr
 | Size | The written record | Why this one |
 |------|--------------------|--------------|
 | **small / medium** | `docs/sdd/changes/{date}-{slug}.md` | No PRD/SDS/ADR exists at this size, so this file is the *only* record of scope, decisions, and risk. It folds plan + report into one artifact. |
-| **large / full** | **the ticket list** (`docs/sdd/tickets/{feature-slug}/`) | Scope already lives in the PRD, approach and decisions in the SDS + ADRs, risks in the SDS + threat model. A separate plan file would be a summary of five files that already exist — no new information, and one more thing to go stale. |
+| **large / full** | **the ticket list** (`docs/sdd/specs/{NNN}-{slug}/tickets/`) | Scope already lives in the PRD, approach and decisions in the SDS + ADRs, risks in the SDS + threat model. A separate plan file would be a summary of five files that already exist — no new information, and one more thing to go stale. |
 
 **`plans/current.md` is retired.** It was written before ticket decomposition existed, and for large work it duplicated documents that now carry the same content with more precision. Existing projects with a `plans/` directory keep it (nothing breaks, `check-file-hygiene.mjs` still accepts the shape); nothing new is written there.
 
@@ -156,7 +156,7 @@ The approval gate does not disappear with the plan file — it moves to the arti
 **Step 0 of BUILD, not a trailing courtesy** — before the first code edit, not an afterthought once code-writing momentum has taken over. The response for any coding task must contain exactly one of these lines before any file is created/modified:
 
 - `Change file written to docs/sdd/changes/{date}-{slug}.md` (small/medium)
-- `Tickets written to docs/sdd/tickets/{feature-slug}/ — N tickets, starting with TICKET-xxx` (large/full)
+- `Tickets written to docs/sdd/specs/{NNN}-{slug}/tickets/ — N tickets, starting with TICKET-xxx` (large/full)
 - `No written record — reason: <micro task (1-line change) | emergency mode | ...>`
 
 Inconsistent behavior ("sometimes it makes a plan, sometimes not, and I don't know why") destroys trust. Fixed rule: **small+ task in vibe/standard/strict → a written record, always**, exactly one of the two forms — never both, never neither. Micro/emergency → no written record, but say so, and record the reason in stats regardless (`skills/meta/stats/`'s `gates_skipped` field): an inline announcement can scroll out of view, a stats entry doesn't.
@@ -274,22 +274,23 @@ docs/sdd/
 ├── analytics.md          # Metrics tree + event taxonomy (skills/think/analytics-design/)
 ├── insights.md           # Periodic self-coaching summary (skills/meta/insight/)
 ├── decisions/            # 1 file per decision, gated by rule-of-three — 005-auth-strategy.md IS ADR-005
-├── plans/
-│   ├── current.md        # Active plan (overwritten each task)
-│   └── archive/          # Completed plans ({YYYY-MM-DD}-{NN}-{slug}.md)
+├── plans/                # Retired — kept only for existing projects, nothing new written here
+│   ├── current.md
+│   └── archive/
 ├── changes/              # Small/medium changes: ONE dated self-contained file per topic
 │   └── YYYY-MM-DD-{slug}.md   # frontmatter (description/status/updated) + brief + decisions + tickets + tests inline — replaces plan+report for lite work
-├── tickets/               # Vertical-slice ticket breakdowns for large tasks
-│   └── {feature-slug}/{NN}-{ticket-slug}.md   # each carries a global TICKET-xxx id
 ├── reports/              # Verification reports per task
-├── specs/                # FSD, SDS, PRD, threat models, UX direction per feature (file number = spine ID) — written specs, not visual
-├── ux-screens/           # One priority-tagged flow file per user journey (skills/think/ux-design/)
-├── design-system/        # UI design. design.md is the entry doc, required whenever there's a UI
-│   └── design.md         # direction + tokens SSOT + screen inventory (skills/think/ux-design/)
-├── test-plans/           # Test plans per feature (TEST-xxx cases)
-├── dod/                  # DoD checklists per task
-├── stats/                # Monthly stats (2026-08.md)
-└── erd/                  # ERD diagrams (Mermaid)
+├── specs/                # ONE FOLDER PER FEATURE — everything tied to a spine number lives here
+│   └── {NNN}-{slug}/     # {NNN} IS the spine ID (FSD-003 = specs/003-x/fsd.md); folder found by number, never by regenerating the slug
+│       ├── fsd.md · sds.md · prd.md · threats.md · ux.md · erd.md   # bare filenames — whichever apply
+│       ├── tests.md · dod.md
+│       └── tickets/      # large scope only — vertical-slice ticket breakdown
+│           ├── 00-index.md               # required entry point: spec refs + How-to-Review + status + frontier
+│           └── {NN}-{ticket-slug}.md     # each carries a global TICKET-xxx id
+├── design-system/        # Everything visual, project-wide (not owned by one feature number)
+│   ├── design.md         # direction + tokens SSOT + screen inventory (skills/think/ux-design/) — required entry doc whenever there's a UI
+│   └── ux-screens/       # One priority-tagged flow file per user journey — a flow can be revisited across features, so it lives here, not in a specs/ folder
+└── stats/                # Monthly stats (2026-08.md)
 ```
 
 Tree conventions are **mechanically enforced**: run `check-file-hygiene.mjs` (bundled with `skills/meta/health-check/`) after writing or renaming anything under `docs/sdd/` — markdown conventions are followed probabilistically; the script catches what got missed.

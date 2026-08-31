@@ -68,55 +68,146 @@ test('unknown subdirectory is flagged', () => {
   assert.match(out, /unknown directory: scratch\//);
 });
 
-test('bad filename in specs/ (missing NNN- prefix) is flagged', () => {
+test('a bare file directly in specs/ (not inside a feature folder) is flagged', () => {
   const dir = scratch();
   mkdirSync(join(dir, 'specs'), { recursive: true });
   withIndex(dir);
   writeFileSync(join(dir, 'specs', 'my-feature-fsd.md'), '# FSD');
   const { code, out } = run(dir);
   assert.equal(code, 1);
-  assert.match(out, /bad filename: specs\/my-feature-fsd\.md/);
+  assert.match(out, /stray file at specs\/my-feature-fsd\.md/);
 });
 
-test('correctly-named specs/ doc referenced in index.md passes', () => {
+test('bad feature folder name (missing NNN- prefix) is flagged', () => {
   const dir = scratch();
-  mkdirSync(join(dir, 'specs'), { recursive: true });
-  writeFileSync(join(dir, 'specs', '001-my-feature-fsd.md'), '# FSD: My Feature');
-  withIndex(dir, '- [My Feature FSD](specs/001-my-feature-fsd.md)');
-  const { code } = run(dir);
-  assert.equal(code, 0);
+  mkdirSync(join(dir, 'specs', 'my-feature'), { recursive: true });
+  withIndex(dir);
+  writeFileSync(join(dir, 'specs', 'my-feature', 'fsd.md'), '# FSD');
+  const { code, out } = run(dir);
+  assert.equal(code, 1);
+  assert.match(out, /bad feature folder name: specs\/my-feature/);
 });
 
-test('specs/ doc NOT referenced in index.md is an orphan', () => {
+test('bad filename inside a feature folder is flagged', () => {
   const dir = scratch();
-  mkdirSync(join(dir, 'specs'), { recursive: true });
-  writeFileSync(join(dir, 'specs', '001-my-feature-fsd.md'), '# FSD');
+  mkdirSync(join(dir, 'specs', '001-my-feature'), { recursive: true });
+  withIndex(dir);
+  writeFileSync(join(dir, 'specs', '001-my-feature', '001-my-feature-fsd.md'), '# FSD');
+  const { code, out } = run(dir);
+  assert.equal(code, 1);
+  assert.match(out, /bad filename: specs\/001-my-feature\/001-my-feature-fsd\.md/);
+});
+
+test('correctly-named feature folder with bare fsd.md, referenced in index.md, passes', () => {
+  const dir = scratch();
+  mkdirSync(join(dir, 'specs', '001-my-feature'), { recursive: true });
+  writeFileSync(join(dir, 'specs', '001-my-feature', 'fsd.md'), '# FSD: My Feature');
+  withIndex(dir, '- [My Feature](specs/001-my-feature/)');
+  const { code, out } = run(dir);
+  assert.equal(code, 0, out);
+});
+
+test('feature folder NOT referenced in index.md is an orphan', () => {
+  const dir = scratch();
+  mkdirSync(join(dir, 'specs', '001-my-feature'), { recursive: true });
+  writeFileSync(join(dir, 'specs', '001-my-feature', 'fsd.md'), '# FSD');
   withIndex(dir);
   const { code, out } = run(dir);
   assert.equal(code, 1);
-  assert.match(out, /orphan: specs\/001-my-feature-fsd\.md/);
+  assert.match(out, /orphan: specs\/001-my-feature\/ not referenced in index\.md/);
 });
 
-test('ux-screens/ file missing updated: frontmatter is flagged', () => {
+test('all eight allowed spec filenames pass in one feature folder', () => {
   const dir = scratch();
-  mkdirSync(join(dir, 'ux-screens'), { recursive: true });
-  withIndex(dir);
-  writeFileSync(join(dir, 'ux-screens', 'checkout.md'), '---\ndescription: checkout flow\npriority: Must\n---\n# Checkout');
+  const feat = join(dir, 'specs', '002-full-feature');
+  mkdirSync(feat, { recursive: true });
+  for (const f of ['fsd.md', 'sds.md', 'prd.md', 'threats.md', 'ux.md', 'erd.md', 'tests.md', 'dod.md']) {
+    writeFileSync(join(feat, f), `# ${f}`);
+  }
+  withIndex(dir, '- [Full Feature](specs/002-full-feature/)');
+  const { code, out } = run(dir);
+  assert.equal(code, 0, out);
+});
+
+test('a subdirectory other than tickets/ inside a feature folder is flagged', () => {
+  const dir = scratch();
+  const feat = join(dir, 'specs', '001-my-feature');
+  mkdirSync(join(feat, 'scratch'), { recursive: true });
+  withIndex(dir, '- [x](specs/001-my-feature/)');
   const { code, out } = run(dir);
   assert.equal(code, 1);
-  assert.match(out, /ux-screens\/checkout\.md: frontmatter missing "updated: YYYY-MM-DD"/);
+  assert.match(out, /unexpected subdirectory: specs\/001-my-feature\/scratch\//);
 });
 
-test('ux-screens/ file with all required frontmatter passes', () => {
+test('duplicate feature number with different slugs is flagged', () => {
   const dir = scratch();
-  mkdirSync(join(dir, 'ux-screens'), { recursive: true });
+  mkdirSync(join(dir, 'specs', '001-employee-branch-backup'), { recursive: true });
+  mkdirSync(join(dir, 'specs', '001-branch-backup-employee'), { recursive: true });
+  writeFileSync(join(dir, 'specs', '001-employee-branch-backup', 'fsd.md'), '# FSD');
+  writeFileSync(join(dir, 'specs', '001-branch-backup-employee', 'fsd.md'), '# FSD');
+  withIndex(dir, '- a\n- b');
+  const { code, out } = run(dir);
+  assert.equal(code, 1);
+  assert.match(out, /duplicate feature number 001/);
+});
+
+test('tickets/ file with no TICKET-xxx id is flagged', () => {
+  const dir = scratch();
+  const feat = join(dir, 'specs', '001-my-feature');
+  mkdirSync(join(feat, 'tickets'), { recursive: true });
+  writeFileSync(join(feat, 'tickets', '00-index.md'), '# Work Order');
+  writeFileSync(join(feat, 'tickets', '01-first.md'), '# Just a title, no id');
+  withIndex(dir, '- [x](specs/001-my-feature/)');
+  const { code, out } = run(dir);
+  assert.equal(code, 1);
+  assert.match(out, /no global TICKET-xxx id found/);
+});
+
+test('tickets/ with ticket files but no 00-index.md is flagged', () => {
+  const dir = scratch();
+  const feat = join(dir, 'specs', '001-my-feature');
+  mkdirSync(join(feat, 'tickets'), { recursive: true });
+  writeFileSync(join(feat, 'tickets', '01-first.md'), '# TICKET-001 — First\n');
+  withIndex(dir, '- [x](specs/001-my-feature/)');
+  const { code, out } = run(dir);
+  assert.equal(code, 1);
+  assert.match(out, /has ticket files but no 00-index\.md/);
+});
+
+test('tickets/ with 00-index.md and valid ticket files passes', () => {
+  const dir = scratch();
+  const feat = join(dir, 'specs', '001-my-feature');
+  mkdirSync(join(feat, 'tickets'), { recursive: true });
+  writeFileSync(join(feat, 'fsd.md'), '# FSD');
+  writeFileSync(join(feat, 'tickets', '00-index.md'), '# Work Order\n\nTICKET-001\n');
+  writeFileSync(join(feat, 'tickets', '01-first.md'), '# TICKET-001 — First\n');
+  withIndex(dir, '- [x](specs/001-my-feature/)');
+  const { code, out } = run(dir);
+  assert.equal(code, 0, out);
+});
+
+test('design-system/ux-screens/ file missing updated: frontmatter is flagged', () => {
+  const dir = scratch();
+  mkdirSync(join(dir, 'design-system', 'ux-screens'), { recursive: true });
   withIndex(dir);
+  writeFileSync(join(dir, 'design-system', 'design.md'), '# Design');
+  writeFileSync(join(dir, 'design-system', 'ux-screens', 'checkout.md'), '---\ndescription: checkout flow\npriority: Must\n---\n# Checkout');
+  const { code, out } = run(dir);
+  assert.equal(code, 1);
+  assert.match(out, /design-system\/ux-screens\/checkout\.md: frontmatter missing "updated: YYYY-MM-DD"/);
+});
+
+test('design-system/ux-screens/ file with all required frontmatter passes', () => {
+  const dir = scratch();
+  mkdirSync(join(dir, 'design-system', 'ux-screens'), { recursive: true });
+  withIndex(dir);
+  writeFileSync(join(dir, 'design-system', 'design.md'), '# Design');
   writeFileSync(
-    join(dir, 'ux-screens', 'checkout.md'),
+    join(dir, 'design-system', 'ux-screens', 'checkout.md'),
     '---\ndescription: checkout flow\npriority: Must\nupdated: 2026-08-20\n---\n# Checkout'
   );
-  const { code } = run(dir);
-  assert.equal(code, 0);
+  const { code, out } = run(dir);
+  assert.equal(code, 0, out);
 });
 
 test('changes/ file missing status: frontmatter is flagged', () => {
@@ -151,16 +242,6 @@ test('decisions/ bad filename (no NNN- prefix) is flagged', () => {
   assert.match(out, /bad filename: decisions\/use-postgres\.md/);
 });
 
-test('tickets/ file with no TICKET-xxx id is flagged', () => {
-  const dir = scratch();
-  mkdirSync(join(dir, 'tickets', 'my-feature'), { recursive: true });
-  withIndex(dir);
-  writeFileSync(join(dir, 'tickets', 'my-feature', '01-first.md'), '# Just a title, no id');
-  const { code, out } = run(dir);
-  assert.equal(code, 1);
-  assert.match(out, /no global TICKET-xxx id found/);
-});
-
 test('memory/ note not listed in INDEX.md is an orphan', () => {
   const dir = scratch();
   mkdirSync(join(dir, 'memory'), { recursive: true });
@@ -185,10 +266,11 @@ test('regression: insights.md at root is allowed (was previously flagged)', () =
 
 test('regression: CRLF line endings in frontmatter no longer false-positive "missing frontmatter"', () => {
   const dir = scratch();
-  mkdirSync(join(dir, 'ux-screens'), { recursive: true });
+  mkdirSync(join(dir, 'design-system', 'ux-screens'), { recursive: true });
   withIndex(dir);
+  writeFileSync(join(dir, 'design-system', 'design.md'), '# Design');
   const crlf = ['---', 'description: checkout flow', 'priority: Must', 'updated: 2026-08-20', '---', '# Checkout'].join('\r\n');
-  writeFileSync(join(dir, 'ux-screens', 'checkout.md'), crlf);
+  writeFileSync(join(dir, 'design-system', 'ux-screens', 'checkout.md'), crlf);
   const { code, out } = run(dir);
   assert.equal(code, 0, out);
 });

@@ -6,7 +6,7 @@ A coverage number is easy to game and easy to misread. This gate makes it mean s
 
 ## Step 1 — Run Coverage the Project's Way
 
-Use the command recorded in the test plan (`docs/sdd/test-plans/…`). If none is set, detect the stack:
+Use the command recorded in the test plan (`docs/sdd/specs/{NNN}-{slug}/tests.md`). If none is set, detect the stack:
 
 - JS/TS: `vitest run --coverage` or `jest --coverage`
 - Python: `pytest --cov --cov-branch --cov-report=term-missing`

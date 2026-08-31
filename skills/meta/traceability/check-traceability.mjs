@@ -4,14 +4,19 @@
 //
 //   node tools/check-traceability.mjs [docs/sdd]
 //
-// Understands the v2 hybrid ID spine:
-//   - FILE-level IDs from filenames: specs/003-x-fsd.md defines FSD-003 (same
-//     for -sds/-prd), erd/003-x-erd.md defines ERD-003, decisions/005-y.md
-//     defines ADR-005.
+// Understands the v3 hybrid ID spine (folder-per-feature):
+//   - FILE-level IDs from the FOLDER + bare filename: specs/003-x/fsd.md
+//     defines FSD-003 (same for sds.md/prd.md/erd.md — the {NNN} comes from
+//     the feature folder name, not the filename, since filenames inside a
+//     feature folder are now bare: fsd.md, not 003-x-fsd.md).
+//     decisions/005-y.md still defines ADR-005 the old flat way.
 //   - ITEM-level IDs from headings/table rows: REQ/REQ-NF/SEC/TEST/TICKET, and
 //     sub-IDs like FSD-003.2 inside an FSD file.
 //   - A sub-ID citation (FSD-003.2) resolves as defined if its parent file ID
 //     (FSD-003) is defined.
+//   - specs/{NNN}-{slug}/dod.md is non-defining (a DoD checklist cites ids,
+//     it doesn't define new ones) — same treatment as before when dod/ was
+//     its own top-level directory, now keyed by filename instead.
 //
 // Checks:
 //   1. Spine in the matrix — every REQ / REQ-NF / FSD / SEC defined anywhere is
@@ -41,11 +46,22 @@ const SPINE = new Set(['REQ-NF', 'REQ', 'FSD', 'SEC']); // must appear in the ma
 const UPSTREAM = new Set(['REQ-NF', 'REQ', 'FSD', 'SEC', 'ADR']); // valid parents
 // Files/dirs that cite ids but never define them (reports, plans, indexes).
 const NON_DEFINING_FILES = new Set([MATRIX, 'index.md', 'glossary.md', 'config.md', 'HANDOFF.md']);
-const NON_DEFINING_DIRS = new Set(['plans', 'reports', 'stats', 'dod', 'memory']);
-// Filename -> file-level ID definitions.
+const NON_DEFINING_DIRS = new Set(['plans', 'reports', 'stats', 'memory']);
+// dod.md is non-defining wherever it lives (specs/{NNN}-{slug}/dod.md) — a
+// checklist cites ids, it doesn't mint new ones. Checked by basename since
+// dod/ is no longer its own top-level directory. 00-index.md (the feature's
+// entry point, see ticket-decomposition) is non-defining for the same
+// reason: its status table lists TICKET-xxx ids that are actually defined
+// in their own ticket files — without this, the table row reads as a
+// second definition (false "duplicate") and the summary row itself reads
+// as a ticket with no upstream ref (false "freelance").
+const NON_DEFINING_BASENAMES = new Set(['dod.md', '00-index.md']);
+// specs/{NNN}-{slug}/{bare-filename} -> file-level ID type. The {NNN} comes
+// from the FOLDER name (extracted below), not the filename — filenames
+// inside a feature folder are bare (fsd.md), not prefixed (003-x-fsd.md).
+const SPECS_FILE_TYPE = { 'fsd.md': 'FSD', 'sds.md': 'SDS', 'prd.md': 'PRD', 'erd.md': 'ERD' };
+// decisions/{NNN}-{slug}.md still defines ADR-{NNN} the old flat way.
 const FILE_ID_RULES = [
-  { dir: 'specs', re: /^(\d{3})-.+-(fsd|sds|prd)\.md$/, type: (m) => m[2].toUpperCase() },
-  { dir: 'erd', re: /^(\d{3})-.+-erd\.md$/, type: () => 'ERD' },
   { dir: 'decisions', re: /^(\d{3})-.+\.md$/, type: () => 'ADR' },
 ];
 
@@ -79,12 +95,22 @@ const addDef = (id, occ) => {
 for (const path of files) {
   const rel = relative(dir, path);
   const name = basename(path);
-  const topDir = rel.includes('/') ? rel.split('/')[0] : '';
+  const parts = rel.split('/');
+  const topDir = parts.length > 1 ? parts[0] : '';
   const text = readFileSync(path, 'utf8');
   const lines = text.split('\n');
-  const nonDefining = NON_DEFINING_FILES.has(rel) || NON_DEFINING_DIRS.has(topDir);
+  const nonDefining = NON_DEFINING_FILES.has(rel) || NON_DEFINING_DIRS.has(topDir) || NON_DEFINING_BASENAMES.has(name);
 
-  // FILE-level definitions from the filename (hybrid spine).
+  // FILE-level definitions, folder-per-feature: specs/{NNN}-{slug}/fsd.md
+  // defines FSD-{NNN} — the number comes from the FOLDER name, the type
+  // from the bare filename. Only a direct child of a specs/ feature folder
+  // counts (parts.length === 3: 'specs', '{NNN}-{slug}', 'fsd.md') — a file
+  // nested deeper (e.g. inside tickets/) never matches this shape.
+  if (parts.length === 3 && parts[0] === 'specs' && SPECS_FILE_TYPE[name]) {
+    const folderMatch = parts[1].match(/^(\d{3})-/);
+    if (folderMatch) addDef(`${SPECS_FILE_TYPE[name]}-${folderMatch[1]}`, { file: rel, line: 0, text: `(folder+filename) ${rel}` });
+  }
+  // FILE-level definitions, flat (decisions/{NNN}-{slug}.md -> ADR-{NNN}).
   for (const rule of FILE_ID_RULES) {
     if (topDir !== rule.dir) continue;
     const m = name.match(rule.re);

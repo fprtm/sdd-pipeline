@@ -2,7 +2,7 @@
 
 A product with screens has a UI whether or not anyone designed it — the only question is whether it was decided deliberately or fell out of ad-hoc component choices. This is the design-phase peer of `skills/think/arch-analyzer/` for the interface: the FE gets built to a system, not improvised. Runs whenever there IS a UI (medium+ with screens; skip only for API-only/CLI), or on "design the UI / design system / palette / wireframe / UX".
 
-Output: **`docs/sdd/design-system/design.md`** (the one entry doc for the UI — always) + `docs/sdd/specs/{NNN}-{slug}-ux.md` (per-feature UX spec, bundled with its FSD/SDS/threats siblings under the same number) + `docs/sdd/ux-screens/<flow-slug>.md` (one file per flow).
+Output: **`docs/sdd/design-system/design.md`** (the one entry doc for the UI — always) + `docs/sdd/specs/{NNN}-{slug}/ux.md` (per-feature UX spec, bundled with its FSD/SDS/threats siblings inside the same feature folder) + `docs/sdd/design-system/ux-screens/<flow-slug>.md` (one file per flow, living alongside `design.md` — a flow isn't owned by one feature the way `ux.md` is, it can be revisited by a later feature, so it stays project-level).
 
 ## Deliberation Agenda — Discuss Before Any UX Document Is Written
 
@@ -74,7 +74,7 @@ If an external UI/UX skill owns these, that file is the SSOT and this section ci
 ## Screens & Flows
 | Flow | Priority | Where |
 |------|----------|-------|
-| [flow name] | Must | [`ux-screens/<flow-slug>.md`](../ux-screens/<flow-slug>.md) |
+| [flow name] | Must | [`ux-screens/<flow-slug>.md`](ux-screens/<flow-slug>.md) |
 
 ## Component Patterns
 [Reusable patterns → the components they map to.]
@@ -83,18 +83,18 @@ If an external UI/UX skill owns these, that file is the SSOT and this section ci
 [Contrast, touch targets, focus order, keyboard operability, breakpoint reflow — the project-wide rules.]
 
 ## Per-Feature UX Specs
-- [FSD-adjacent UX docs: `specs/{NNN}-{slug}-ux.md`, one row each]
+- [FSD-adjacent UX docs: `specs/{NNN}-{slug}/ux.md`, one row each]
 ```
 
-**Relationship to `-ux.md`**: `design.md` is **project-level and singular**, living in `docs/sdd/design-system/` (the design system, updated in place forever); `specs/{NNN}-{slug}-ux.md` is **per-feature and numbered** (this feature's screens, frozen with its FSD, living in `docs/sdd/specs/` next to that FSD). One product has exactly one `design.md` and as many `-ux.md` files as it has UI features. When only one small feature has a UI, `design.md` is still written — short is fine, absent is not.
+**Relationship to `ux.md`**: `design.md` is **project-level and singular**, living in `docs/sdd/design-system/` (the design system, updated in place forever) alongside `ux-screens/` (also project-level — a flow can be revisited by a later feature, so it isn't frozen to one number); `specs/{NNN}-{slug}/ux.md` is **per-feature and numbered** (this feature's UX decisions, frozen with its FSD, living inside that same feature folder). One product has exactly one `design.md` and as many `ux.md` files as it has UI features. When only one small feature has a UI, `design.md` is still written — short is fine, absent is not.
 
 `check-file-hygiene.mjs` enforces this: a `design-system/` directory with no `design.md` is a flagged problem.
 
-**Why the per-feature UX doc lives in `specs/`, not `design-system/`**: it's frozen with its FSD/SDS/threats siblings under the same `{NNN}` — one glance at `specs/003-*` shows the whole feature's spec bundle, UX included. `design-system/` stays reserved for what's genuinely project-wide (tokens, principles, the screen inventory) — never a per-feature accretion.
+**Why the per-feature UX doc lives in `specs/`, not `design-system/`**: it's frozen with its FSD/SDS/threats siblings inside the same feature folder — one glance at `specs/003-*/` shows the whole feature's spec bundle, UX decisions included. `design-system/` stays reserved for what's genuinely project-wide (tokens, principles, the screen inventory, and the flow-level `ux-screens/` detail) — never a per-feature accretion.
 
 ## Document Shape
 
-`-ux.md` is a numbered design doc that sits in `docs/sdd/specs/` next to its FSD/SDS/threats siblings — same metadata header as those (see `skills/build/doc-generator/formats.md`), so a reader scanning the folder can tell at a glance how current each one is instead of the UX doc looking like the odd one out.
+`ux.md` is a design doc that sits alongside its `fsd.md`/`sds.md`/`threats.md` siblings inside `docs/sdd/specs/{NNN}-{slug}/` — same metadata header as those (see `skills/build/doc-generator/formats.md`), so a reader scanning the folder can tell at a glance how current each one is instead of the UX doc looking like the odd one out.
 
 ```markdown
 # UX: [Feature Name]
@@ -114,7 +114,7 @@ If an external UI/UX skill owns these, that file is the SSOT and this section ci
 [Color palette (AA-checked), typography scale, spacing & layout — the SSOT]
 
 ## 3. Key Screens & Flows
-[Thin index: one row per flow — priority · description · link to docs/sdd/ux-screens/<flow-slug>.md]
+[Thin index: one row per flow — priority · description · link to docs/sdd/design-system/ux-screens/<flow-slug>.md]
 
 ## 4. Component Patterns
 [Reusable patterns and the components they map to]
@@ -154,7 +154,7 @@ Tokens map directly to a theme in code (CSS variables / Tailwind config / the st
 
 ## 3. Key Screens & Flows — Index-First, One File Per Flow
 
-For each main user journey (reuse the FSD's flow/sequence diagrams): **one file per flow** at `docs/sdd/ux-screens/<flow-slug>.md` with frontmatter `description` (one line) + `priority` (`Must`/`Should`/`Could` — the same vocabulary the test plan uses for journeys) + `updated` (`YYYY-MM-DD`, bumped every time the flow file is revised in place — the file itself has no other way to signal "this changed since you last read it"). The `-ux.md` doc's flow section is a **thin index**: one row per flow (priority · description · link), sorted by priority. Read index-first: match the flow by its row, open only that file — never one undifferentiated mega-section.
+For each main user journey (reuse the FSD's flow/sequence diagrams): **one file per flow** at `docs/sdd/design-system/ux-screens/<flow-slug>.md` with frontmatter `description` (one line) + `priority` (`Must`/`Should`/`Could` — the same vocabulary the test plan uses for journeys) + `updated` (`YYYY-MM-DD`, bumped every time the flow file is revised in place — the file itself has no other way to signal "this changed since you last read it"). The `ux.md` doc's flow section is a **thin index**: one row per flow (priority · description · link), sorted by priority. Read index-first: match the flow by its row, open only that file — never one undifferentiated mega-section.
 
 Per screen, at the depth §0 confirmed:
 - **Structure-only**: what's on the screen, visual hierarchy, primary action, navigation. Low-fi is fine.

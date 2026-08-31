@@ -10,7 +10,7 @@
 
 - **Based on:** FSD-NNN / SDS-NNN diagram (trust boundaries: <list>)
 - **Scope:** <what's in / out>
-- **Related:** design/NNN-slug-fsd.md · test-plans/NNN-slug-tests.md · traceability.md
+- **Related:** fsd.md · tests.md (siblings in this same specs/NNN-slug/ folder) · traceability.md
 
 ## Trust boundaries
 | Boundary | From zone | To zone | What crosses it |

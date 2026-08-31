@@ -15,7 +15,7 @@ _No change topics yet. One row per `changes/` file._
 
 ## Documents
 
-_No documents generated yet. One row per `specs/`, `erd/`, `test-plans/` file._
+_No features spec'd yet. One row per `specs/{NNN}-{slug}/` folder — link the folder, not each fsd/sds/erd file inside it; the folder's own contents (or its `tickets/00-index.md` for large scope) is where the per-file breakdown lives._
 
 ## Decisions
 
@@ -23,7 +23,7 @@ _No decisions logged yet. One row per `decisions/` file (ADR-NNN — what was de
 
 ## Tickets
 
-_No large tasks decomposed yet. One row per feature: link + status counts (e.g. 3 todo · 1 in progress · 1 testing · 2 done)._
+_No large tasks decomposed yet. One row per feature: link to its `specs/{NNN}-{slug}/tickets/` + status counts (e.g. 3 todo · 1 in progress · 1 testing · 2 done)._
 
 ## Memory
 

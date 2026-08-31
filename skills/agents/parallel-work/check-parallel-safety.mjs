@@ -1,14 +1,18 @@
 #!/usr/bin/env node
 // check-parallel-safety.mjs — turn "eyeball the tickets for overlapping files"
-// into a deterministic check. Reads the v2 ticket tree (docs/sdd/tickets/, one
-// file per ticket) or a single markdown file containing ### TICKET- blocks (a
-// lite changes/ file), finds tickets eligible to start (not done, not claimed,
-// dependencies met), and clusters them into groups with ZERO file overlap —
-// the actual parallel-safety test `parallel-work` describes, done by a script
-// instead of by hand.
+// into a deterministic check. Reads the v3 ticket tree (docs/sdd/specs/, one
+// {NNN}-{slug}/tickets/ subdirectory per feature, one file per ticket) or a
+// single markdown file containing ### TICKET- blocks (a lite changes/ file),
+// finds tickets eligible to start (not done, not claimed, dependencies met),
+// and clusters them into groups with ZERO file overlap — the actual
+// parallel-safety test `parallel-work` describes, done by a script instead
+// of by hand. The scan is fully recursive (walk() below), so it finds every
+// ticket file regardless of how many folder levels deep specs/{NNN}-{slug}/
+// tickets/ sits — no structural assumption about the exact nesting beyond
+// "somewhere under the given root".
 //
 // Usage:
-//   node check-parallel-safety.mjs [docs/sdd/tickets | path/to/file.md]
+//   node check-parallel-safety.mjs [docs/sdd/specs | path/to/file.md]
 //   node check-parallel-safety.mjs [path] --board     # kanban view instead
 //
 // Default output: eligible tickets; strict-safe clusters (zero file overlap —
@@ -26,7 +30,7 @@ import { join } from 'node:path';
 
 const args = process.argv.slice(2);
 const BOARD = args.includes('--board');
-const path = args.find((a) => !a.startsWith('--')) ?? 'docs/sdd/tickets';
+const path = args.find((a) => !a.startsWith('--')) ?? 'docs/sdd/specs';
 
 if (!existsSync(path)) {
   console.log(`Nothing at ${path} — no tickets to check.`);

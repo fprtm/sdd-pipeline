@@ -2,7 +2,7 @@
 
 Turn acceptance criteria into an executable definition of "done and proven". Written **before or alongside** implementation so test-first work has targets to go red against, and so the PROVE phase has a checklist instead of a vibe.
 
-Write to `docs/sdd/test-plans/{NNN}-{slug}-tests.md` (shape in `skills/build/doc-generator/formats.md`). TEST-xxx IDs are item-level and global (counter in `docs/sdd/traceability.md`).
+Write to `docs/sdd/specs/{NNN}-{slug}/tests.md` — inside the same feature folder as its FSD (found by number, per doc-generator's "Number-First Lookup" rule), shape in `skills/build/doc-generator/formats.md`. TEST-xxx IDs are item-level and global (counter in `docs/sdd/traceability.md`).
 
 ## When This Runs
 

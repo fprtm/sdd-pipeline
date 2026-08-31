@@ -1,4 +1,4 @@
-# SDD Pipeline v5.7.0 — Spec in Front, Judgment Behind
+# SDD Pipeline v5.8.0 — Spec in Front, Judgment Behind
 
 You are operating under SDD Pipeline. Read `skills/orchestrator/SKILL.md` for full instructions.
 
@@ -12,7 +12,7 @@ First-time on an existing project (code exists, `docs/sdd/` doesn't): bootstrap 
 
 Every execution request: **ASK → SPEC → PLAN → BUILD → CHECK**. Only depth adapts to size. Never skip from request straight to BUILD for small+ tasks. A question ("gimana kalau...?") is discussion, not an execution signal — building starts on an actual instruction.
 
-Before the first code edit of any task, announce the written record: `Change file written to docs/sdd/changes/...` (small/medium), `Tickets written to docs/sdd/tickets/... — N tickets` (large), or `No written record — reason: <...>`. There is no `plans/current.md` any more — for large work the approved ticket breakdown *is* the plan. Record skipped gates in stats (`gates_skipped`). See orchestrator's "Plan Approval Flow."
+Before the first code edit of any task, announce the written record: `Change file written to docs/sdd/changes/...` (small/medium), `Tickets written to docs/sdd/specs/{NNN}-{slug}/tickets/... — N tickets` (large), or `No written record — reason: <...>`. There is no `plans/current.md` any more — for large work the approved ticket breakdown *is* the plan. Record skipped gates in stats (`gates_skipped`). See orchestrator's "Plan Approval Flow."
 
 **ASK is product discovery, not a warm-up.** `/sdd-pipeline:discover` opens as plain conversation while the idea is fog, announces its shift, then works five seats in dependency order: **Why · Constraints · What · Data · Technical**, every question carrying a recommendation, council over each hard decision and once over the whole shape. A seat is skipped only when the product has no such surface (no screens → no UI questions) — **never because of mode, size, or urgency**.
 
@@ -20,7 +20,9 @@ Before the first code edit of any task, announce the written record: `Change fil
 
 **Fidelity check — the document must transcribe what was settled, not summarize it.** After writing any document that followed a deliberation, re-read every settled decision against what was actually written: do the specific values (cascade rule, status code, threshold, field name) match, or did writing from "shared understanding" quietly substitute a plausible default? This is the step that keeps deep deliberation from being undone by a lossy write-up — skipping it is how a thoroughly-discussed decision still ends up wrong on paper. Same check applies at verification (Layer 4 Spec Conformance now checks code against the spec's *specific decided values*, not just "a test exists") and at the judgment gate's Plausibility Discount ("does every value here trace to something settled, or did I fill in something that sounds right?"). See `skills/commands/spec/SKILL.md`, `skills/build/doc-generator/SKILL.md`, `skills/prove/verification/SKILL.md`.
 
-**A spec bundle ends with a reading-order guide, not just a filename list.** A `large` feature can produce 15-20 files (FSD/SDS/ERD/threats/UX/ux-screens/tickets) — a run that reports "Generated: fsd.md, sds.md, erd.md..." hands the human a pile with no map. Every run producing 2+ documents for one feature closes with an explicit "How to Review This Feature" order (FSD → SDS → ERD/threats/UX as needed → tickets in dependency order), skipping doc types that weren't generated. `large` scope writes it permanently into `tickets/{feature-slug}/00-index.md` (the feature's actual entry point); smaller runs state it once in the closing chat message. See `skills/build/ticket-decomposition/SKILL.md`'s "The Feature Index" and `skills/commands/spec/SKILL.md`'s "How to Review This Feature."
+**A spec bundle ends with a reading-order guide, not just a filename list.** A `large` feature can produce 15-20 files (FSD/SDS/ERD/threats/UX/tickets) — a run that reports "Generated: fsd.md, sds.md, erd.md..." hands the human a pile with no map. Every run producing 2+ documents for one feature closes with an explicit "How to Review This Feature" order (FSD → SDS → ERD/threats/UX as needed → tickets in dependency order), skipping doc types that weren't generated. `large` scope writes it permanently into `specs/{NNN}-{slug}/tickets/00-index.md` (the feature's actual entry point); smaller runs state it once in the closing chat message. See `skills/build/ticket-decomposition/SKILL.md`'s "The Feature Index" and `skills/commands/spec/SKILL.md`'s "How to Review This Feature."
+
+**One folder per feature — `docs/sdd/specs/{NNN}-{slug}/`, not five directories that share a number.** Every document tied to a feature's spine number — `fsd.md`, `sds.md`, `prd.md`, `threats.md`, `ux.md`, `erd.md`, `tests.md`, `dod.md`, plus a `tickets/` subdirectory for `large` scope — lives inside one folder, bare filenames (no repeated `{NNN}-{slug}-` prefix on each). `design-system/` (project-wide visual design: `design.md` + `ux-screens/`) is unaffected — flows and the design system aren't owned by one feature the way a spec bundle is. **The folder is found by number, never by regenerating the slug**: a new document for an existing feature globs `specs/{NNN}-*` for the already-known number; it never independently reconstructs the slug and searches by full name, because a re-derived slug can drift ("employee-branch-backup" vs "branch-backup-employee") and silently create a duplicate folder for the same feature. `check-file-hygiene.mjs` catches this mechanically — two `specs/` folders sharing a leading number with different slugs is flagged as a collision. See `skills/build/doc-generator/SKILL.md`'s "Number-First Lookup."
 
 ## Detection — Always Announced
 
@@ -32,7 +34,7 @@ On every task, detect and announce:
 
 ## Tickets — Vertical Slices, Always Offered
 
-Large tasks get vertical-slice decomposition (never layer-splits) with blocking edges, even in prototype mode (lightweight tickets: title + what-to-build + files + blockers). Before writing tickets, ask: **local files only** (`docs/sdd/tickets/`) or **also mirror to GitHub Issues**? Local is always the SSOT; GitHub is a mirror, never a replacement.
+Large tasks get vertical-slice decomposition (never layer-splits) with blocking edges, even in prototype mode (lightweight tickets: title + what-to-build + files + blockers). Before writing tickets, ask: **local files only** (`docs/sdd/specs/{NNN}-{slug}/tickets/`) or **also mirror to GitHub Issues**? Local is always the SSOT; GitHub is a mirror, never a replacement.
 
 ## Three Phases
 

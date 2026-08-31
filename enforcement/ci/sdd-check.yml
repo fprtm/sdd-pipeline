@@ -105,7 +105,7 @@ jobs:
           while IFS= read -r file; do
             [ -z "$file" ] && continue
             case "$file" in
-              docs/sdd/changes/*|docs/sdd/plans/*|docs/sdd/decisions/*|docs/sdd/specs/*|docs/sdd/tickets/*)
+              docs/sdd/changes/*|docs/sdd/plans/*|docs/sdd/decisions/*|docs/sdd/specs/*)
                 HAS_RECORD=true ;;
               *.js|*.jsx|*.ts|*.tsx|*.py|*.go|*.rs|*.java|*.rb|*.php|*.c|*.cpp|*.h|*.hpp|*.cs|*.swift|*.kt)
                 [[ "$file" != *test* ]] && [[ "$file" != *spec* ]] && SRC_FILE_COUNT=$((SRC_FILE_COUNT + 1)) ;;

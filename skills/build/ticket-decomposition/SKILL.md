@@ -83,7 +83,7 @@ Wait for confirmation before writing ticket files. This is a judgment call (how 
 
 ## Ticket Format
 
-**Location**: `docs/sdd/tickets/{feature-slug}/{NN}-{ticket-slug}.md`
+**Location**: `docs/sdd/specs/{NNN}-{slug}/tickets/{NN}-{ticket-slug}.md` — inside the same feature folder as its FSD/SDS/ERD, found by the feature's number (per doc-generator's "Number-First Lookup" rule — never a freshly re-derived slug).
 
 **IDs**: the `{NN}` in the filename orders tickets within the feature, but every ticket ALSO gets a **globally unique `TICKET-xxx`** in its heading (counter in `docs/sdd/traceability.md`) — the matrix, commits (`Refs:`), and tests point at that global ID, which must never collide across features.
 
@@ -121,13 +121,12 @@ born there. No implementation code, just the manifest:]
 
 ## The Feature Index (`00-index.md`) — The Human's Entry Point
 
-A `large` feature produces a spec bundle of several documents (FSD, SDS, ERD, threats, UX, ux-screens) plus a directory of tickets — easily 10-20 files. Nobody should have to guess which one to open first. `docs/sdd/tickets/{feature-slug}/00-index.md` is the **one required entry point** for the whole feature: written alongside the ticket breakdown, in the same run, never skipped for `large` scope.
+A `large` feature produces a spec bundle of several documents (FSD, SDS, ERD, threats, UX) plus a directory of tickets — everything living inside `docs/sdd/specs/{NNN}-{slug}/`. Nobody should have to guess which one to open first. `specs/{NNN}-{slug}/tickets/00-index.md` is the **one required entry point** for the whole feature: written alongside the ticket breakdown, in the same run, never skipped for `large` scope. (`check-file-hygiene.mjs` enforces this mechanically — a `tickets/` folder with ticket files but no `00-index.md` is flagged.)
 
 ```markdown
 # [Feature Name] — Work Order
 
-**Spec**: `docs/sdd/specs/{NNN}-{slug}-{sds,fsd,ux,threats}.md` [only the ones that exist]
-**ERD**: `docs/sdd/erd/{NNN}-{slug}-erd.md` [if a DB change]
+**Spec**: `fsd.md`, `sds.md`, `ux.md`, `threats.md`, `erd.md` — siblings in this same folder [only the ones that exist]
 **ADR**: [any decision log entries this feature depends on, if any]
 **Next free ticket ID**: TICKET-0NN
 
@@ -154,7 +153,7 @@ A `large` feature produces a spec bundle of several documents (FSD, SDS, ERD, th
 
 ## Where Do Tickets Live? Ask, Don't Assume
 
-Before writing ticket files, ask — per `skills/think/elicitation/`'s "How to Ask" rule: native question tool first, plain text only as fallback: **local files only** (default — `docs/sdd/tickets/`, no external dependency) or **also mirror to GitHub Issues** (visible on the repo's board, assignable, commentable by the team).
+Before writing ticket files, ask — per `skills/think/elicitation/`'s "How to Ask" rule: native question tool first, plain text only as fallback: **local files only** (default — `docs/sdd/specs/{NNN}-{slug}/tickets/`, no external dependency) or **also mirror to GitHub Issues** (visible on the repo's board, assignable, commentable by the team).
 
 - **The local ticket files are always the traceability SSOT — GitHub Issues, if chosen, is a mirror, never a replacement.** The matrix and `Refs:` point at `TICKET-xxx`; an issue is an additional linked surface, not a second source of truth.
 - **Check the capability actually exists before promising it**: `gh auth status` and `gh repo view`. If either fails, say so and fall back to local-only — don't fake it.

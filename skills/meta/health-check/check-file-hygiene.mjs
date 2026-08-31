@@ -6,34 +6,42 @@
 //
 //   node tools/check-file-hygiene.mjs [docs/sdd]
 //
-// Checks (v2 tree = the SDD Pipeline structure + changes/):
+// Checks (v3 tree — specs/ is folder-per-feature, one home for everything
+// tied to a feature's spine number):
 //   1. Root: only the known top-level .md files — index, config, glossary,
 //      traceability, HANDOFF, stack-guide, analytics, insights — no stray
 //      docs dumped at the root. (memory is a directory, not a root file —
 //      see #9.)
-//   2. Only known subdirectories: specs, erd, dod, test-plans, tickets,
-//      plans, reports, decisions, changes, stats, ux-screens, design-system,
-//      memory.
-//   3. specs/   {NNN}-{slug}-(fsd|sds|prd|threats|ux).md
-//   4. erd/      {NNN}-{slug}-erd.md · dod/ {NNN}-{slug}-dod.md ·
-//      test-plans/ {NNN}-{slug}-tests.md
-//   5. decisions/ {NNN}-{slug}.md
-//   6. changes/  YYYY-MM-DD-{slug}.md + frontmatter with description, status,
+//   2. Only known subdirectories: specs, plans, reports, decisions, changes,
+//      stats, design-system, memory.
+//   3. specs/{NNN}-{slug}/  — one folder per feature, {NNN} IS the spine
+//      number (FSD-003 = specs/003-x/fsd.md). Inside: bare filenames only
+//      — fsd.md, sds.md, prd.md, threats.md, ux.md, erd.md, tests.md,
+//      dod.md, idea.md — plus an optional tickets/ subdirectory.
+//   3b. specs/{NNN}-{slug}/tickets/  — {NN}-{slug}.md ticket files, each
+//      containing a TICKET-xxx id, plus 00-index.md (required once any
+//      ticket file exists — it's the feature's entry point, never skipped).
+//   3c. No two specs/ folders may share the same leading {NNN} with a
+//      different slug — that's a duplicate/collision, almost always an
+//      agent regenerating a slug instead of finding the existing folder.
+//   4. decisions/ {NNN}-{slug}.md
+//   5. changes/  YYYY-MM-DD-{slug}.md + frontmatter with description, status,
 //      and updated (bumped on every in-place revision — see the "how this
 //      reaches" comment below), and no duplicate topic slug (one topic =
 //      one file, updated in place).
-//   7. ux-screens/ <flow-slug>.md + frontmatter with description, priority
-//      (Must/Should/Could), and updated.
-//   7b. design-system/ (if it exists at all) must contain design.md — the one
-//      entry doc for the UI. Other filenames there are unconstrained on
-//      purpose: an external UI/UX skill's output is redirected into it.
-//   8. plans/    current.md only; plans/archive/ YYYY-MM-DD-NN-{slug}.md
-//   9. memory/   INDEX.md + <slug>.md notes with description frontmatter,
+//   6. design-system/ (if it exists at all) must contain design.md — the one
+//      entry doc for the UI. An optional ux-screens/ subdirectory holds
+//      <flow-slug>.md files with frontmatter (description, priority, updated)
+//      — flows aren't tied to one feature number, so they live here, not in
+//      a specs/ feature folder. Other filenames in design-system/ are
+//      unconstrained on purpose: an external UI/UX skill's output is
+//      redirected into it.
+//   7. plans/    current.md only; plans/archive/ YYYY-MM-DD-NN-{slug}.md
+//   8. memory/   INDEX.md + <slug>.md notes with description frontmatter,
 //      every note listed in INDEX.md.
-//  10. reports/  YYYY-MM-DD-{slug}.md · stats/ YYYY-MM.md
-//  11. tickets/  {feature-slug}/{NN}-{slug}.md, each containing a TICKET-xxx id
-//  12. index.md exists, and every specs/ + changes/ file is referenced in it
-//      (no orphan docs the index doesn't know about).
+//   9. reports/  YYYY-MM-DD-{slug}.md · stats/ YYYY-MM.md
+//  10. index.md exists, and every specs/ feature folder + changes/ file is
+//      referenced in it (no orphan docs the index doesn't know about).
 // Exits non-zero on any problem.
 
 import { readFileSync, readdirSync, existsSync, statSync } from 'node:fs';
@@ -42,20 +50,17 @@ import { join, relative, basename } from 'node:path';
 const dir = process.argv[2] ?? 'docs/sdd';
 const SLUG = '[a-z0-9][a-z0-9-]*';
 const ROOT_MD = new Set(['index.md', 'config.md', 'glossary.md', 'traceability.md', 'HANDOFF.md', 'stack-guide.md', 'analytics.md', 'insights.md']);
-const KNOWN_DIRS = new Set(['specs', 'erd', 'dod', 'test-plans', 'tickets', 'plans', 'reports', 'decisions', 'changes', 'stats', 'ux-screens', 'design-system', 'memory']);
+const KNOWN_DIRS = new Set(['specs', 'plans', 'reports', 'decisions', 'changes', 'stats', 'design-system', 'memory']);
 const DIR_RULES = {
-  specs: new RegExp(`^\\d{3}-${SLUG}-(fsd|sds|prd|threats|ux)\\.md$`),
-  erd: new RegExp(`^\\d{3}-${SLUG}-erd\\.md$`),
-  dod: new RegExp(`^\\d{3}-${SLUG}-dod\\.md$`),
-  'test-plans': new RegExp(`^\\d{3}-${SLUG}-tests\\.md$`),
   decisions: new RegExp(`^\\d{3}-${SLUG}\\.md$`),
   changes: new RegExp(`^\\d{4}-\\d{2}-\\d{2}-${SLUG}\\.md$`),
   reports: new RegExp(`^\\d{4}-\\d{2}-\\d{2}-${SLUG}\\.md$`),
   stats: new RegExp(`^\\d{4}-\\d{2}\\.md$`),
 };
 const ARCHIVE_RULE = new RegExp(`^\\d{4}-\\d{2}-\\d{2}-\\d{2}-${SLUG}\\.md$`);
+const FEATURE_DIR = new RegExp(`^(\\d{3})-(${SLUG})$`);
 const TICKET_FILE = new RegExp(`^\\d{2}-${SLUG}\\.md$`);
-const FEATURE_DIR = new RegExp(`^${SLUG}$`);
+const ALLOWED_SPEC_FILES = new Set(['fsd.md', 'sds.md', 'prd.md', 'threats.md', 'ux.md', 'erd.md', 'tests.md', 'dod.md', 'idea.md']);
 
 if (!existsSync(dir)) {
   console.error(`No ${dir} — nothing to check (fine for a docs-less run).`);
@@ -90,7 +95,7 @@ for (const e of ls(dir)) {
   }
 }
 
-// 3-8 — per-directory naming rules
+// 4-9 — flat per-directory naming rules (decisions/changes/reports/stats)
 for (const [d, re] of Object.entries(DIR_RULES)) {
   const sub = join(dir, d);
   for (const e of ls(sub)) {
@@ -101,36 +106,84 @@ for (const [d, re] of Object.entries(DIR_RULES)) {
   }
 }
 
-// ux-screens/ — one flow per file, kebab slug (flows aren't chronological, so no
-// date/number), frontmatter with description + priority (Must/Should/Could) +
-// updated (bumped whenever the flow file is revised in place — same "is this
-// still current" signal as the Updated/Version header on specs/ docs, just
-// in frontmatter form since ux-screens/ files don't use the bolded-field shape).
-for (const e of ls(join(dir, 'ux-screens'))) {
-  const p = join(dir, 'ux-screens', e);
-  if (!isMarkdownFile(p, e)) continue;
-  if (!new RegExp(`^${SLUG}\\.md$`).test(e)) flag(`bad filename: ux-screens/${e} — expected <flow-slug>.md`);
-  const text = readText(p);
-  const fmMatch = text.match(/^---\n([\s\S]*?)\n---/);
-  if (!fmMatch) flag(`ux-screens/${e}: missing frontmatter (description/priority/updated)`);
-  else {
-    if (!/^description:/m.test(fmMatch[1])) flag(`ux-screens/${e}: frontmatter missing "description:"`);
-    if (!/^priority:\s*(Must|Should|Could)/m.test(fmMatch[1])) flag(`ux-screens/${e}: frontmatter missing "priority:" (Must/Should/Could)`);
-    if (!/^updated:\s*\d{4}-\d{2}-\d{2}/m.test(fmMatch[1])) flag(`ux-screens/${e}: frontmatter missing "updated: YYYY-MM-DD"`);
+// 3 — specs/{NNN}-{slug}/ — one folder per feature. Everything tied to a
+// feature's spine number lives here: fsd/sds/prd/threats/ux/erd/tests/dod
+// as bare filenames, plus an optional tickets/ subdirectory.
+const specsDir = join(dir, 'specs');
+const featureNumbers = new Map(); // NNN -> [folder names seen]
+for (const e of ls(specsDir)) {
+  const p = join(specsDir, e);
+  if (!isDir(p)) { flag(`stray file at specs/${e} — specs/ should only contain feature folders ({NNN}-{slug}/)`); continue; }
+  const m = FEATURE_DIR.exec(e);
+  if (!m) { flag(`bad feature folder name: specs/${e} — expected {NNN}-{slug}/`); continue; }
+  const num = m[1];
+  if (!featureNumbers.has(num)) featureNumbers.set(num, []);
+  featureNumbers.get(num).push(e);
+
+  for (const fe of ls(p)) {
+    const fp = join(p, fe);
+    if (isDir(fp)) {
+      if (fe !== 'tickets') { flag(`unexpected subdirectory: specs/${e}/${fe}/ — only a tickets/ subdirectory is expected inside a feature folder`); continue; }
+      // 3b — tickets/ subdirectory
+      const ticketEntries = ls(fp);
+      let hasTicketFile = false;
+      for (const te of ticketEntries) {
+        const tp = join(fp, te);
+        if (isDir(tp)) { flag(`unexpected subdirectory: specs/${e}/tickets/${te}/`); continue; }
+        if (!isMarkdownFile(tp, te)) continue;
+        if (te === '00-index.md') continue; // validated for presence below, not against TICKET_FILE
+        if (!TICKET_FILE.test(te)) { flag(`bad filename: specs/${e}/tickets/${te} — expected NN-slug.md`); continue; }
+        hasTicketFile = true;
+        const text = readText(tp);
+        if (!/TICKET-\d+/.test(text)) flag(`specs/${e}/tickets/${te}: no global TICKET-xxx id found in the file`);
+      }
+      if (hasTicketFile && !ticketEntries.includes('00-index.md')) {
+        flag(`specs/${e}/tickets/: has ticket files but no 00-index.md — every feature with tickets needs its entry point (spec refs + How to Review + status table), never skipped`);
+      }
+    } else if (isMarkdownFile(fp, fe)) {
+      if (!ALLOWED_SPEC_FILES.has(fe)) flag(`bad filename: specs/${e}/${fe} — expected one of ${[...ALLOWED_SPEC_FILES].join(', ')}`);
+    }
+  }
+}
+
+// 3c — duplicate feature number: same {NNN}, different slug. Almost always
+// an agent regenerating a slug instead of finding the existing folder by
+// number — exactly the failure mode a folder-per-feature layout is at risk
+// of that a flat numbered-filename layout wasn't (there, same-number files
+// still sorted together regardless of slug drift; here, a slug mismatch
+// creates a whole separate folder).
+for (const [num, folders] of featureNumbers) {
+  if (folders.length > 1) {
+    flag(`duplicate feature number ${num}: ${folders.map((f) => `specs/${f}/`).join(' vs ')} — same number, different slugs. Look up the existing folder by its {NNN} prefix before writing a new document for this feature; never regenerate the slug and create a second folder. Merge these into one.`);
   }
 }
 
 // design-system/ — must have design.md, the single entry doc for the UI.
-// The rest of the directory is deliberately unconstrained: an external UI/UX
-// skill's output gets redirected here and we don't dictate its filenames. What
-// IS required is the front door — a folder of fragments with no design.md
-// forces a reader to reconstruct the design system by opening all of them.
-// Only checked when the directory exists: an API-only or CLI project has no UI
-// and should not be nagged for a design doc it has no reason to own.
+// ux-screens/ lives here (not in a specs/ feature folder): a flow isn't
+// owned by one feature number the way fsd/sds/erd are — it can be touched
+// again by a later feature, so it's project-level living content, same as
+// design.md itself. The rest of design-system/ is deliberately
+// unconstrained: an external UI/UX skill's output is redirected into it.
+// Only checked when the directory exists: an API-only or CLI project has no
+// UI and should not be nagged for a design doc it has no reason to own.
 if (isDir(join(dir, 'design-system'))) {
   const entries = ls(join(dir, 'design-system'));
   if (!entries.includes('design.md')) {
     flag(`design-system/ exists but has no design.md — the UI needs one entry doc, however many files the content splits into (see skills/think/ux-design/)`);
+  }
+  const uxScreensDir = join(dir, 'design-system', 'ux-screens');
+  for (const e of ls(uxScreensDir)) {
+    const p = join(uxScreensDir, e);
+    if (!isMarkdownFile(p, e)) continue;
+    if (!new RegExp(`^${SLUG}\\.md$`).test(e)) flag(`bad filename: design-system/ux-screens/${e} — expected <flow-slug>.md`);
+    const text = readText(p);
+    const fmMatch = text.match(/^---\n([\s\S]*?)\n---/);
+    if (!fmMatch) flag(`design-system/ux-screens/${e}: missing frontmatter (description/priority/updated)`);
+    else {
+      if (!/^description:/m.test(fmMatch[1])) flag(`design-system/ux-screens/${e}: frontmatter missing "description:"`);
+      if (!/^priority:\s*(Must|Should|Could)/m.test(fmMatch[1])) flag(`design-system/ux-screens/${e}: frontmatter missing "priority:" (Must/Should/Could)`);
+      if (!/^updated:\s*\d{4}-\d{2}-\d{2}/m.test(fmMatch[1])) flag(`design-system/ux-screens/${e}: frontmatter missing "updated: YYYY-MM-DD"`);
+    }
   }
 }
 
@@ -171,20 +224,6 @@ for (const e of ls(join(dir, 'plans'))) {
   }
 }
 
-// 9 — tickets/
-for (const feat of ls(join(dir, 'tickets'))) {
-  const fp = join(dir, 'tickets', feat);
-  if (!isDir(fp)) { flag(`tickets/${feat}: tickets live in a {feature-slug}/ subdirectory`); continue; }
-  if (!FEATURE_DIR.test(feat)) flag(`tickets/${feat}/: feature directory should be a kebab-case slug`);
-  for (const e of ls(fp)) {
-    const tp = join(fp, e);
-    if (!isMarkdownFile(tp, e)) continue;
-    if (!TICKET_FILE.test(e)) flag(`bad filename: tickets/${feat}/${e} — expected NN-slug.md`);
-    const text = readText(tp);
-    if (!/TICKET-\d+/.test(text)) flag(`tickets/${feat}/${e}: no global TICKET-xxx id found in the file`);
-  }
-}
-
 // memory/ — knowledge graph: INDEX.md + kebab-slug notes with description
 // frontmatter, every note listed in INDEX.md (index-first is what makes the
 // graph cheap to read — an unindexed note is invisible).
@@ -204,16 +243,23 @@ if (existsSync(memDir)) {
   }
 }
 
-// 10 — index exists and knows every design/ + changes/ file
+// 10 — index exists and knows every specs/ feature folder + changes/ file.
+// specs/ is checked at the FOLDER level (not per-file inside it) — index.md
+// is a project-level directory of features, not of every fsd/sds/erd file;
+// the per-feature breakdown lives in the feature's own tickets/00-index.md
+// (large scope) or is just the folder listing (medium scope, few files).
 const indexPath = join(dir, 'index.md');
 if (!existsSync(indexPath)) {
   flag(`index.md missing — the index is how anyone finds the right doc`);
 } else {
   const index = readText(indexPath);
-  for (const d of ['specs', 'changes']) {
-    for (const e of ls(join(dir, d))) {
-      if (isMarkdownFile(join(dir, d, e), e) && !index.includes(e)) flag(`orphan: ${d}/${e} not referenced in index.md`);
+  for (const e of ls(specsDir)) {
+    if (isDir(join(specsDir, e)) && FEATURE_DIR.test(e) && !index.includes(e)) {
+      flag(`orphan: specs/${e}/ not referenced in index.md`);
     }
+  }
+  for (const e of ls(join(dir, 'changes'))) {
+    if (isMarkdownFile(join(dir, 'changes', e), e) && !index.includes(e)) flag(`orphan: changes/${e} not referenced in index.md`);
   }
 }
 

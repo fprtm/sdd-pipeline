@@ -38,32 +38,43 @@ Two rules that apply to every format, worth knowing before opening the templates
 - **Durability**: never reference file paths or line numbers in FSD/SDS/PRD — describe behavior and interfaces. The one exception is a short snippet that precisely encodes a decision (a type signature, an example payload).
 - **Length**: FSD/PRD max 1 page, SDS max 1.5 pages. Longer means over-specified.
 
-## File Locations — Numbered, One Doc Per Feature, Never Append-Forever
+## File Locations — One Folder Per Feature, Never Append-Forever
 
-All generated docs go to the structured docs/sdd/ directory, **with a sequence number prefix**:
+Every generated doc for a feature lives inside **one folder**, `docs/sdd/specs/{NNN}-{slug}/` — the folder name carries the number and slug once; the files inside it are bare:
 
 | Doc Type | Location |
 |----------|----------|
-| FSD | `docs/sdd/specs/{NNN}-{slug}-fsd.md` |
-| SDS | `docs/sdd/specs/{NNN}-{slug}-sds.md` |
-| PRD | `docs/sdd/specs/{NNN}-{slug}-prd.md` |
-| ERD | `docs/sdd/erd/{NNN}-{slug}-erd.md` |
-| DoD | `docs/sdd/dod/{NNN}-{slug}-dod.md` |
-| Test Plan | `docs/sdd/test-plans/{NNN}-{slug}-tests.md` |
+| FSD | `docs/sdd/specs/{NNN}-{slug}/fsd.md` |
+| SDS | `docs/sdd/specs/{NNN}-{slug}/sds.md` |
+| PRD | `docs/sdd/specs/{NNN}-{slug}/prd.md` |
+| Threat model | `docs/sdd/specs/{NNN}-{slug}/threats.md` |
+| UX spec | `docs/sdd/specs/{NNN}-{slug}/ux.md` |
+| ERD | `docs/sdd/specs/{NNN}-{slug}/erd.md` |
+| Test Plan | `docs/sdd/specs/{NNN}-{slug}/tests.md` |
+| DoD | `docs/sdd/specs/{NNN}-{slug}/dod.md` |
+| Tickets (large scope) | `docs/sdd/specs/{NNN}-{slug}/tickets/{NN}-{ticket-slug}.md` + `00-index.md` |
 
-- **NNN**: zero-padded sequence per directory (`001`, `002`, …) — next number = highest existing + 1
-- **slug**: kebab-case of the feature name (e.g., `user-auth`, `payment-flow`)
-- Example: `docs/sdd/specs/003-payment-refund-fsd.md`
+- **NNN**: zero-padded sequence (`001`, `002`, …) — next number = highest existing feature-folder number + 1
+- **slug**: kebab-case of the feature name (e.g., `user-auth`, `payment-flow`), fixed once the folder is created
+- Example: `docs/sdd/specs/003-payment-refund/fsd.md`, `docs/sdd/specs/003-payment-refund/sds.md` — same folder, same feature, different doc types
 
-**Why `specs/`, not `design/`**: this directory holds *written specifications* — FSD/SDS/PRD/threat model, none of them visual — while `docs/sdd/design-system/` holds the actual visual design (tokens, screens, UI patterns). Naming both "design" was the same collision the `/design`→`/spec` command rename fixed in v4.0.0, just one level down in the file tree; `specs/` closes it for good. (v5.6.0+ only — pre-5.6.0 projects still use `design/`; see the CHANGELOG migration note if renaming an existing tree.)
+**Why `specs/`, not `design/`**: this directory holds *written specifications* — FSD/SDS/PRD/threat model, none of them visual — while `docs/sdd/design-system/` holds the actual visual design (tokens, screens, UI patterns). Naming both "design" was the same collision the `/design`→`/spec` command rename fixed in v4.0.0, just one level down in the file tree; `specs/` closes it for good.
 
-**Why numbered**: a bare `{slug}-fsd.md` convention means the 100th feature touching "auth" appends to or overwrites the same file, and the file bloats until reading one small section requires reading everything. One numbered file per feature keeps every doc small, scoped, and individually readable — an AI (or human) looking for the refund spec opens exactly one short file, not a 2000-line accretion.
+**Why one folder per feature, not flat numbered files**: `docs/sdd/tickets/{feature-slug}/` already worked this way — grouping by folder made a fitur's ticket set instantly visible as one directory instead of files that merely happened to share a prefix. Extending the same shape to `specs/` means everything tied to one feature's spine number (FSD, SDS, ERD, tickets, tests, DoD) sits in one place a reader can open once, instead of being split across `specs/`, `erd/`, `test-plans/`, `dod/`, and `tickets/{slug}/` as five separate top-level directories that all happen to share a number.
 
-**Update vs. new file — the rule**:
-- Same feature, still in flight (spec revised before/during its own implementation) → **update the same numbered file**
-- New feature, even in the same area (auth v2, a second payment flow) → **new numbered file**. Mark superseded old docs with a `**Status**: SUPERSEDED by {NNN}` line at top — same convention as the decision log.
+### Number-First Lookup — Never Regenerate the Slug to Find a Folder
 
-After generating, update `docs/sdd/index.md` with links and relationships — the index is how anyone finds the right numbered doc without listing the directory.
+**The rule that keeps this safe**: a feature's folder is looked up by its **number**, never reconstructed from its name.
+
+- **New feature** → allocate the next number from `docs/sdd/traceability.md`'s counter, create `specs/{NNN}-{slug}/`, and the slug used at that moment is **final** — it never changes.
+- **Adding a document to an existing feature** (SDS after FSD, ERD after SDS, a ticket after spec) → find the existing folder by globbing `specs/{NNN}-*` for the number already known from context (the FSD-xxx / feature the task refers to). **Never** independently re-derive the slug from the feature name and search by full name — a re-derived slug can drift from the original ("employee-branch-backup" vs "branch-backup-employee") and silently create a second folder for what should be the same feature.
+- **`check-file-hygiene.mjs` catches the failure mode mechanically**: two `specs/` folders sharing the same leading `{NNN}` with different slugs is flagged as a duplicate-feature-number collision — almost always this exact bug, caught automatically rather than discovered later by a confused reader.
+
+**Update vs. new folder — the rule**:
+- Same feature, still in flight (spec revised before/during its own implementation) → **update files inside the same existing folder** (found by number, per the rule above)
+- New feature, even in the same area (auth v2, a second payment flow) → **new folder, new number**. Mark superseded old docs with a `**Status**: SUPERSEDED by {NNN}` line at top — same convention as the decision log.
+
+After generating, update `docs/sdd/index.md` with a link to the feature folder and relationships — the index is how anyone finds the right feature without listing the directory. `index.md` references the **folder**, not each file inside it; the folder's own contents (or its `tickets/00-index.md` reading-order guide, for `large` scope) is where the per-file breakdown lives.
 
 **Metadata header — every design doc, so revision state is readable without opening git log**: FSD/SDS/PRD/ERD/DoD/Test Plan all open with the same four bolded fields (exact shape in `formats.md`), read top-to-bottom before anything else:
 
@@ -82,8 +93,8 @@ The numbered filenames double as the traceability spine (`skills/meta/traceabili
 
 | ID | What it names | Where it's defined |
 |----|---------------|--------------------|
-| `FSD-003` | The FSD *file* `specs/003-{slug}-fsd.md` — the number IS the ID | Filename |
-| `SDS-003` / `PRD-003` / `ERD-003` | Same rule for SDS/PRD/ERD files | Filename |
+| `FSD-003` | The FSD *file* `specs/003-{slug}/fsd.md` — the folder's number IS the ID | Folder name + filename |
+| `SDS-003` / `PRD-003` / `ERD-003` | Same rule for `sds.md`/`prd.md`/`erd.md` in the same folder | Folder name + filename |
 | `FSD-003.2` | Flow/behavior #2 *inside* FSD-003 — use when the matrix needs a finer link | `### FSD-003.2 — …` heading in the file |
 | `ADR-005` | Decision file `decisions/005-{slug}.md` (see `skills/meta/decision-log/`) | Filename |
 | `REQ-001` / `REQ-NF-001` | A single requirement (item-level, global counter) | Table row in a PRD |
