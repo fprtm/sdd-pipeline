@@ -3,6 +3,34 @@
 All notable changes to SDD Pipeline. Versioning is [SemVer](https://semver.org/).
 Plain-language where possible.
 
+## [6.2.0] — 2026-09-02
+
+Found live: an agent working on the `commercehub` project (pre-dates v6, on
+sdd-pipeline since before v6.0.0) reported it couldn't honestly split
+feature 001's tickets — `check-traceability.mjs` would flag every ticket as
+"freelance" (traces to nothing upstream) because the project's own
+pre-existing requirement prefix (`FR-NNNN`, a standard IEEE/BABOK
+convention) was never recognized by the checker, and `PRD` — while
+definable — was never accepted as a valid upstream parent either. The
+agent correctly refused to invent fake FSD/ADR documents to satisfy the
+checker. Verified via `git blame`/`git diff v5.8.0..v6.1.0` that this predates
+every change made in this project this cycle — not a regression, a
+long-standing (since v2.0.0) gap in the checker's hardcoded ID vocabulary.
+
+### Fixed
+- **`check-traceability.mjs` now supports a project-declared requirement
+  prefix.** `req-prefix: FR` in `docs/sdd/config.md` adds the custom prefix
+  as an alias alongside `REQ` — both recognized, spine-tracked, and valid
+  as an upstream parent for tickets/tests. Projects that never set this are
+  entirely unaffected (purely additive).
+- **`PRD` added to the valid-upstream-parent set** — it was already a
+  definable ID type but was never accepted as satisfying a ticket/test's
+  upstream-trace requirement, an inconsistency with no reasoning behind it.
+  A ticket citing only a `PRD-xxx` (no `FSD`) no longer needs a fabricated
+  parent document to pass.
+- `templates/sdd.config.md` and `skills/build/doc-generator/SKILL.md`'s ID
+  Spine table document the new `req-prefix` option.
+
 ## [6.1.0] — 2026-09-02
 
 Fast-follow on v6.0.0's SDLC work, caught immediately by the user comparing

@@ -112,6 +112,53 @@ test('a TICKET citing its parent FSD nearby is not freelance', () => {
   assert.equal(code, 0, out);
 });
 
+test('a TICKET citing a PRD nearby is not freelance (PRD is a valid upstream parent)', () => {
+  const dir = scratch();
+  mkdirSync(join(dir, 'specs', '001-feat', 'tickets'), { recursive: true });
+  writeFileSync(join(dir, 'specs', '001-feat', 'prd.md'), '# PRD');
+  writeFileSync(
+    join(dir, 'specs', '001-feat', 'tickets', '01-x.md'),
+    '# TICKET-018 — Do a thing\n\n**Refs**: PRD-001\n'
+  );
+  const { code, out } = run(dir);
+  assert.equal(code, 0, out);
+});
+
+test('a project-specific requirement prefix (e.g. FR-) is invisible without req-prefix declared in config.md', () => {
+  const dir = scratch();
+  mkdirSync(join(dir, 'specs', '001-feat', 'tickets'), { recursive: true });
+  writeFileSync(
+    join(dir, 'specs', '001-feat', 'tickets', '01-x.md'),
+    '# TICKET-018 — Do a thing\n\n**Refs**: FR-0012\n'
+  );
+  const { code, out } = run(dir);
+  assert.equal(code, 1);
+  assert.match(out, /Freelance tickets\/tests/);
+});
+
+test('req-prefix: FR in config.md makes FR-xxxx a recognized, valid upstream id', () => {
+  const dir = scratch();
+  mkdirSync(join(dir, 'specs', '001-feat', 'tickets'), { recursive: true });
+  writeFileSync(join(dir, 'config.md'), '# Config\n\nreq-prefix: FR\n');
+  writeFileSync(
+    join(dir, 'specs', '001-feat', 'tickets', '01-x.md'),
+    '# TICKET-018 — Do a thing\n\n**Refs**: FR-0012\n'
+  );
+  const { code, out } = run(dir);
+  assert.equal(code, 0, out);
+});
+
+test('req-prefix does not affect projects that never set it (default REQ still works)', () => {
+  const dir = scratch();
+  mkdirSync(join(dir, 'specs', '001-feat', 'tickets'), { recursive: true });
+  writeFileSync(
+    join(dir, 'specs', '001-feat', 'tickets', '01-x.md'),
+    '# TICKET-018 — Do a thing\n\n**Refs**: REQ-045\n'
+  );
+  const { code, out } = run(dir);
+  assert.equal(code, 0, out);
+});
+
 test('the same id defined in two different files -> duplicate', () => {
   const dir = scratch();
   mkdirSync(join(dir, 'specs', '001-a'), { recursive: true });

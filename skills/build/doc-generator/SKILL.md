@@ -99,6 +99,7 @@ The numbered filenames double as the traceability spine (`skills/meta/traceabili
 | `FSD-003.2` | Flow/behavior #2 *inside* FSD-003 — use when the matrix needs a finer link | `### FSD-003.2 — …` heading in the file |
 | `ADR-005` | Decision file `decisions/005-{slug}.md` (see `skills/meta/decision-log/`) | Filename |
 | `REQ-001` / `REQ-NF-001` | A single requirement (item-level, global counter) | Table row in a PRD |
+| `FR-001` (or whatever prefix the project declares) | Same as `REQ`, under a project's own pre-existing convention — set `req-prefix:` in `docs/sdd/config.md` if this project used a different requirement prefix before adopting SDD Pipeline. Default `REQ` needs no config. | Table row in a PRD |
 | `SEC-004` | A security control (item-level, global counter) | `### SEC-004 — …` heading in a threat model |
 | `TICKET-012` | A ticket (item-level, **global** counter — NOT per-feature) | Ticket file heading |
 | `TEST-030` | A test case (item-level, global counter) | `### TEST-030 — …` heading in a test plan |

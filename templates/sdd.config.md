@@ -26,6 +26,16 @@ sdlc-reason: WIP-limited board found in .github/project.yml
 
 If not set, SDD Pipeline auto-detects from project signals (.github/, .jira/, .linear/, docs/ structure) and always records `sdlc-reason` alongside whatever it finds.
 
+## Requirement ID Prefix
+
+If this project already used a functional-requirement prefix other than `REQ` before adopting SDD Pipeline (e.g. `FR-` per IEEE/BABOK convention), declare it here so `check-traceability.mjs` recognizes it:
+
+```
+req-prefix: FR
+```
+
+Adds the custom prefix as an alias alongside `REQ` — both are recognized, nothing changes for projects that leave this unset. Without it, existing `FR-xxxx` citations are invisible to the checker and every ticket/test citing one is flagged as a false "freelance" item.
+
 ## Domain
 
 Override auto-detection:

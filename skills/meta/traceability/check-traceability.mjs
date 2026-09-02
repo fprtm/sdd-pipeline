@@ -23,9 +23,19 @@
 //      referenced in traceability.md (nothing speced but untracked).
 //   2. No broken refs — every id referenced in the matrix is actually defined.
 //   3. Upstream trace — every TICKET and TEST references something upstream
-//      (REQ/FSD/SEC/ADR) near its own definition (no freelance ticket/test).
+//      (REQ/FSD/SEC/ADR/PRD) near its own definition (no freelance ticket/test).
 //   4. No dead relative markdown links.
 //   5. No duplicate id definitions (copy-paste/renumbering bug).
+//
+// req-prefix (optional): a project that already used a requirement prefix
+// other than REQ before adopting sdd-pipeline (e.g. FR- per IEEE/BABOK
+// convention) can declare it in docs/sdd/config.md: `req-prefix: FR`. The
+// custom prefix is added as an ALIAS alongside REQ — both are recognized,
+// nothing about the default REQ convention changes for projects that don't
+// set this. Without it, a project's own pre-existing FR-xxxx citations are
+// invisible to this checker and every ticket/test citing one reads as a
+// false "freelance" (traces to nothing upstream) — this isn't a drift
+// finding, it's the checker not knowing the project's own vocabulary.
 // Exits non-zero on any problem.
 
 import { readFileSync, readdirSync, existsSync, statSync } from 'node:fs';
@@ -33,7 +43,18 @@ import { join, dirname, resolve, relative, basename } from 'node:path';
 
 const dir = process.argv[2] ?? 'docs/sdd';
 const MATRIX = 'traceability.md';
-const TYPES = 'REQ-NF|REQ|FSD|SDS|PRD|ERD|ADR|SEC|TICKET|TEST';
+
+function readReqPrefix(d) {
+  const cfgPath = join(d, 'config.md');
+  if (!existsSync(cfgPath)) return null;
+  const m = readFileSync(cfgPath, 'utf8').match(/^req-prefix:\s*([A-Za-z][A-Za-z0-9]*)\s*$/mi);
+  return m ? m[1].toUpperCase() : null;
+}
+const REQ_ALIAS = readReqPrefix(dir); // e.g. 'FR', or null if unset/default
+
+const BASE_TYPES = ['REQ-NF', 'REQ', 'FSD', 'SDS', 'PRD', 'ERD', 'ADR', 'SEC', 'TICKET', 'TEST'];
+const TYPE_LIST = REQ_ALIAS && !BASE_TYPES.includes(REQ_ALIAS) ? [...BASE_TYPES, REQ_ALIAS] : BASE_TYPES;
+const TYPES = TYPE_LIST.join('|');
 const ID_RE = new RegExp(`\\b(?:${TYPES})-\\d+(?:\\.\\d+)?\\b`, 'g');
 const typeOf = (id) => id.match(new RegExp(`^(${TYPES})`))[1];
 const parentOf = (id) => id.replace(/\.\d+$/, ''); // FSD-003.2 -> FSD-003
@@ -42,8 +63,13 @@ const parentOf = (id) => id.replace(/\.\d+$/, ''); // FSD-003.2 -> FSD-003
 const HEADING_DEF = new RegExp(`^#{1,6}\\s+((?:${TYPES})-\\d+(?:\\.\\d+)?)\\b`);
 const ROW_DEF = new RegExp(`^\\s*\\|\\s*((?:${TYPES})-\\d+(?:\\.\\d+)?)\\b`);
 
-const SPINE = new Set(['REQ-NF', 'REQ', 'FSD', 'SEC']); // must appear in the matrix
-const UPSTREAM = new Set(['REQ-NF', 'REQ', 'FSD', 'SEC', 'ADR']); // valid parents
+// REQ_ALIAS shares REQ's spine/upstream status entirely — it's the same kind
+// of thing under a different name, not a new category. PRD is a legitimate
+// upstream parent (a ticket citing only a PRD, no FSD, is common for smaller
+// scope) — it was definable but never a valid parent before, an inconsistency
+// with no reason behind it.
+const SPINE = new Set(['REQ-NF', 'REQ', 'FSD', 'SEC', ...(REQ_ALIAS ? [REQ_ALIAS] : [])]); // must appear in the matrix
+const UPSTREAM = new Set(['REQ-NF', 'REQ', 'FSD', 'SEC', 'ADR', 'PRD', ...(REQ_ALIAS ? [REQ_ALIAS] : [])]); // valid parents
 // Files/dirs that cite ids but never define them (reports, plans, indexes).
 const NON_DEFINING_FILES = new Set([MATRIX, 'index.md', 'glossary.md', 'config.md', 'HANDOFF.md']);
 const NON_DEFINING_DIRS = new Set(['plans', 'reports', 'stats', 'memory']);
