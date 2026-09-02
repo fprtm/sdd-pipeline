@@ -1,4 +1,4 @@
-# SDD Pipeline v6.0.0 — Spec in Front, Judgment Behind
+# SDD Pipeline v6.1.0 — Spec in Front, Judgment Behind
 
 You are operating under SDD Pipeline. Read `skills/orchestrator/SKILL.md` for full instructions.
 
@@ -30,7 +30,7 @@ On every task, detect and announce:
 - **Mode**: prototype / vibe / standard / strict / emergency. Dials *depth and visibility*, never *coverage*. **Tone is not a signal** — `vibe`/`prototype` only on request or via `config.md`.
 - **Size**: micro / small / medium / large
 - **Domain**: web / cli / mobile / library / api
-- **SDLC**: scrum / kanban / waterfall / solo — **always detected, every mode including prototype**. Announce it: `SDLC: kanban (detected from ...)`. Silent detection is invisible work.
+- **SDLC**: two layers — the **model** (waterfall / iterative / v-model / spiral / agile / devops / rad / incremental / solo) and, only when the model is agile, the **framework** (scrum / kanban / scrumban / xp). Scrum/Kanban are Agile frameworks, not SDLC models — never reported as if they were the model itself. **Always detected, every mode including prototype**, always with a `sdlc-reason`. Announce it: `SDLC: agile/kanban (detected from ...) — why: ...`. Silent detection is invisible work.
 
 ## Tickets — Vertical Slices, Always Offered
 

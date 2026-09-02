@@ -3,6 +3,37 @@
 All notable changes to SDD Pipeline. Versioning is [SemVer](https://semver.org/).
 Plain-language where possible.
 
+## [6.1.0] — 2026-09-02
+
+Fast-follow on v6.0.0's SDLC work, caught immediately by the user comparing
+against the actual SDLC-model literature ([GeeksforGeeks' SDLC models
+overview](https://www.geeksforgeeks.org/software-engineering/sdlc-models-types-phases-use/)):
+`sdlc-detector` had Scrum and Kanban listed as siblings of Waterfall. They
+aren't — Scrum and Kanban are specific Agile *frameworks*, one level below
+the SDLC *model* they're both flavors of. A team is never "Kanban" instead
+of having an SDLC model; it's "Agile, run via Kanban."
+
+### Changed
+- **`sdlc-detector` rebuilt as two layers.** `sdlc` is now the real SDLC
+  model: `waterfall | iterative | v-model | spiral | agile | devops | rad |
+  incremental | solo`. A new, nested `agile-framework` field
+  (`scrum | kanban | scrumban | xp | none`) only exists when `sdlc: agile`.
+  Detection signals expanded to cover all eight models (previously only
+  Scrum/Kanban/Waterfall/Solo had signals) — V-Model, Spiral, DevOps, RAD,
+  and Incremental now have their own behavior-adaptation tables too, not
+  just Scrum/Kanban/Waterfall/Solo as before.
+- **Combined THINK-output line updated**: `SDLC: agile/kanban (detected
+  from ...) — why: ...` — model and framework reported together, framework
+  omitted entirely when the model isn't Agile.
+- `templates/sdd.config.md`, `AGENTS.md`, `docs/ARCHITECTURE.md` updated to
+  match the new two-field schema.
+
+### Migration
+- **Any `config.md` with `sdlc: scrum` or `sdlc: kanban`** (written under
+  v6.0.0's brief single-layer schema) needs updating to `sdlc: agile` +
+  `agile-framework: scrum` (or `kanban`). No automated migration — same
+  manual-only stance as every structural change since v5.8.0.
+
 ## [6.0.0] — 2026-09-02
 
 A single large batch driven by a long user grilling session covering the whole

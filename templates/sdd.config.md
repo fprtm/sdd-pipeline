@@ -15,12 +15,16 @@ Options: `prototype`, `vibe`, `standard`, `strict`
 Override auto-detection:
 
 ```
-sdlc: scrum
+sdlc: agile
+agile-framework: kanban
+sdlc-reason: WIP-limited board found in .github/project.yml
 ```
 
-Options: `scrum`, `kanban`, `waterfall`, `solo`, `none`
+`sdlc` options: `waterfall`, `iterative`, `v-model`, `spiral`, `agile`, `devops`, `rad`, `incremental`, `solo`.
 
-If not set, SDD Pipeline auto-detects from project signals (.github/, .jira/, .linear/, docs/ structure).
+`agile-framework` only applies when `sdlc: agile` — options: `scrum`, `kanban`, `scrumban`, `xp`, `none`. Scrum/Kanban are Agile frameworks, not SDLC models in their own right — see `skills/think/sdlc-detector/` for the full model/framework distinction.
+
+If not set, SDD Pipeline auto-detects from project signals (.github/, .jira/, .linear/, docs/ structure) and always records `sdlc-reason` alongside whatever it finds.
 
 ## Domain
 
