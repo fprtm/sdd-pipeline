@@ -3,6 +3,120 @@
 All notable changes to SDD Pipeline. Versioning is [SemVer](https://semver.org/).
 Plain-language where possible.
 
+## [6.0.0] — 2026-09-02
+
+A single large batch driven by a long user grilling session covering the whole
+pipeline end to end (context retention, multi-agent orchestration, discover's
+depth, doc readability/AI-slop, commit hygiene, ticket clarity, SDLC rigor,
+cross-harness compatibility, and more). Grouped by theme below. Several
+entries are breaking — see Migration.
+
+### Added
+- **`skills/prove/pentest/`** — new opt-in skill for active security
+  verification (real exploit attempts, package installs). Never auto-runs;
+  confirms every package install individually; prefers isolated environments.
+  Split out of the old `security-check` so passive review and active
+  exploitation are never the same default-on step.
+- **`skills/commands/update/`** (`/sdd-pipeline:update`) — checks installed
+  vs. latest version, shows the actual CHANGELOG diff (not just a version
+  number), flags breaking/migration entries, confirms before applying.
+- **`docs/design-system-styles/`** — 80 named, real design styles (Neo-
+  Brutalism, Glassmorphism, Swiss Typographic, Corporate Memphis, etc.), one
+  short file each (palette/typography/traits/when-to-use) plus a compact
+  `00-index.md` manifest. Used by `ux-design` as a fallback when the
+  third-party `ui-ux-pro-max` plugin isn't installed — index is scanned every
+  time, only 1-3 matched style files are ever opened, keeping token cost
+  proportional to what's actually needed (same pattern as `grill`'s topics).
+- **Mechanical phase-gate**: `check-file-hygiene.mjs` now flags a feature's
+  `tickets/` folder that exists without an `fsd.md` sibling — tickets can no
+  longer be written before SPEC deliberation produced at least a minimal
+  spec, closing the gap where discover/spec got silently skipped.
+- **Mechanical ticket-status gate**: `check-file-hygiene.mjs` now requires
+  every ticket file to carry a valid `**Status**:` line (⬜/🔨/🧪/✅/⛔) — an
+  unstatused ticket is now a hygiene failure, not just a template suggestion.
+- **Mechanical old-naming suggestions**: pre-v5.8.0 top-level dirs (`design/`,
+  `erd/`, `test-plans/`, `dod/`, `tickets/`, `ux-screens/`) now get a specific
+  migration hint from `check-file-hygiene.mjs` instead of a generic "unknown
+  directory" flag — still never auto-applied, migration stays manual.
+- **`sdlc-reason`** field in `config.md` — SDLC methodology is now reported
+  together with mode in one combined THINK-output line, and the *why* (signal
+  that triggered detection, or the user's own words) is recorded alongside
+  the value, not just the value itself.
+- **Deployment-target deliberation** (`arch-analyzer`, topic 8) — recommends
+  a hosting platform with reasoning (app type, scale, solo/team, budget),
+  starting from the simplest platform sufficient for the stated scale; user
+  can always override. Auto-generates a `Dockerfile` (+ `docker-compose.yml`
+  if needed) by default when the chosen platform requires containerization.
+- **Review-checkpoint cadence table** (`ticket-decomposition`) — default
+  review frequency now explicit per mode (prototype/vibe: batch, standard:
+  per-ticket, strict: per-chunk, emergency: minimal-but-mandatory-final),
+  overridable by explicit user instruction, never silently changed by an
+  unrelated mode switch.
+- **Tier-based role-split** (`ticket-decomposition`) — T2/T3 tickets now
+  require a research/check-existing pass before implementation (Pattern 1,
+  `skills/agents/subagent-patterns/`); T1 stays single-pass.
+- **Mandatory contract-check gate** — the 🧪 testing/review status is now
+  explicitly a contract check (ticket's own Acceptance Criteria/Deliverables
+  read line-by-line against what was built), never a vibe check; implementer
+  never marks its own homework when dispatch is available.
+- **Imperative parallel dispatch** — frontier tickets that are file-disjoint
+  now get an explicit "dispatch together now" instruction instead of a soft
+  "this could be parallelized" mention, falling back to sequential frontier
+  order automatically on harnesses without multi-agent dispatch.
+- **Cross-harness install table** (`docs/INSTALL.md`) — Hermes, OpenClaw,
+  Antigravity (Gemini CLI's successor), and DeepSeek (Deep Code/DeepSeek-TUI)
+  added alongside the existing Claude Code/Codex/OpenCode/Cursor rows; all
+  confirmed to share the same open `SKILL.md` + frontmatter format.
+- **Universal constraint #11 — doc comments stay short**: JSDoc/docstrings
+  are 1-2 sentences, never reference `docs/sdd/` ticket/spec IDs.
+
+### Changed
+- **`security-check` → `diagnose`** (`skills/prove/diagnose/`) — same passive
+  checklist + executable-security-test verification as before, now also the
+  single default-on entry point for gap/orphan checks (mechanical checkers,
+  ticket board) and bug root-cause tracing (compare reported behavior against
+  the ticket's own Acceptance Criteria to find the divergence point). All
+  cross-references across the repo updated.
+- **`discover`'s frontmatter description** tightened to state the WHICH/HOW
+  boundary against `/spec` inline, instead of only in the body — no rename
+  (considered and explicitly deferred; the confusion was scope overlap, not
+  the word itself).
+- **`grill`'s devil's-advocate seat** now required to follow every objection
+  that lands with 2-3 concrete alternatives and a recommendation — a devil's
+  advocate that only refutes is now explicitly called out as failing the
+  seat's job.
+- **`discover`'s Why/What seats** reframed with named frameworks: Why now
+  asks for the underlying Job to be Done, not just the literal ask; What is
+  now scored MoSCoW (Must/Should/Could/Won't) instead of an unstructured
+  v1-vs-deferred list.
+- **`git-workflow`**: commit confirmation is now stated explicitly in-skill
+  ("show what's about to be committed, wait for a go-ahead") rather than
+  relying on harness default behavior — needed because not every harness
+  auto-confirms commits the way Claude Code does.
+- **Doc nav header**: every generated doc (FSD/SDS/etc.) now opens with a
+  one-line link back to its feature's entry point, for humans navigating the
+  folder directly rather than through the pipeline.
+- **Fidelity check extended with a genericity check**: alongside catching
+  drift from deliberation, doc-generator now also catches boilerplate prose
+  that's faithful to nothing in particular — the portability test ("would
+  this sentence make sense pasted into a different feature's doc unchanged?")
+  and claim-without-evidence phrases get rewritten inline before a doc is
+  reported done.
+
+### Migration
+- **`security-check` renamed to `diagnose`.** Any local reference, hook, or
+  CI step naming `skills/prove/security-check/` directly needs updating to
+  `skills/prove/diagnose/`. No automated migration — same manual-only stance
+  as the v5.8.0 folder restructure.
+- **Existing `tickets/` folders without a sibling `fsd.md`** will now fail
+  `check-file-hygiene.mjs`. If this is a real pre-existing project where
+  tickets were written before this rule existed, either backfill a minimal
+  `fsd.md`, or delete the stale tickets — don't ignore the failure.
+- **Ticket files without a `**Status**:` line** will now fail hygiene checks.
+  Add the field manually; no auto-fix.
+- **`sdlc: none`** is no longer a valid `config.md` value — use `solo`
+  instead (a real, adapted-for methodology, not an absence of one).
+
 ## [5.8.0] — 2026-08-27
 
 Follow-up to the design/→specs/ rename (v5.6.0) and the reading-order guide

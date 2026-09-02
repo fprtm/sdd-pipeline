@@ -39,7 +39,15 @@ cd sdd-pipeline
 | Codex CLI | `./install/install.sh --agent codex` | `.agents/skills/sdd/` + `AGENTS.md` |
 | OpenCode | `./install/install.sh --agent opencode` | `.opencode/skills/sdd/` + `AGENTS.md` |
 | Cursor | `./install/install.sh --agent cursor` | `.cursor/skills/sdd/` + `AGENTS.md` |
+| Hermes Agent | `./install/install.sh --agent generic --dest ~/.hermes/skills/sdd` (global) or `--dest skills/sdd` (project) | `~/.hermes/skills/sdd/` or `skills/sdd/` |
+| OpenClaw | `./install/install.sh --agent claude-proj` (same `SKILL.md` format, zero changes) | `.claude/skills/sdd/` |
+| Antigravity CLI (Gemini's successor) | `./install/install.sh --agent codex --dest .agents/skills/sdd` | `.agents/skills/sdd/` |
+| DeepSeek (Deep Code / DeepSeek-TUI) | `./install/install.sh --agent codex --dest .agents/skills/sdd` (same format, confirmed compatible) | `.agents/skills/sdd/` |
 | Any other agent | `./install/install.sh --agent generic --dest <dir>` | `<dir>` you choose |
+
+All of the above install the exact same `SKILL.md` files — the "Agent Skills" format (`SKILL.md` + YAML frontmatter) is a shared open standard across every harness in this table as of 2026, not something sdd-pipeline maintains separately per agent. Only the *discovery path* differs; nothing in the skill content changes between rows.
+
+**One reliability note, not a format difference**: skills here lean on cross-referencing each other (one skill saying "see X for how to ask") to avoid duplicating rules seven times over. Every harness *can* resolve that, but not all of them resolve it with the same consistency at every reasoning-effort tier — if a harness seems to skip steps a stronger model on the same harness wouldn't, that's usually this, not a missing feature. The framework's mechanical checkers (`check-file-hygiene.mjs`, `check-traceability.mjs`, `check-parallel-safety.mjs`) exist precisely because they don't depend on any model chasing a reference chain correctly — run them via `--with-hooks`/`--with-ci` (Step 4 below) on any harness where this is a concern; they catch what got missed regardless of which agent wrote the file.
 
 Run this **from inside the project you want SDD Pipeline to guard**, not from the `sdd-pipeline/` clone itself — unless you're installing user-wide (`--agent claude`), in which case it doesn't matter.
 
@@ -82,7 +90,7 @@ If you don't want the full install, use `--only` with a comma-separated list of 
 |------------|-------------------|
 | `think` | elicitation, context-loader, scope-guard, complexity-analyzer, sdlc-detector, arch-analyzer, grill, threat-model, database-design, ux-design, stack-conventions, analytics-design |
 | `build` | constraints, anti-patterns, change-plan, execution-guard, model-router, doc-generator, ticket-decomposition, test-plan, git-workflow, infra |
-| `prove` | verification, adversarial, security-check, performance-check, report, coverage-check, browser-qa, judgment |
+| `prove` | verification, adversarial, diagnose, performance-check, report, coverage-check, browser-qa, judgment |
 | `meta` | decision-log, comprehension, insight, health-check, memory, stats, glossary, traceability, handoff |
 | `modes` | prototype, vibe, standard, strict, emergency |
 | `constraints` | universal, web, cli, mobile, library, api |
@@ -113,13 +121,17 @@ Should print `ALL CHECKS PASSED` and a count of skills found (60 in a full insta
 
 ## Updating
 
+From inside an active session, `/sdd-pipeline:update` (`skills/commands/update/`) is the recommended path — it reads the installed vs. latest version, shows the actual CHANGELOG diff (not just a version number), flags any breaking/migration entries, and asks for confirmation before applying anything.
+
+Manually, the equivalent is:
+
 ```bash
 cd sdd-pipeline
 git pull
 ./install/install.sh --agent claude --update
 ```
 
-`--update` overwrites the installed skill files but leaves your project's `docs/sdd/config.md` (and everything else in `docs/sdd/`) untouched — your mode defaults, constraint overrides, and history are preserved.
+`--update` overwrites the installed skill files but leaves your project's `docs/sdd/config.md` (and everything else in `docs/sdd/`) untouched — your mode defaults, constraint overrides, and history are preserved. Read `CHANGELOG.md` yourself for the diff before running this manually — the `/update` skill exists specifically so you don't have to remember to do that.
 
 If you installed via the plugin marketplace, update through Claude Code's own plugin update mechanism instead.
 

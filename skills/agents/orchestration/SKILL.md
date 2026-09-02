@@ -30,7 +30,7 @@ The cap is overridable — if the user explicitly says "spawn them all anyway", 
 THINK (parallel)          BUILD (depends on THINK)      PROVE (depends on BUILD)
 ├─ elicitation    ─┐      ├─ constraint check           ├─ verification    ─┐
 ├─ context-loader  ├─→    ├─ change-plan                ├─ adversarial      ├─→ REPORT
-├─ scope-guard    ─┘      ├─ implementation              ├─ security-check  ─┘
+├─ scope-guard    ─┘      ├─ implementation              ├─ diagnose  ─┘
 ├─ complexity     ─┘      │   ├─ component A (parallel)  ├─ performance    ─┘
                           │   ├─ component B (parallel)
                           │   └─ component C (parallel)
@@ -107,7 +107,7 @@ If two patch requests to the same file genuinely conflict (not just adjacent cha
 
 **Claude Code**: use the `Agent` tool with scoped prompts for each sub-agent.
 
-**Codex**: Codex CLI supports real subagent spawning — define agent roles (model, instructions, sandbox mode, MCP servers per role) in `config.toml`, then either let Codex decide when to spawn automatically or request it explicitly ("spawn one agent for security risks, one for test gaps, one for maintainability"). Codex handles spawn, wait, and result consolidation itself. For batch-style parallel work across many similar items, `spawn_agents_on_csv` fans out one agent per row. Map SDD Pipeline's phase split onto this: define a `think`, `build`, and `prove` agent role in `config.toml` (or reuse per-skill roles — e.g. a `security-check` role, an `arch-analyzer` role) with instructions pointing at the matching `skills/*/SKILL.md` file, then request the spawn explicitly at each phase boundary rather than relying on Codex to infer SDD Pipeline's specific pipeline structure on its own.
+**Codex**: Codex CLI supports real subagent spawning — define agent roles (model, instructions, sandbox mode, MCP servers per role) in `config.toml`, then either let Codex decide when to spawn automatically or request it explicitly ("spawn one agent for security risks, one for test gaps, one for maintainability"). Codex handles spawn, wait, and result consolidation itself. For batch-style parallel work across many similar items, `spawn_agents_on_csv` fans out one agent per row. Map SDD Pipeline's phase split onto this: define a `think`, `build`, and `prove` agent role in `config.toml` (or reuse per-skill roles — e.g. a `diagnose` role, an `arch-analyzer` role) with instructions pointing at the matching `skills/*/SKILL.md` file, then request the spawn explicitly at each phase boundary rather than relying on Codex to infer SDD Pipeline's specific pipeline structure on its own.
 
 **OpenCode**: see `subagent-patterns/SKILL.md` for sequential simulation.
 

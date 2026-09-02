@@ -1,6 +1,6 @@
 # SDLC Detector
 
-Detect the project's development methodology and adapt SDD Pipeline behavior accordingly.
+Detect the project's development methodology and adapt SDD Pipeline behavior accordingly. **Mandatory — never skipped, never left undeclared.** There is no "none" value: a project with no formal process is `solo`, which is itself a real, adapted-for methodology, not an absence of one.
 
 ## Detection Strategy
 
@@ -10,10 +10,15 @@ Detect the project's development methodology and adapt SDD Pipeline behavior acc
 
 ```
 # In docs/sdd/config.md
-sdlc: scrum | kanban | waterfall | solo | none
+sdlc: scrum | kanban | waterfall | solo
+sdlc-reason: [one sentence — why this methodology, stated when it was first set]
 ```
 
 If declared, use it. Skip detection.
+
+### Reasoning Is Not Optional
+
+Whenever SDLC is set — by config, auto-detect, or asking the user — state **why** in one sentence, and save it as `sdlc-reason` alongside the value. This isn't decoration: a developer who inherits this project later should understand *why* Kanban was assumed without re-deriving it from board configs. Auto-detect's reason is the signal that triggered it (`"WIP-limited board found in .github/project.yml"`); an asked answer's reason is the user's own words, kept verbatim.
 
 ### 2. Auto-Detect from Signals
 

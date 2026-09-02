@@ -97,7 +97,7 @@ Run `skills/think/sdlc-detector/SKILL.md` to detect methodology — **every mode
 2. Auto-detect from project signals (`.jira/`, `.linear/`, sprint labels, etc.)
 3. If undetected, ask once and save as a note in `docs/sdd/memory/`
 
-**Always announce the detected methodology in the THINK output** — e.g. `SDLC: kanban (detected from .github/project.yml)` or `SDLC: solo (no signals found, defaulted)`. Silent detection that's "passed to downstream skills" but never shown to the user is invisible work — invisible work doesn't build trust. SDLC context is passed to all downstream skills; see sdlc-detector for behavior adaptation per methodology.
+**Mandatory, never skippable — mode and SDLC are reported as one combined decision line, not two disconnected outputs.** Announce them together in the THINK output: `Mode: standard · SDLC: kanban (detected from .github/project.yml) — why: WIP-limited board found, single-piece flow assumed for scope guard`. Mode controls depth/visibility; SDLC controls methodology-shaped behavior (sprint awareness, WIP limits, phase gates) — they're two answers to "how do we work", always surfaced side by side so the developer sees the full operating context in one line, not scattered across the run. Silent detection that's "passed to downstream skills" but never shown to the user is invisible work — invisible work doesn't build trust. See sdlc-detector for the reasoning requirement and per-methodology behavior adaptation.
 
 ## Architecture Analysis
 
@@ -167,7 +167,7 @@ Inconsistent behavior ("sometimes it makes a plan, sometimes not, and I don't kn
 THINK (parallel)               BUILD (sequential)            PROVE (parallel)
 ├─ elicitation ──┐             ├─ doc-generator (adaptive)   ├─ verification ──┐
 ├─ context-loader ├─ merge ──→ ├─ test-plan (medium+)        ├─ adversarial    ├─ merge → REPORT
-├─ scope-guard   ─┤            ├─ TESTS FIRST (medium+) ←─┐ ├─ security-check ┤      + REVIEW GUIDE
+├─ scope-guard   ─┤            ├─ TESTS FIRST (medium+) ←─┐ ├─ diagnose ┤      + REVIEW GUIDE
 ├─ complexity    ─┤            ├─ constraints check      │ ├─ coverage-check ┤      + JUDGMENT
 ├─ sdlc-detector ─┤            ├─ change-plan            │ ├─ performance   ─┘
 ├─ arch-analyzer ─┤            ├─ anti-pattern check     │
@@ -240,7 +240,7 @@ When single-agent only (OpenCode, Cursor): run sequentially, use sub-agent patte
 
 1. **Project rules override SDD Pipeline defaults.** CLAUDE.md, AGENTS.md, project config always win.
 2. **Never refuse a user override — inform, then comply — except the non-negotiable floor.** A small set of rules are marked `OVERRIDE: none` (constraints/universal's "No Hardcoded Secrets" is the sharpest one) precisely because they're not meant to be arguable — for those, there is no inform-then-comply dance: refuse, full stop, no matter how insistent the ask or which mode is active. For every *other* override, the response is always the same three steps: (a) state the specific risk plainly and concretely (not vague "this might cause issues" — what breaks, when, how badly), (b) if the user accepts the risk, proceed without further pushback or repeated warnings, (c) log the override (decision log if it passes rule-of-three). Refusing outright, silently complying without stating risk, and nagging after acceptance are all wrong — for the overridable rules. Confusing an `OVERRIDE: none` rule for an overridable one is the one failure mode this whole priority list exists to prevent.
-3. **Emergency overrides everything — except that same non-negotiable floor.** In emergency mode, fix first, process later: skip elicitation, scope limits, docs, style constraints, deep security review. Never skip the `OVERRIDE: none` rules — emergency mode buys speed on process and ceremony, not on the one or two things marked non-negotiable for a reason. `skills/prove/security-check/`'s emergency row ("critical items only: secrets, injection") is the correct floor; a mode file that says "security: skip entirely" is wrong and should be brought back in line with this rule.
+3. **Emergency overrides everything — except that same non-negotiable floor.** In emergency mode, fix first, process later: skip elicitation, scope limits, docs, style constraints, deep security review. Never skip the `OVERRIDE: none` rules — emergency mode buys speed on process and ceremony, not on the one or two things marked non-negotiable for a reason. `skills/prove/diagnose/`'s emergency row ("critical items only: secrets, injection") is the correct floor; a mode file that says "security: skip entirely" is wrong and should be brought back in line with this rule.
 4. **Non-coding tasks: step back.** If task is not software (writing, research, analysis), skip SDD pipeline entirely. Pure brainstorming/discussion with no execution intent also skips SDD Pipeline — that's normal conversation, not a grill session. Grill only activates on explicit request or when a consequential decision is about to lock in via an execution signal.
 
 ## Session Persistence — Anchored to Repo State, Not Just Memory

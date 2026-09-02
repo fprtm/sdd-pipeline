@@ -49,6 +49,12 @@ When spec reaches the architecture step, these topics seed the grill frontier (s
    
    **Depth requirement**: per concern, name the specific mechanism and its target. "Product list cached in Redis, TTL 5min, invalidated on product update" — not "we'll add caching."
 
+8. **Deployment target** — project-wide, decided once (not per-feature), recorded in `docs/sdd/config.md`. Recommend, don't dictate: weigh app type (web/API/CLI/batch), scale (personal/MVP/enterprise — pull from mode and `sdlc-detector`'s solo-vs-team signal), and budget sensitivity, then present 2-3 concrete platform options with trade-offs and one recommendation, same `➡️` format as grill. **Start from the simplest platform that's actually sufficient for the stated scale** — don't recommend Kubernetes for a solo MVP; note when/what would justify scaling up later instead of designing for it now. The user can always override regardless of the recommendation.
+
+   **Depth requirement**: name the specific platform(s) compared (not "a cloud provider"), state the deciding factor, and record it with its reasoning in `config.md` — same "why," not just "what," standard as the SDLC field.
+
+   **If the chosen platform needs containerization** (Railway, Fly.io, a VPS, Kubernetes — not serverless platforms like Vercel/Netlify/Cloudflare Workers, which don't), generate a `Dockerfile` by default as part of this deliberation's output, plus a `docker-compose.yml` if local dev needs supporting services (database, cache). This is a default, not asked for separately — the user already chose a platform that implies it.
+
 **Topic skipped only when the product has no such surface** — a CLI with no frontend skips FE↔BE contract and component library. Mode controls depth (one round vs full rounds), not whether the topic is raised.
 
 ## Architecture Pattern Detection

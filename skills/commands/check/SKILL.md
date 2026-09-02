@@ -16,7 +16,7 @@ Is there a fresh change in play?
 │
 ├─ YES → VERIFY that change
 │         "Does this implementation satisfy its intended requirements?"
-│         Runs: skills/prove/verification + adversarial + security-check
+│         Runs: skills/prove/verification + adversarial + diagnose
 │                + performance-check + report + judgment gate
 │
 └─ NO  → AUDIT the codebase

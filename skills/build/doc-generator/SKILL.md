@@ -34,9 +34,10 @@ How SDD Pipeline detects task type:
 
 All documents are short, focused, and actionable. NOT enterprise bloatware. Full per-document templates (FSD, SDS, PRD, ERD, DoD, Test Plan) live in the companion file `skills/build/doc-generator/formats.md` — read it when actually generating a doc.
 
-Two rules that apply to every format, worth knowing before opening the templates:
+Three rules that apply to every format, worth knowing before opening the templates:
 - **Durability**: never reference file paths or line numbers in FSD/SDS/PRD — describe behavior and interfaces. The one exception is a short snippet that precisely encodes a decision (a type signature, an example payload).
 - **Length**: FSD/PRD max 1 page, SDS max 1.5 pages. Longer means over-specified.
+- **Nav header**: every generated doc opens with one line back to its feature's entry point — `[← Back to 00-index.md](00-index.md)` if a `tickets/00-index.md` reading-order guide exists for this feature, otherwise a relative link back to the sibling doc that reads first (per the reading order in doc-generator's "How to Review This Feature", usually `fsd.md`). This is what makes a human navigating the folder directly (not through the pipeline) able to find their way back without guessing.
 
 ## File Locations — One Folder Per Feature, Never Append-Forever
 
@@ -139,6 +140,8 @@ For each document, in order:
 1. **Announce before writing**: `Writing FSD-004 (catalog management) — the feature has user-facing behavior and acceptance criteria.` Name the doc and why that type applies.
 2. **Write it.**
 3. **Fidelity check** — if this document followed a deliberation session (spec's domain deliberation, or any grill round that settled specifics before this doc was written), re-read the settled answers against what just got written. Every specific value — names, numbers, cascade rules, status codes, thresholds — must trace back to an actual answer, not a plausible-sounding reconstruction. A document that captures the *gist* of a 20-minute deliberation but drops or rounds off the specifics has failed the document's one job. Fix silent drift immediately; escalate real contradictions to the user instead of picking one side quietly.
+
+   **Genericity check — same step, different failure mode.** Fidelity catches drift from what was decided; this catches prose that's *faithful* to nothing being wrong but says nothing specific either. Before the doc is reported as done, scan it against: (a) **portability test** — would this sentence still make sense pasted into a different feature's doc unchanged? If yes, it's boilerplate — rewrite with this feature's actual specifics (numbers, names, real trade-offs). (b) **claim-without-evidence** — "improves performance", "better UX", "follows best practices" with no number, comparison, or reasoning attached — cut or ground it. (c) Every option/trade-off presented actually reflects a considered alternative from the deliberation, not a template placeholder. Fix inline before the doc is reported as done — this is a silent self-edit, not something to show the user as a draft-then-fix step.
 4. **Report after**: filename, plus any decision the doc had to make that the user never stated — entity boundaries, what landed out of scope, a requirement's Must/Should priority. **These are the assumptions worth surfacing; a filename list alone hides them.**
 5. **Check in when the doc opened a real fork** (per `skills/commands/spec/SKILL.md`'s fork table — architecture pattern, v1 scope, entity model, UI direction, a Mitigate-vs-Accept control, ticket granularity). Use `skills/think/elicitation/`'s "How to Ask" rule: native question tool first. No real fork → one line and continue; a checkpoint with nothing to decide is ceremony.
 

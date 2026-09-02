@@ -68,6 +68,16 @@ test('unknown subdirectory is flagged', () => {
   assert.match(out, /unknown directory: scratch\//);
 });
 
+test('retired pre-v5.8.0 dir (e.g. design/) gets a migration suggestion, not a generic unknown-dir flag', () => {
+  const dir = scratch();
+  mkdirSync(join(dir, 'design'), { recursive: true });
+  withIndex(dir);
+  const { code, out } = run(dir);
+  assert.equal(code, 1);
+  assert.match(out, /old naming: design\/ is a pre-v5\.8\.0 layout/);
+  assert.doesNotMatch(out, /unknown directory: design\//);
+});
+
 test('a bare file directly in specs/ (not inside a feature folder) is flagged', () => {
   const dir = scratch();
   mkdirSync(join(dir, 'specs'), { recursive: true });
@@ -174,7 +184,31 @@ test('tickets/ with ticket files but no 00-index.md is flagged', () => {
   assert.match(out, /has ticket files but no 00-index\.md/);
 });
 
+test('tickets/ with ticket files but no fsd.md sibling is flagged (phase-gate: no SPEC evidence)', () => {
+  const dir = scratch();
+  const feat = join(dir, 'specs', '001-my-feature');
+  mkdirSync(join(feat, 'tickets'), { recursive: true });
+  writeFileSync(join(feat, 'tickets', '00-index.md'), '# Work Order\n\nTICKET-001\n');
+  writeFileSync(join(feat, 'tickets', '01-first.md'), '# TICKET-001 — First\n');
+  withIndex(dir, '- [x](specs/001-my-feature/)');
+  const { code, out } = run(dir);
+  assert.equal(code, 1);
+  assert.match(out, /has ticket files but no fsd\.md sibling/);
+});
+
 test('tickets/ with 00-index.md and valid ticket files passes', () => {
+  const dir = scratch();
+  const feat = join(dir, 'specs', '001-my-feature');
+  mkdirSync(join(feat, 'tickets'), { recursive: true });
+  writeFileSync(join(feat, 'fsd.md'), '# FSD');
+  writeFileSync(join(feat, 'tickets', '00-index.md'), '# Work Order\n\nTICKET-001\n');
+  writeFileSync(join(feat, 'tickets', '01-first.md'), '# TICKET-001 — First\n\n**Status**: ⬜ todo\n');
+  withIndex(dir, '- [x](specs/001-my-feature/)');
+  const { code, out } = run(dir);
+  assert.equal(code, 0, out);
+});
+
+test('tickets/ ticket file with no **Status**: line is flagged', () => {
   const dir = scratch();
   const feat = join(dir, 'specs', '001-my-feature');
   mkdirSync(join(feat, 'tickets'), { recursive: true });
@@ -183,7 +217,8 @@ test('tickets/ with 00-index.md and valid ticket files passes', () => {
   writeFileSync(join(feat, 'tickets', '01-first.md'), '# TICKET-001 — First\n');
   withIndex(dir, '- [x](specs/001-my-feature/)');
   const { code, out } = run(dir);
-  assert.equal(code, 0, out);
+  assert.equal(code, 1);
+  assert.match(out, /no valid \*\*Status\*\*: line found/);
 });
 
 test('design-system/ux-screens/ file missing updated: frontmatter is flagged', () => {

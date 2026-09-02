@@ -164,11 +164,24 @@ Before writing ticket files, ask — per `skills/think/elicitation/`'s "How to A
 
 Tier by the ticket's **intrinsic difficulty and blast radius**, not its size in lines:
 
-- **T1 — trivial/mechanical.** Well-bounded, one obvious way to do it, low blast radius: CRUD glue, a migration, a pure function with clear I/O, wiring an existing pattern. Safe for a junior dev or a **cheap/small model** (pairs with `skills/build/model-router/`'s CHEAP tier). A T1 ticket should read almost paint-by-numbers.
-- **T2 — standard.** Some judgment, touches 2–3 components, a couple of edge cases. Most tickets land here.
-- **T3 — complex/risky.** Cross-cutting, concurrency, security-sensitive, ambiguous, or hard to reverse. Senior dev or strong model, usually test-first with extra design attention. **Never hand a T3 to a cheap model unattended.** Security-control tickets (SEC-xxx) are usually T2/T3 — tier them honestly.
+- **T1 — trivial/mechanical.** Well-bounded, one obvious way to do it, low blast radius: CRUD glue, a migration, a pure function with clear I/O, wiring an existing pattern. Safe for a junior dev or a **cheap/small model** (pairs with `skills/build/model-router/`'s CHEAP tier). A T1 ticket should read almost paint-by-numbers. Single agent, straight to implementation — no role-split, the overhead isn't worth it.
+- **T2 — standard.** Some judgment, touches 2–3 components, a couple of edge cases. Most tickets land here. **Role-split before implementing**: a research/check-existing pass first (what's already here, what pattern does the codebase already use for this) *then* implement — sequentially if single-agent (Pattern 1 in `skills/agents/subagent-patterns/`), as separate sub-agents if dispatch is available. Skipping straight to code on a T2 is how "existing pattern reinvented slightly differently" bugs happen.
+- **T3 — complex/risky.** Cross-cutting, concurrency, security-sensitive, ambiguous, or hard to reverse. Senior dev or strong model, usually test-first with extra design attention. **Never hand a T3 to a cheap model unattended.** Security-control tickets (SEC-xxx) are usually T2/T3 — tier them honestly. Same role-split as T2, plus the Red Team pattern (`skills/agents/subagent-patterns/`) before it's considered done.
 
 Summarize the tier split at the top of the breakdown (counts per tier) so the user can plan cost/staffing. When asked "how long / how much", derive a transparent estimate from the tiers — **always ranges with stated assumptions, never false precision** — and re-estimate when the tickets change.
+
+## Review Checkpoint Cadence — Set by Mode, Never Silent
+
+How often the user is actually asked to look at finished work, before more gets built on top of it — this is separate from the 🧪 contract-check above (which always happens), and controls *when the user is pulled in*, not whether quality is checked:
+
+| Mode | Default cadence |
+|------|------------------|
+| `prototype` / `vibe` | Batch — review at the end of the feature (or a few tickets at a time), minimal interruption |
+| `standard` | **Per ticket** — review once each ticket hits ✅, before the next one starts |
+| `strict` | Per logical chunk *within* a ticket (schema change, endpoint, UI surface each get their own checkpoint) — finer than per-ticket |
+| `emergency` | Minimal mid-flight interruption for speed, but a final review is still mandatory before merge — urgency is not a waiver on review, just a deferral of when it happens |
+
+This is a **default, not a lock** — the user can override it explicitly at any point ("just build all the tickets, review at the end" or "stop and show me every change"), and that override holds for the rest of the session. Never silently switch cadence because the mode changed for an unrelated reason (e.g. switching to `strict` for doc depth doesn't retroactively change a review cadence the user already set explicitly).
 
 ## Working the Tickets — The Status Flow Is a Kanban
 
@@ -179,9 +192,10 @@ Summarize the tier split at the top of the breakdown (counts per tier) so the us
 1. Claim the next frontier ticket (all blockers resolved) → set 🔨.
 2. Run it through the normal SDD pipeline (THINK/BUILD/PROVE) as its own task.
 3. When the code + tests are written and the branch/PR is open → set 🧪. **This is the handoff state**: a review agent (or the human) picks up 🧪 tickets — the PROVE pass and review happen here, concurrent with other agents' 🔨 work.
-4. Review + gates pass and the branch merges → set ✅, recompute the frontier — newly-unblocked tickets become available. Hit a real blocker → set ⛔ with a one-line reason next to it, don't sit on 🔨 silently.
-5. **Update the status the moment it changes, not batched at the end** — the board (see `check-parallel-safety.mjs --board`) is only trustworthy if statuses are live. Also update the feature's status counts row in `index.md`.
-6. Never work more than one ticket at a time per agent session, unless tickets are explicitly parallel-safe (no shared files, no blocking edge) and multi-agent dispatch is available.
+4. **The 🧪 review is a contract check, not a vibe check — mandatory, never skipped**: read the ticket's own `Acceptance Criteria` and `Deliverables` line by line against what was actually built. Flag any mismatch before it moves further — a ticket that "looks done" but doesn't hit its own Given/When/Then doesn't get to ✅. Single agent: re-read the ticket cold, as if reviewing someone else's PR, not from memory of writing it (Pattern 1, `skills/agents/subagent-patterns/`). Dispatch available: a separate sub-agent does this pass — the implementer never marks its own homework.
+5. Review + gates pass and the branch merges → set ✅, recompute the frontier — newly-unblocked tickets become available. Hit a real blocker → set ⛔ with a one-line reason next to it, don't sit on 🔨 silently.
+6. **Update the status the moment it changes, not batched at the end** — the board (see `check-parallel-safety.mjs --board`) is only trustworthy if statuses are live. Also update the feature's status counts row in `index.md`.
+7. **Frontier tickets that are parallel-safe (no shared files, no blocking edge) get dispatched together, not worked one at a time "to be safe."** If multi-agent dispatch is available and the cost-benefit gate (`skills/agents/orchestration/`) clears, spawning the whole safe set at once is the default move for medium/large work, not an optional nicety — say so explicitly when presenting the breakdown, don't just mention it's *possible*. Single-agent environments fall back to sequential frontier order automatically; nothing breaks, it's just slower.
 
 **If mirrored to GitHub Issues**, sync status on every local change: apply a status label (`status:in-progress` / `status:testing` / `status:blocked`) and close the issue when the ticket hits ✅ (the `Closes #42` commit does this automatically at merge). The local file stays the SSOT — the labels are a mirror, updated in the same breath as the local edit, never a substitute.
 

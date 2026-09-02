@@ -84,7 +84,7 @@ For decisions that pass the rule-of-three bar (hard to reverse + surprising + re
 
 | Seat | Asks |
 |------|------|
-| **Devil's advocate** | "What is the strongest case that this whole decision is wrong?" — argued sincerely, not as a formality |
+| **Devil's advocate** | "What is the strongest case that this whole decision is wrong?" — argued sincerely, not as a formality. **Never stop at the objection**: when the case lands, follow it with 2-3 concrete alternatives (not vague "reconsider this") — each with its own tradeoff, plus which one you'd actually recommend and why. The user may not have the domain depth to invent the alternative themselves; refusing something without offering a way forward just stalls the session. A devil's advocate that only refutes is a critic; this seat is also the advisor. |
 | **Maintainer, 1 year later** | "What will whoever inherits this curse us for?" |
 | **Security** | "What's the attack surface this creates?" |
 | **The bill** | "What does this cost in ongoing complexity/infra/time — and is the problem worth that price?" |

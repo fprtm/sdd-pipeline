@@ -140,7 +140,7 @@ When: user A requests GET /api/orders/ORD-999
 Then: 403 Forbidden (not 200 with B's data, not 404 pretending it doesn't exist)
 ```
 
-**A SEC control without a test is a claim without evidence.** The security-check skill (`skills/prove/security-check/`) audits code against its checklist; the test plan generates the test that **proves it mechanically**.
+**A SEC control without a test is a claim without evidence.** The diagnose skill (`skills/prove/diagnose/`) audits code against its checklist; the test plan generates the test that **proves it mechanically**.
 
 ## Performance Test Cases — Measure, Don't Just Scan
 

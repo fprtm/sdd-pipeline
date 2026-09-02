@@ -19,8 +19,12 @@
 //      — fsd.md, sds.md, prd.md, threats.md, ux.md, erd.md, tests.md,
 //      dod.md, idea.md — plus an optional tickets/ subdirectory.
 //   3b. specs/{NNN}-{slug}/tickets/  — {NN}-{slug}.md ticket files, each
-//      containing a TICKET-xxx id, plus 00-index.md (required once any
-//      ticket file exists — it's the feature's entry point, never skipped).
+//      containing a TICKET-xxx id and a valid **Status**: line (todo/in
+//      progress/testing/done/blocked — an unstatused ticket is unworkable),
+//      plus 00-index.md (required once any ticket file exists — it's the
+//      feature's entry point, never skipped). tickets/ also can't exist
+//      without an fsd.md sibling — a phase-gate: no writing tickets before
+//      SPEC deliberation produced at least a minimal spec.
 //   3c. No two specs/ folders may share the same leading {NNN} with a
 //      different slug — that's a duplicate/collision, almost always an
 //      agent regenerating a slug instead of finding the existing folder.
@@ -51,6 +55,17 @@ const dir = process.argv[2] ?? 'docs/sdd';
 const SLUG = '[a-z0-9][a-z0-9-]*';
 const ROOT_MD = new Set(['index.md', 'config.md', 'glossary.md', 'traceability.md', 'HANDOFF.md', 'stack-guide.md', 'analytics.md', 'insights.md']);
 const KNOWN_DIRS = new Set(['specs', 'plans', 'reports', 'decisions', 'changes', 'stats', 'design-system', 'memory']);
+// Pre-v5.8.0 top-level dirs, retired when specs/ became folder-per-feature (v5.8.0)
+// and ux-screens/ moved under design-system/ — flagged with a migration hint,
+// never auto-fixed (migration is manual by design, see CHANGELOG.md v5.8.0).
+const RETIRED_DIRS = {
+  design: 'renamed to specs/ in v5.8.0 — git mv design/ specs/, then reorganize each {NNN}-{slug}-*.md into specs/{NNN}-{slug}/{type}.md',
+  erd: 'folded into specs/{NNN}-{slug}/erd.md in v5.8.0 — git mv each file into its feature folder',
+  'test-plans': 'folded into specs/{NNN}-{slug}/tests.md in v5.8.0',
+  dod: 'folded into specs/{NNN}-{slug}/dod.md in v5.8.0',
+  tickets: 'moved under specs/{NNN}-{slug}/tickets/ in v5.8.0 — no longer a top-level dir',
+  'ux-screens': 'moved to design-system/ux-screens/ in v5.8.0',
+};
 const DIR_RULES = {
   decisions: new RegExp(`^\\d{3}-${SLUG}\\.md$`),
   changes: new RegExp(`^\\d{4}-\\d{2}-\\d{2}-${SLUG}\\.md$`),
@@ -60,6 +75,7 @@ const DIR_RULES = {
 const ARCHIVE_RULE = new RegExp(`^\\d{4}-\\d{2}-\\d{2}-\\d{2}-${SLUG}\\.md$`);
 const FEATURE_DIR = new RegExp(`^(\\d{3})-(${SLUG})$`);
 const TICKET_FILE = new RegExp(`^\\d{2}-${SLUG}\\.md$`);
+const TICKET_STATUS = /\*\*Status\*\*:\s*(⬜ ?todo|🔨 ?in progress|🧪 ?testing\/review|✅ ?done|⛔ ?blocked)/;
 const ALLOWED_SPEC_FILES = new Set(['fsd.md', 'sds.md', 'prd.md', 'threats.md', 'ux.md', 'erd.md', 'tests.md', 'dod.md', 'idea.md']);
 
 if (!existsSync(dir)) {
@@ -89,7 +105,10 @@ const readText = (p) => readFileSync(p, 'utf8').replace(/\r\n/g, '\n');
 for (const e of ls(dir)) {
   const p = join(dir, e);
   if (isDir(p)) {
-    if (!KNOWN_DIRS.has(e)) flag(`unknown directory: ${e}/ — not part of the docs/sdd tree`);
+    if (!KNOWN_DIRS.has(e)) {
+      if (RETIRED_DIRS[e]) flag(`old naming: ${e}/ is a pre-v5.8.0 layout — suggested fix (manual, not auto-applied): ${RETIRED_DIRS[e]}`);
+      else flag(`unknown directory: ${e}/ — not part of the docs/sdd tree`);
+    }
   } else if (isMarkdownFile(p, e)) {
     if (!ROOT_MD.has(e)) flag(`stray file at root: ${e} — docs belong in a subdirectory (specs/, changes/, …)`);
   }
@@ -120,6 +139,7 @@ for (const e of ls(specsDir)) {
   if (!featureNumbers.has(num)) featureNumbers.set(num, []);
   featureNumbers.get(num).push(e);
 
+  const siblingFiles = new Set(ls(p).filter(fe => isMarkdownFile(join(p, fe), fe)));
   for (const fe of ls(p)) {
     const fp = join(p, fe);
     if (isDir(fp)) {
@@ -136,9 +156,17 @@ for (const e of ls(specsDir)) {
         hasTicketFile = true;
         const text = readText(tp);
         if (!/TICKET-\d+/.test(text)) flag(`specs/${e}/tickets/${te}: no global TICKET-xxx id found in the file`);
+        if (!TICKET_STATUS.test(text)) flag(`specs/${e}/tickets/${te}: no valid **Status**: line found — a ticket without a status is unworkable (expected one of ⬜ todo, 🔨 in progress, 🧪 testing/review, ✅ done, ⛔ blocked)`);
       }
       if (hasTicketFile && !ticketEntries.includes('00-index.md')) {
         flag(`specs/${e}/tickets/: has ticket files but no 00-index.md — every feature with tickets needs its entry point (spec refs + How to Review + status table), never skipped`);
+      }
+      // Phase-gate: BUILD/PLAN artifacts (tickets) can't exist without SPEC evidence.
+      // fsd.md is the one doc every task size above micro produces (see spec/SKILL.md's
+      // "small: minimal spec... medium: FSD... large: full doc suite") — its absence
+      // means tickets were written straight from a request, skipping deliberation.
+      if (hasTicketFile && !siblingFiles.has('fsd.md')) {
+        flag(`specs/${e}/tickets/: has ticket files but no fsd.md sibling — tickets must not be written before SPEC deliberation produced at least a minimal spec. Run spec first, or if this was intentionally skipped (micro task), tickets shouldn't exist as a folder at all.`);
       }
     } else if (isMarkdownFile(fp, fe)) {
       if (!ALLOWED_SPEC_FILES.has(fe)) flag(`bad filename: specs/${e}/${fe} — expected one of ${[...ALLOWED_SPEC_FILES].join(', ')}`);

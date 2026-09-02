@@ -2,6 +2,8 @@
 
 Standard git safety rules always apply first (never force-push, never skip hooks, confirm before anything destructive or shared). This skill is about **shape**: how commits and PRs stay traceable to the ticket/FSD/decision that caused them. Applies whenever there's something to commit, and at ship time for the PR/changelog.
 
+**Confirm before every commit, explicitly, in this skill — not inherited from the harness.** Some environments auto-confirm commits by default; this framework never assumes that. Show what's about to be committed (files + the drafted message) and wait for a go-ahead, unless the user already pre-authorized a batch of work in this session ("commit as you go", "kerjain semua ticket-nya"). This applies identically across every harness sdd-pipeline runs in — the rule lives here, not in harness defaults.
+
 ## Commit Granularity
 
 **One commit per ticket** (or per clearly separable step within a large ticket) — not one giant commit at session end. Each commit revertable on its own without breaking the tree. Parallel agents working a wave of tickets: each ticket still gets its own commit.

@@ -29,7 +29,7 @@ Activate emergency mode when prompt contains urgency signals:
 | Execution guard | Loop detection after 2 tries. Escalate FAST. |
 | Verification | Quick smoke test: does the fix work? |
 | Adversarial | Skip. |
-| Security | Full checklist deferred to post-fix, but critical items (secrets, injection) still run — matches `skills/prove/security-check/`'s own emergency row. Never fully skipped. |
+| Security | Full checklist deferred to post-fix, but critical items (secrets, injection) still run — matches `skills/prove/diagnose/`'s own emergency row. Never fully skipped. |
 | Performance | Skip. |
 | Report | 1-line: "Fix applied. [test result]." |
 | Decision log | Post-facto: "Emergency fix: [what] [why] [files touched]." |

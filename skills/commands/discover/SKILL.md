@@ -1,6 +1,6 @@
 ---
 name: discover
-description: Product discovery — take an idea from fog to settled decisions before anything is written. Opens as conversation when the idea is still vague, then shifts into a seat-by-seat interrogation (why, constraints, what, data, technical) with council review. Absorbs what used to be a separate brainstorm command.
+description: Product discovery — settles WHICH (problem, scope, entities, stack direction) before anything is written. Opens as conversation when the idea is still vague, then shifts into a seat-by-seat interrogation (why/JTBD, constraints, what/MoSCoW, data, technical) with council review, announced out loud when it shifts. Not the same step as /spec, which settles HOW (detailed design) once discover's decisions are already fixed — see this file's "Boundary" section for the exact split. Absorbs what used to be a separate brainstorm command.
 disable-model-invocation: true
 ---
 
@@ -30,9 +30,9 @@ Gear 2 works through five seats, in dependency order. A seat earns its place by 
 
 | # | Seat | What gets settled |
 |---|------|-------------------|
-| 1 | **Why** | The problem, who has it, and **what would count as this working** — the success measure is the operational definition of the goal, so it belongs here, not in a separate analytics conversation |
+| 1 | **Why** | The problem, who has it, and **what would count as this working** — the success measure is the operational definition of the goal, so it belongs here, not in a separate analytics conversation. Frame this as a **Job to be Done**: what is the user *hiring* this feature to do for them, not the feature they asked for verbatim — a request for "a notification button" might really be a job of "know when I need to act, without checking manually." Surfacing the job, not just the ask, is what catches the case where the literal request solves the wrong problem. |
 | 2 | **Constraints** | Budget, deadline, who maintains this at 2am, systems already in place, what data is sensitive and which regulatory regime applies |
-| 3 | **What** | Scope: in v1 vs deferred. The main flows. UI direction |
+| 3 | **What** | Scope, prioritized with **MoSCoW** (Must / Should / Could / Won't) — not just a "v1 vs deferred" list. Must = the job from seat 1 doesn't get done without it. Should = real value, not blocking. Could = nice, cut first under pressure. Won't = said out loud so it doesn't quietly creep back in later. The main flows. UI direction. |
 | 4 | **Data** | The entities the business actually distinguishes, and how they're stored |
 | 5 | **Technical** | Architecture and stack — the agent recommends from its own decision matrix, the user carries the consequence (team size, familiarity, hosting, cost) |
 

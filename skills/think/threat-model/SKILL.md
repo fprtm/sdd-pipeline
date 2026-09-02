@@ -1,6 +1,6 @@
 # Threat Model — Security as a Design Activity (SSDLC)
 
-Bake security into the design instead of bolting it on after code exists. Every data flow that crosses a trust boundary is an attack surface — reason about it **before** code, when fixes are cheap. This is the THINK-phase half of security; `skills/prove/security-check/` is the post-code PROVE-phase half, and the two are linked by SEC-xxx IDs.
+Bake security into the design instead of bolting it on after code exists. Every data flow that crosses a trust boundary is an attack surface — reason about it **before** code, when fixes are cheap. This is the THINK-phase half of security; `skills/prove/diagnose/` is the post-code PROVE-phase half, and the two are linked by SEC-xxx IDs.
 
 ## When This Runs
 
@@ -50,14 +50,14 @@ Verified by: TEST-041 (security/regression)
 
 ## Step 4 — Cover the Baseline (OWASP-ish) Regardless of the DFD
 
-Always confirm addressed or consciously N/A: input validation & output encoding (injection/XSS) · authN & session management · authorization on every server-side action (never trust the client) · secrets management (no secrets in code/repo/URLs) · TLS everywhere · dependency & supply-chain hygiene (pin, scan, update) · logging/monitoring without logging secrets · safe defaults (deny by default, least privilege). This overlaps `prove/security-check`'s checklists deliberately — here it shapes the *design*; there it audits the *code*.
+Always confirm addressed or consciously N/A: input validation & output encoding (injection/XSS) · authN & session management · authorization on every server-side action (never trust the client) · secrets management (no secrets in code/repo/URLs) · TLS everywhere · dependency & supply-chain hygiene (pin, scan, update) · logging/monitoring without logging secrets · safe defaults (deny by default, least privilege). This overlaps `prove/diagnose`'s checklists deliberately — here it shapes the *design*; there it audits the *code*.
 
 ## SSDLC Hooks — Not One-and-Done
 
 - `skills/build/test-plan/` must create a TEST-xxx (security/regression class) for **each High/Critical control**.
 - `skills/build/ticket-decomposition/` must create a ticket for each control that needs code (tiered honestly — usually not the cheapest tier).
 - `/sdd-pipeline:check` on the affected area re-runs this skill: confirm nothing regressed and no new boundary-crossing flow appeared without a threat pass.
-- `skills/prove/security-check/` findings cite the SEC-xxx they verify or violate, when a threat model exists.
+- `skills/prove/diagnose/` findings cite the SEC-xxx they verify or violate, when a threat model exists.
 - `skills/prove/judgment/`'s security-prior escalation still applies on top — automated pass ≠ human sign-off in these zones.
 
 ## Exit Gate

@@ -64,4 +64,10 @@ See `skills/build/constraints/SKILL.md` for the full constraint engine behavior.
 - **RULE**: Validate at system edges. Trust internal code.
 - **RATIONALE**: Over-defensive code is noisy. Real errors happen at boundaries.
 - **OVERRIDE**: Internal code handles unpredictable data.
+
+### 11. Doc Comments Stay Short
+- **RULE**: JSDoc/docstring/doc-comment on a function is 1-2 sentences — what it does, not how. A file-level comment at the top (what this file's scope is) is fine, also short. Never reference `docs/sdd/` artifacts (ticket IDs, FSD/SDS names, "implements TICKET-018") inside a doc comment.
+- **RATIONALE**: The code and its identifiers already say *what*; a doc comment earns its place only by adding something non-obvious, briefly. Ticket/spec references belong in the commit message and traceability matrix — they rot in code (a ticket closes, the comment doesn't know) and clutter the one place a reader wants pure signal.
+- **OVERRIDE**: A public library API may need a longer doc comment (params, return shape, example) if it's the only doc consumers see — still no `docs/sdd/` references.
+- **CHECK**: mechanical (grep for TICKET-/FSD-/SDS- patterns inside comment blocks)
 - **CHECK**: judgment

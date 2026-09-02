@@ -1,6 +1,27 @@
-# Security Check
+# Diagnose
 
-Two layers: **checklist audit** (domain-aware static review of the code) and **executable security test verification** (run the test plan's security cases and confirm mitigations work mechanically). The design-phase half is `skills/think/threat-model/` (STRIDE, SEC-xxx controls); this skill audits what the code actually does and verifies the tests actually prove it.
+Single entry point for "something's wrong" — a bug report, an open ticket nobody's touched, a nagging feeling the implementation drifted from spec, or a security posture check. Default-on, read-only: nothing here installs a package or actively attempts an exploit — that's `skills/prove/pentest/`, invoked explicitly when diagnose finds something worth verifying with a live attempt.
+
+Three things this skill does, run whichever apply to what's actually being asked:
+
+## 1. Gap / Orphan Check
+
+Is there dangling work nobody's tracking? Run the mechanical checkers and summarize in plain language, not raw tool output:
+- `check-file-hygiene.mjs` and `check-traceability.mjs` (`skills/meta/traceability/`) — tree drift, orphaned docs, ID spine gaps.
+- Ticket status board (`check-parallel-safety.mjs --board`, `skills/agents/parallel-work/`) — tickets stuck in 🔨 or 🧪 past a reasonable session, blockers nobody resolved.
+- Traceability matrix rows still 🟡/🔴 for a feature reported as "done".
+
+## 2. Bug Root-Cause Trace
+
+Given a bug report, find *where* behavior diverged from what was actually specified — don't start reading code blind:
+1. Find the feature's spec folder (Number-First Lookup if the number's known, else search `index.md`/glossary for the feature name — never re-derive a slug and create a second folder).
+2. Read the relevant ticket's `Acceptance Criteria` (Given/When/Then) and `fsd.md`'s described behavior — this is the contract the code was supposed to meet.
+3. Compare actual behavior (reported symptom, or reproduce it) against that contract line by line. The divergence point *is* the root cause — not a guess from skimming the implementation.
+4. If no spec/ticket exists for this behavior at all, say so explicitly — that's itself a finding ("this was never specified, the bug is really a spec gap").
+
+## 3. Security Posture Check (Passive)
+
+**Checklist audit** (domain-aware static review of the code) and **executable security test verification** (run the test plan's security cases and confirm mitigations work mechanically) — both passive, no active exploitation. The design-phase half is `skills/think/threat-model/` (STRIDE, SEC-xxx controls); this half audits what the code actually does and verifies the tests actually prove it. If this check surfaces something that needs a live attempt to confirm (not just static review), hand off to `skills/prove/pentest/` explicitly — don't attempt it here.
 
 ## Process
 
