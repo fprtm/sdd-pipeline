@@ -3,6 +3,25 @@
 All notable changes to SDD Pipeline. Versioning is [SemVer](https://semver.org/).
 Plain-language where possible.
 
+## [6.4.0] — 2026-09-06
+
+Follow-up to v6.3.0's isikelas audit: the mechanical checks caught the
+missing SDLC declaration and doc nav-headers, but manual review of the
+project's design output surfaced a third instance of the same failure mode.
+`design.md`'s content itself was genuinely good — specific tokens, real
+accessibility notes, non-generic component patterns — but there was no
+record anywhere of *how* that direction was grounded: no citation of
+`ui-ux-pro-max`, no reference to a `docs/design-system-styles/` entry, no
+"respect-existing" note. A good-sounding direction is not evidence it was
+actually grounded in a reference rather than invented in the moment.
+
+### Added
+- **`design.md` must declare `**Design source**:`** — one of `ui-ux-pro-max`,
+  a specific `docs/design-system-styles/<slug>.md` filename, `respect-existing`,
+  or `custom: <reason>`. Enforced by `check-file-hygiene.mjs`, same audit
+  principle as `sdlc-reason`: a decision with no recorded reason can't be
+  told apart from one made up on the spot.
+
 ## [6.3.0] — 2026-09-06
 
 Found live in a real v6.2.0 usage: the `isikelas` project (built via Codex,

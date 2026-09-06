@@ -227,6 +227,15 @@ if (isDir(join(dir, 'design-system'))) {
   const entries = ls(join(dir, 'design-system'));
   if (!entries.includes('design.md')) {
     flag(`design-system/ exists but has no design.md — the UI needs one entry doc, however many files the content splits into (see skills/think/ux-design/)`);
+  } else {
+    // "Design source" is not optional — a direction with no recorded
+    // grounding (ui-ux-pro-max / a style-catalog file / respect-existing /
+    // an explicit custom reason) can't be told apart from one invented in
+    // the moment, the same audit gap sdlc-reason closes for SDLC.
+    const designText = readText(join(dir, 'design-system', 'design.md'));
+    if (!/\*\*Design source\*\*:\s*\S+/i.test(designText)) {
+      flag(`design-system/design.md: missing "**Design source**:" — must state ui-ux-pro-max, a docs/design-system-styles/<slug>.md file, respect-existing, or custom + reason (see skills/think/ux-design/SKILL.md's "Style Grounding")`);
+    }
   }
   const uxScreensDir = join(dir, 'design-system', 'ux-screens');
   for (const e of ls(uxScreensDir)) {

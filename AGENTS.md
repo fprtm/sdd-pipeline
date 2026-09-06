@@ -1,4 +1,4 @@
-# SDD Pipeline v6.3.0 — Spec in Front, Judgment Behind
+# SDD Pipeline v6.4.0 — Spec in Front, Judgment Behind
 
 You are operating under SDD Pipeline. Read `skills/orchestrator/SKILL.md` for full instructions.
 

@@ -289,7 +289,7 @@ test('design-system/ux-screens/ file with all required frontmatter passes', () =
   const dir = scratch();
   mkdirSync(join(dir, 'design-system', 'ux-screens'), { recursive: true });
   withIndex(dir);
-  writeFileSync(join(dir, 'design-system', 'design.md'), '# Design');
+  writeFileSync(join(dir, 'design-system', 'design.md'), '# Design\n\n**Design source**: ui-ux-pro-max\n');
   writeFileSync(
     join(dir, 'design-system', 'ux-screens', 'checkout.md'),
     '---\ndescription: checkout flow\npriority: Must\nupdated: 2026-08-20\n---\n# Checkout'
@@ -356,7 +356,7 @@ test('regression: CRLF line endings in frontmatter no longer false-positive "mis
   const dir = scratch();
   mkdirSync(join(dir, 'design-system', 'ux-screens'), { recursive: true });
   withIndex(dir);
-  writeFileSync(join(dir, 'design-system', 'design.md'), '# Design');
+  writeFileSync(join(dir, 'design-system', 'design.md'), '# Design\n\n**Design source**: ui-ux-pro-max\n');
   const crlf = ['---', 'description: checkout flow', 'priority: Must', 'updated: 2026-08-20', '---', '# Checkout'].join('\r\n');
   writeFileSync(join(dir, 'design-system', 'ux-screens', 'checkout.md'), crlf);
   const { code, out } = run(dir);
@@ -399,9 +399,31 @@ test('design-system/ with design.md passes, whatever else it splits into', () =>
   const dir = scratch();
   mkdirSync(join(dir, 'design-system'), { recursive: true });
   withIndex(dir);
-  writeFileSync(join(dir, 'design-system', 'design.md'), '# Design');
+  writeFileSync(join(dir, 'design-system', 'design.md'), '# Design\n\n**Design source**: ui-ux-pro-max\n');
   writeFileSync(join(dir, 'design-system', 'tokens.md'), '# Tokens');
   writeFileSync(join(dir, 'design-system', 'anything-an-external-skill-wrote.md'), '# Ext');
+  const { code, out } = run(dir);
+  assert.equal(code, 0, out);
+});
+
+test('design.md missing "**Design source**:" is flagged', () => {
+  const dir = scratch();
+  mkdirSync(join(dir, 'design-system'), { recursive: true });
+  withIndex(dir);
+  writeFileSync(join(dir, 'design-system', 'design.md'), '# Design\n\nNo source line at all.');
+  const { code, out } = run(dir);
+  assert.equal(code, 1);
+  assert.match(out, /missing "\*\*Design source\*\*:"/);
+});
+
+test('design.md with a custom design source reason passes', () => {
+  const dir = scratch();
+  mkdirSync(join(dir, 'design-system'), { recursive: true });
+  withIndex(dir);
+  writeFileSync(
+    join(dir, 'design-system', 'design.md'),
+    '# Design\n\n**Design source**: custom: internal brand guide, no catalog needed\n'
+  );
   const { code, out } = run(dir);
   assert.equal(code, 0, out);
 });
