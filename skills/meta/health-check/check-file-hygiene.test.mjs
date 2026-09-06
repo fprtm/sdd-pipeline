@@ -111,7 +111,7 @@ test('bad filename inside a feature folder is flagged', () => {
 test('correctly-named feature folder with bare fsd.md, referenced in index.md, passes', () => {
   const dir = scratch();
   mkdirSync(join(dir, 'specs', '001-my-feature'), { recursive: true });
-  writeFileSync(join(dir, 'specs', '001-my-feature', 'fsd.md'), '# FSD: My Feature');
+  writeFileSync(join(dir, 'specs', '001-my-feature', 'fsd.md'), '[← Back](fsd.md)\n\n# FSD: My Feature');
   withIndex(dir, '- [My Feature](specs/001-my-feature/)');
   const { code, out } = run(dir);
   assert.equal(code, 0, out);
@@ -131,10 +131,63 @@ test('all eight allowed spec filenames pass in one feature folder', () => {
   const dir = scratch();
   const feat = join(dir, 'specs', '002-full-feature');
   mkdirSync(feat, { recursive: true });
-  for (const f of ['fsd.md', 'sds.md', 'prd.md', 'threats.md', 'ux.md', 'erd.md', 'tests.md', 'dod.md']) {
-    writeFileSync(join(feat, f), `# ${f}`);
+  for (const f of ['fsd.md', 'sds.md', 'prd.md', 'threats.md', 'ux.md', 'erd.md', 'tests.md']) {
+    writeFileSync(join(feat, f), `[← Back to fsd.md](fsd.md)\n\n# ${f}`);
   }
+  writeFileSync(join(feat, 'dod.md'), '# dod.md'); // exempt from nav-header requirement
   withIndex(dir, '- [Full Feature](specs/002-full-feature/)');
+  const { code, out } = run(dir);
+  assert.equal(code, 0, out);
+});
+
+test('a spec doc (fsd.md) missing the nav-header link is flagged', () => {
+  const dir = scratch();
+  const feat = join(dir, 'specs', '001-my-feature');
+  mkdirSync(feat, { recursive: true });
+  writeFileSync(join(feat, 'fsd.md'), '# FSD\n\nNo link back to anywhere.');
+  withIndex(dir, '- [x](specs/001-my-feature/)');
+  const { code, out } = run(dir);
+  assert.equal(code, 1);
+  assert.match(out, /missing a nav-header link/);
+});
+
+test('dod.md and idea.md are exempt from the nav-header requirement', () => {
+  const dir = scratch();
+  const feat = join(dir, 'specs', '001-my-feature');
+  mkdirSync(feat, { recursive: true });
+  writeFileSync(join(feat, 'fsd.md'), '[← Back](fsd.md)\n\n# FSD');
+  writeFileSync(join(feat, 'dod.md'), '# DoD checklist, no link');
+  writeFileSync(join(feat, 'idea.md'), '# Idea, no link');
+  withIndex(dir, '- [x](specs/001-my-feature/)');
+  const { code, out } = run(dir);
+  assert.equal(code, 0, out);
+});
+
+test('config.md missing "sdlc:" is flagged', () => {
+  const dir = scratch();
+  mkdirSync(dir, { recursive: true });
+  writeFileSync(join(dir, 'config.md'), '# Config\n\nmode: standard\n');
+  withIndex(dir);
+  const { code, out } = run(dir);
+  assert.equal(code, 1);
+  assert.match(out, /missing "sdlc:"/);
+});
+
+test('config.md with "sdlc:" but no "sdlc-reason:" is flagged', () => {
+  const dir = scratch();
+  mkdirSync(dir, { recursive: true });
+  writeFileSync(join(dir, 'config.md'), '# Config\n\nsdlc: solo\n');
+  withIndex(dir);
+  const { code, out } = run(dir);
+  assert.equal(code, 1);
+  assert.match(out, /no "sdlc-reason:"/);
+});
+
+test('config.md with both sdlc: and sdlc-reason: passes', () => {
+  const dir = scratch();
+  mkdirSync(dir, { recursive: true });
+  writeFileSync(join(dir, 'config.md'), '# Config\n\nsdlc: agile\nagile-framework: kanban\nsdlc-reason: WIP-limited board found\n');
+  withIndex(dir);
   const { code, out } = run(dir);
   assert.equal(code, 0, out);
 });
@@ -200,7 +253,7 @@ test('tickets/ with 00-index.md and valid ticket files passes', () => {
   const dir = scratch();
   const feat = join(dir, 'specs', '001-my-feature');
   mkdirSync(join(feat, 'tickets'), { recursive: true });
-  writeFileSync(join(feat, 'fsd.md'), '# FSD');
+  writeFileSync(join(feat, 'fsd.md'), '[← Back to tickets/00-index.md](tickets/00-index.md)\n\n# FSD');
   writeFileSync(join(feat, 'tickets', '00-index.md'), '# Work Order\n\nTICKET-001\n');
   writeFileSync(join(feat, 'tickets', '01-first.md'), '# TICKET-001 — First\n\n**Status**: ⬜ todo\n');
   withIndex(dir, '- [x](specs/001-my-feature/)');

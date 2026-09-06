@@ -77,6 +77,12 @@ const FEATURE_DIR = new RegExp(`^(\\d{3})-(${SLUG})$`);
 const TICKET_FILE = new RegExp(`^\\d{2}-${SLUG}\\.md$`);
 const TICKET_STATUS = /\*\*Status\*\*:\s*(⬜ ?todo|🔨 ?in progress|🧪 ?testing\/review|✅ ?done|⛔ ?blocked)/;
 const ALLOWED_SPEC_FILES = new Set(['fsd.md', 'sds.md', 'prd.md', 'threats.md', 'ux.md', 'erd.md', 'tests.md', 'dod.md', 'idea.md']);
+// Docs that must open with a nav-header link (see doc-generator's "Document
+// Formats") — excludes dod.md (a checklist) and idea.md (an informal,
+// optional Gear-1 note), neither of which are the reading-order-guided docs
+// this rule targets.
+const NAV_REQUIRED = new Set(['fsd.md', 'sds.md', 'prd.md', 'threats.md', 'ux.md', 'erd.md', 'tests.md']);
+const NAV_LINK_RE = /\[[^\]]*\]\([^)]+\.md\)/;
 
 if (!existsSync(dir)) {
   console.error(`No ${dir} — nothing to check (fine for a docs-less run).`);
@@ -111,6 +117,18 @@ for (const e of ls(dir)) {
     }
   } else if (isMarkdownFile(p, e)) {
     if (!ROOT_MD.has(e)) flag(`stray file at root: ${e} — docs belong in a subdirectory (specs/, changes/, …)`);
+    // config.md must declare an SDLC model — "mandatory, never skipped" (see
+    // sdlc-detector/SKILL.md) was, until this check existed, only a written
+    // instruction with no mechanical backstop, and got silently skipped in
+    // real usage (found live in the isikelas project, Codex/GPT-5.6-Terra).
+    if (e === 'config.md') {
+      const text = readText(p);
+      if (!/^sdlc:\s*\S+/mi.test(text)) {
+        flag(`config.md: missing "sdlc:" — SDLC model is mandatory (never skipped, never left undeclared), see skills/think/sdlc-detector/SKILL.md`);
+      } else if (!/^sdlc-reason:\s*\S+/mi.test(text)) {
+        flag(`config.md: has "sdlc:" but no "sdlc-reason:" — every SDLC value must be set with a one-sentence reason, see skills/think/sdlc-detector/SKILL.md`);
+      }
+    }
   }
 }
 
@@ -170,6 +188,17 @@ for (const e of ls(specsDir)) {
       }
     } else if (isMarkdownFile(fp, fe)) {
       if (!ALLOWED_SPEC_FILES.has(fe)) flag(`bad filename: specs/${e}/${fe} — expected one of ${[...ALLOWED_SPEC_FILES].join(', ')}`);
+      // Nav header — "every generated doc opens with one line back to its
+      // feature's entry point" (doc-generator/SKILL.md's "Document Formats").
+      // Written-only rule, found silently skipped in real usage (isikelas) —
+      // exempts dod.md/idea.md (checklists/informal notes, not the reading-
+      // order-guided docs this rule targets).
+      if (NAV_REQUIRED.has(fe)) {
+        const firstLines = readText(fp).split('\n').slice(0, 6).join('\n');
+        if (!NAV_LINK_RE.test(firstLines)) {
+          flag(`specs/${e}/${fe}: missing a nav-header link back to the feature's entry point in the first few lines (e.g. "[← Back to 00-index.md](00-index.md)") — see doc-generator/SKILL.md's "Document Formats"`);
+        }
+      }
     }
   }
 }

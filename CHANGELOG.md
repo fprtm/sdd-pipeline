@@ -3,6 +3,27 @@
 All notable changes to SDD Pipeline. Versioning is [SemVer](https://semver.org/).
 Plain-language where possible.
 
+## [6.3.0] — 2026-09-06
+
+Found live in a real v6.2.0 usage: the `isikelas` project (built via Codex,
+GPT-5.6-Terra-medium) passed both mechanical checkers cleanly, but manual
+inspection found two written-only rules silently skipped: `config.md` never
+declared an SDLC model at all (despite `sdlc-detector` calling it "mandatory,
+never skipped"), and generated docs (fsd.md, sds.md, etc.) never carried the
+nav-header link back to the feature's entry point (v6.0.0's doc-generator
+rule). Both rules had zero mechanical backstop — exactly the failure mode
+the phase-gate and ticket-status checks (v6.0.0) were built to close, just
+not extended to these two.
+
+### Added
+- **`check-file-hygiene.mjs`: `config.md` must declare `sdlc:` and
+  `sdlc-reason:`.** Missing either is now a hygiene failure, not just an
+  unenforced instruction.
+- **`check-file-hygiene.mjs`: spec docs (fsd/sds/prd/threats/ux/erd/tests.md)
+  must open with a nav-header link** in their first few lines. `dod.md` and
+  `idea.md` are exempt (checklist / informal Gear-1 note, not part of the
+  reading-order guide this rule targets).
+
 ## [6.2.0] — 2026-09-02
 
 Found live: an agent working on the `commercehub` project (pre-dates v6, on
