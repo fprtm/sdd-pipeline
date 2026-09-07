@@ -3,6 +3,38 @@
 All notable changes to SDD Pipeline. Versioning is [SemVer](https://semver.org/).
 Plain-language where possible.
 
+## [6.7.0] — 2026-09-07
+
+Reviewed a real screen spec (`client-intake-form.md`, a separate project)
+against the "buildable by a junior dev or cheap model" bar this whole
+session has been pushing toward. It was genuinely strong on UX (states,
+interaction table, reasoning) but left form-field data types unstated
+("Complaint Area", "Priority" with no select/text/number distinction) —
+exactly the kind of ambiguity that makes two builds (or two runs of the
+same model) diverge non-deterministically. Unlike the four prior fixes this
+cycle (SDLC/nav-header/design-source/direction-confirmed), this wasn't an
+existing instruction getting skipped — `ux-design/SKILL.md` never asked for
+field types in the first place. A genuine specification gap, not a
+compliance gap.
+
+### Added
+- **`## Layout & Visual Composition`** — new section, required on every
+  `ux-screens/` file. The *UI* half of a screen spec (structure, visual
+  hierarchy, element→token mapping) alongside the existing *UX* half
+  (interactions, states). Written so it's usable by a design-generation
+  tool (Stitch, Figma AI, Claude's design tooling) as well as a coding
+  agent and a human reviewer — structured tables/lists, not free prose.
+  Enforced by `check-file-hygiene.mjs`.
+- **`## Input Specification`** — new section, required only when a screen
+  has anything the user can type/select/filter/sort/toggle; omitted on
+  pure display screens (same "skip only when there's no such surface"
+  principle used elsewhere). A `Control | Type | Constraint | Required` or
+  `Default` table — removes exactly the field-type ambiguity found above.
+- **§3 deliberation strengthened**: neither new section may be filled in
+  silently — both go through the same per-flow grill (frontier/round,
+  every non-obvious choice carrying a recommendation) this skill already
+  runs, before the file is written.
+
 ## [6.6.0] — 2026-09-06
 
 Same isikelas project, one more finding: `ux.md` opened with a declarative

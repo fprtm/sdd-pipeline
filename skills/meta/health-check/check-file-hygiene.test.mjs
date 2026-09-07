@@ -365,10 +365,24 @@ test('design-system/ux-screens/ file with all required frontmatter passes', () =
   writeFileSync(join(dir, 'design-system', 'design.md'), '# Design\n\n**Design source**: ui-ux-pro-max\n');
   writeFileSync(
     join(dir, 'design-system', 'ux-screens', 'checkout.md'),
-    '---\ndescription: checkout flow\npriority: Must\nupdated: 2026-08-20\n---\n# Checkout'
+    '---\ndescription: checkout flow\npriority: Must\nupdated: 2026-08-20\n---\n# Checkout\n\n## Layout & Visual Composition\n\nSingle column.'
   );
   const { code, out } = run(dir);
   assert.equal(code, 0, out);
+});
+
+test('design-system/ux-screens/ file missing "## Layout & Visual Composition" is flagged', () => {
+  const dir = scratch();
+  mkdirSync(join(dir, 'design-system', 'ux-screens'), { recursive: true });
+  withIndex(dir);
+  writeFileSync(join(dir, 'design-system', 'design.md'), '# Design\n\n**Design source**: ui-ux-pro-max\n');
+  writeFileSync(
+    join(dir, 'design-system', 'ux-screens', 'checkout.md'),
+    '---\ndescription: checkout flow\npriority: Must\nupdated: 2026-08-20\n---\n# Checkout'
+  );
+  const { code, out } = run(dir);
+  assert.equal(code, 1);
+  assert.match(out, /missing "## Layout & Visual Composition"/);
 });
 
 test('changes/ file missing status: frontmatter is flagged', () => {
@@ -430,7 +444,7 @@ test('regression: CRLF line endings in frontmatter no longer false-positive "mis
   mkdirSync(join(dir, 'design-system', 'ux-screens'), { recursive: true });
   withIndex(dir);
   writeFileSync(join(dir, 'design-system', 'design.md'), '# Design\n\n**Design source**: ui-ux-pro-max\n');
-  const crlf = ['---', 'description: checkout flow', 'priority: Must', 'updated: 2026-08-20', '---', '# Checkout'].join('\r\n');
+  const crlf = ['---', 'description: checkout flow', 'priority: Must', 'updated: 2026-08-20', '---', '# Checkout', '', '## Layout & Visual Composition', '', 'Single column.'].join('\r\n');
   writeFileSync(join(dir, 'design-system', 'ux-screens', 'checkout.md'), crlf);
   const { code, out } = run(dir);
   assert.equal(code, 0, out);

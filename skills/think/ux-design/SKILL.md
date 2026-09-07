@@ -171,7 +171,18 @@ Per screen, at the depth §0 confirmed:
 - **Fully detailed**: every section/component named, hierarchy tied to §2 tokens, **the why** (layout/primary-action reasoning, rejected alternative if any), and **interactions** — what happens on tap, on validation, on edge cases ("qty exceeds quota → adjust or show alternate dates", not just "there's an error state"). Layout with no interaction spec is half-specified — the FE still has to invent the behavior.
 - **Plain language throughout** — readable outside design; glossary terms are fine, anything else explained inline.
 
-Run `check-file-hygiene.mjs` after writing/renaming a flow file — it checks the filename, frontmatter, and that every flow is indexed.
+**This screen serves three different readers, not one** — a human reviewing it, a coding agent building it, and (increasingly) a design-generation tool (Stitch, Figma AI, Claude's own design tooling) mocking it up from the same file. That's why the two sections below are structured (short prose + tables), not free paragraphs: structure is what a design-gen tool and a coding agent can both consume without re-interpreting natural language, while staying skimmable for a human.
+
+**`## Layout & Visual Composition`** — required on every screen file, this is the *UI* half (§3's bullets above are the *UX* half):
+- **Structure**: the grid/columns/regions for this screen specifically (e.g. "single column, max-width 480px, centered" — only state it if it's not just "whatever the global layout default is").
+- **Hierarchy**: numbered list of what draws the eye first, in order.
+- **Element → Treatment table**: each visually distinct element mapped to a token/style *by name* (`--color-action`, not the hex value — the value lives once in `design.md`, never duplicated per screen).
+
+**`## Input Specification`** — required only when the screen has anything the user can type, select, filter, sort, or toggle; **omitted entirely** on pure display screens (a dashboard, a read-only detail view) — same "skip only when there's no such surface" principle as everywhere else in this framework, applied here so a display-only screen isn't nagged for an empty table. A table: `Control | Type | Constraint | Required/Default`. This is what removes the exact ambiguity that made a real screen spec unbuildable deterministically in practice — "Priority" left as a bare label lets two different builds (or two runs of the same model) each invent a different input type.
+
+**Neither section gets filled in silently.** Both go through the same deliberation this skill already runs per flow (frontier/round mechanics, every non-obvious choice carrying a recommendation) — *before* the file is written, not as a fill-in-the-template step after. "Structure: single column, 480px" is a decision like any other in this skill; if it's not obvious from an existing pattern already established elsewhere in the doc, it gets asked, not assumed.
+
+Run `check-file-hygiene.mjs` after writing/renaming a flow file — it checks the filename, frontmatter, that every flow is indexed, and that `## Layout & Visual Composition` is present.
 
 ## 4. Component Patterns
 

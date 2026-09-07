@@ -267,6 +267,13 @@ if (isDir(join(dir, 'design-system'))) {
       if (!/^priority:\s*(Must|Should|Could)/m.test(fmMatch[1])) flag(`design-system/ux-screens/${e}: frontmatter missing "priority:" (Must/Should/Could)`);
       if (!/^updated:\s*\d{4}-\d{2}-\d{2}/m.test(fmMatch[1])) flag(`design-system/ux-screens/${e}: frontmatter missing "updated: YYYY-MM-DD"`);
     }
+    // "## Layout & Visual Composition" is the UI half of a screen spec (the
+    // bullets in ux-design/SKILL.md §3 are the UX half) — required on every
+    // screen so the file is usable by a design-gen tool (Stitch/Figma AI/
+    // Claude design) and a coding agent, not just a behavior description.
+    if (!/^##\s+Layout\s*&\s*Visual Composition/mi.test(text)) {
+      flag(`design-system/ux-screens/${e}: missing "## Layout & Visual Composition" — see skills/think/ux-design/SKILL.md's "§3 Key Screens & Flows"`);
+    }
   }
 }
 
