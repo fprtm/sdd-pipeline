@@ -105,15 +105,59 @@ Wait for confirmation before writing ticket files. This is a judgment call (how 
 complete slice: what the user/caller can do once this ticket is done.]
 
 ## Deliverables
-[One glance = what this ticket will create/change — file → the function/component
-born there. No implementation code, just the manifest:]
-- `src/services/order.ts` → `createOrder()` (new)
-- `src/routes/order.ts` → `POST /orders` route wired to it (new)
+[One glance = what this ticket will create/change — file → **its role** →
+the function/component born there. The role tag is what tells a junior dev
+or cheap model *what kind of thing* to write (a service does business logic
+and has no HTTP knowledge; a route only parses/validates the request shape
+and delegates; a helper is a pure, stateless utility) — a bare filename
+alone leaves that guessed. No implementation code, just the manifest:]
+- `src/services/order.ts` (service — order lifecycle business logic, no HTTP concerns) → `createOrder()` (new)
+- `src/routes/order.ts` (route — request parsing/validation only, delegates to the service) → `POST /orders` wired to it (new)
+- `src/lib/pricing.ts` (helper — pure function, no I/O) → `calculateTotal()` (new)
 - `src/services/order.test.ts` → TEST-030, TEST-031 (new)
 
-## Acceptance Criteria (Given/When/Then — test-plan maps these 1:1 to TEST-xxx)
-- [ ] Given [precondition], when [action], then [observable outcome]
-- [ ] [Testable criterion]
+## Algorithm / Flow
+
+**Required for T2/T3, and for any ticket touching a schema/table — optional
+for T1 CRUD glue where there's genuinely one obvious way to do it.** This is
+what removes the guessing a junior dev or cheap model would otherwise do —
+name the actual steps/branches, not just the function signature.
+
+For a function/service, pseudocode-level steps (not full code):
+```
+`createOrder(input)`:
+1. Validate items non-empty, shipping address exists
+2. Begin transaction; for each item, lock stock row, check quantity —
+   insufficient → abort with OUT_OF_STOCK
+3. Insert Order (status=pending) + OrderItem rows
+4. Commit; return { orderId, status, total }
+```
+
+For a schema/table/migration, the fields, constraints, and **validation
+rules** — not just "create the table":
+```
+`orders` table:
+- id (uuid, pk), org_id (uuid, fk orgs, cascade delete), status (enum: pending|paid|cancelled)
+- Validation: org_id must exist and be active before insert (server-side,
+  not just FK — an inactive org should reject with ORG_INACTIVE, not a raw
+  FK error); status transitions are pending→paid or pending→cancelled only,
+  never paid→pending (enforce in the service layer, not just documented)
+```
+
+## Acceptance Criteria (Given/When/Then)
+
+**If `tests.md` exists for this feature**: reference the `TEST-xxx` per
+criterion — don't restate the test's content here, that's what causes the
+two copies to drift. `tests.md` is the source of truth for what the test
+actually asserts.
+- [ ] Given [precondition], when [action], then [observable outcome] — TEST-030
+- [ ] [Testable criterion] — TEST-031
+
+**If no `tests.md` exists for this scope** (small/micro work with no formal
+test plan): write the expectation explicitly and completely here instead —
+this ticket IS the only record of what must be tested, so it can't be a
+vague pointer to a document that doesn't exist.
+- [ ] Given [precondition], when [action], then [observable outcome] — no test-plan for this scope, assert this directly in the ticket's own test file
 
 ## Out of Scope
 - [Explicitly excluded from this ticket — usually deferred to a later ticket]

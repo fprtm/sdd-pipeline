@@ -24,6 +24,16 @@ The cap is overridable — if the user explicitly says "spawn them all anyway", 
 
 **Parallel implementation tickets on one repo** (several agents writing code concurrently) have their own protocol on top of this gate — worktree isolation, the `check-parallel-safety.mjs` file-overlap check, ticket claiming, and merge order: `skills/agents/parallel-work/`. Always confirm its plan with the user before spawning, every mode.
 
+## Readiness Check — Before Attempting to Spawn, Not After Failing to
+
+Passing the cost-benefit gate means parallel dispatch is *worth it*; it does not mean the harness is *set up* to do it. Some harnesses (Codex — see "Agent Tool Usage" below) require agent roles pre-configured (e.g. `config.toml`) before a spawn can succeed at all. **Check readiness once, before the first spawn attempt** — don't discover it's missing by trying, failing, trying a different way, failing again, and only then falling back. That failure loop is exactly what produces a confused, over-cautious session (a real one: an agent that couldn't get spawning to work eventually abandoned it silently and over-corrected into treating every ticket as maximally suspect, without ever telling the user *why* it gave up on parallel work).
+
+- **Claude Code**: the Agent/Task tool is always available — no separate setup, readiness is a given.
+- **Codex**: readiness means agent roles exist in `config.toml` (see below). If they don't, **say so in one line and fall back to sequential** — `"Parallel dispatch skipped: no agent roles configured in config.toml — see skills/agents/orchestration/'s Codex section to set this up. Working the frontier sequentially instead."` Don't attempt a spawn to find out, and don't retry a failed spawn hoping a different phrasing works — one honest failure is enough to know the environment isn't ready.
+- **Other/unknown harnesses**: if there's no documented multi-agent dispatch mechanism for this harness in `docs/INSTALL.md`'s compatibility table, assume sequential and don't attempt to spawn at all — a silent failed attempt is worse than an explicit "sequential only here."
+
+Once a harness's readiness (or lack of it) is established for a session, don't re-probe it on every ticket — one check per session is enough.
+
 ## Parallelization Rules
 
 ```

@@ -274,6 +274,52 @@ test('tickets/ ticket file with no **Status**: line is flagged', () => {
   assert.match(out, /no valid \*\*Status\*\*: line found/);
 });
 
+test('a T2 ticket with no "## Algorithm / Flow" section is flagged', () => {
+  const dir = scratch();
+  const feat = join(dir, 'specs', '001-my-feature');
+  mkdirSync(join(feat, 'tickets'), { recursive: true });
+  writeFileSync(join(feat, 'fsd.md'), '[← Back](fsd.md)\n\n# FSD');
+  writeFileSync(join(feat, 'tickets', '00-index.md'), '# Work Order\n\nTICKET-001\n');
+  writeFileSync(
+    join(feat, 'tickets', '01-first.md'),
+    '# TICKET-001 — First\n\n**Tier**: T2\n**Status**: ⬜ todo\n'
+  );
+  withIndex(dir, '- [x](specs/001-my-feature/)');
+  const { code, out } = run(dir);
+  assert.equal(code, 1);
+  assert.match(out, /Tier T2 ticket has no "## Algorithm \/ Flow" section/);
+});
+
+test('a T1 ticket with no "## Algorithm / Flow" section passes (not required below T2)', () => {
+  const dir = scratch();
+  const feat = join(dir, 'specs', '001-my-feature');
+  mkdirSync(join(feat, 'tickets'), { recursive: true });
+  writeFileSync(join(feat, 'fsd.md'), '[← Back](fsd.md)\n\n# FSD');
+  writeFileSync(join(feat, 'tickets', '00-index.md'), '# Work Order\n\nTICKET-001\n');
+  writeFileSync(
+    join(feat, 'tickets', '01-first.md'),
+    '# TICKET-001 — First\n\n**Tier**: T1\n**Status**: ⬜ todo\n'
+  );
+  withIndex(dir, '- [x](specs/001-my-feature/)');
+  const { code, out } = run(dir);
+  assert.equal(code, 0, out);
+});
+
+test('a T3 ticket WITH "## Algorithm / Flow" passes', () => {
+  const dir = scratch();
+  const feat = join(dir, 'specs', '001-my-feature');
+  mkdirSync(join(feat, 'tickets'), { recursive: true });
+  writeFileSync(join(feat, 'fsd.md'), '[← Back](fsd.md)\n\n# FSD');
+  writeFileSync(join(feat, 'tickets', '00-index.md'), '# Work Order\n\nTICKET-001\n');
+  writeFileSync(
+    join(feat, 'tickets', '01-first.md'),
+    '# TICKET-001 — First\n\n**Tier**: T3\n**Status**: ⬜ todo\n\n## Algorithm / Flow\n\n1. Step one\n2. Step two\n'
+  );
+  withIndex(dir, '- [x](specs/001-my-feature/)');
+  const { code, out } = run(dir);
+  assert.equal(code, 0, out);
+});
+
 test('design-system/ux-screens/ file missing updated: frontmatter is flagged', () => {
   const dir = scratch();
   mkdirSync(join(dir, 'design-system', 'ux-screens'), { recursive: true });

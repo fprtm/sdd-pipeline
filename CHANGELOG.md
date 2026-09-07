@@ -3,6 +3,33 @@
 All notable changes to SDD Pipeline. Versioning is [SemVer](https://semver.org/).
 Plain-language where possible.
 
+## [6.5.0] — 2026-09-06
+
+Two more findings from live usage: tickets were still leaving real ambiguity
+for a junior dev or cheap model (a filename + function name doesn't say
+*what kind* of file it is, or *what algorithm* it implements), and a real
+session showed an agent silently failing to spawn parallel subagents on
+Codex (no agent roles configured), retrying blindly, then abandoning the
+approach and over-correcting into an unexplained maximally-cautious mode.
+
+### Added
+- **Ticket `Deliverables` now require a role tag per file** (`service`,
+  `route`, `helper`, etc.) — a bare filename leaves the *kind* of thing to
+  write unstated.
+- **New `## Algorithm / Flow` ticket section, required for Tier T2/T3**
+  (optional for T1): pseudocode-level steps for functions, or
+  fields/constraints/validation rules for schema/table work. Enforced by
+  `check-file-hygiene.mjs`.
+- **Ticket `Acceptance Criteria` now says which source of truth to use**:
+  reference `TEST-xxx` by ID when `tests.md` exists (don't restate its
+  content — that's how the two copies drift); write the expectation out in
+  full only when no `tests.md` exists for that scope.
+- **Orchestration: a readiness check before the first parallel-dispatch
+  attempt**, not after failing at it. Codex requires `config.toml` agent
+  roles configured — missing that now gets one explicit line and a
+  sequential fallback, instead of a blind retry loop that ends in the agent
+  quietly giving up on parallel work without saying why.
+
 ## [6.4.0] — 2026-09-06
 
 Follow-up to v6.3.0's isikelas audit: the mechanical checks caught the

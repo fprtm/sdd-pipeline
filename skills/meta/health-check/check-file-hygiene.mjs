@@ -76,6 +76,8 @@ const ARCHIVE_RULE = new RegExp(`^\\d{4}-\\d{2}-\\d{2}-\\d{2}-${SLUG}\\.md$`);
 const FEATURE_DIR = new RegExp(`^(\\d{3})-(${SLUG})$`);
 const TICKET_FILE = new RegExp(`^\\d{2}-${SLUG}\\.md$`);
 const TICKET_STATUS = /\*\*Status\*\*:\s*(⬜ ?todo|🔨 ?in progress|🧪 ?testing\/review|✅ ?done|⛔ ?blocked)/;
+const TICKET_TIER = /\*\*Tier\*\*:\s*(T1|T2|T3)/;
+const ALGORITHM_HEADING = /^##\s+Algorithm\s*\/\s*Flow/mi;
 const ALLOWED_SPEC_FILES = new Set(['fsd.md', 'sds.md', 'prd.md', 'threats.md', 'ux.md', 'erd.md', 'tests.md', 'dod.md', 'idea.md']);
 // Docs that must open with a nav-header link (see doc-generator's "Document
 // Formats") — excludes dod.md (a checklist) and idea.md (an informal,
@@ -175,6 +177,14 @@ for (const e of ls(specsDir)) {
         const text = readText(tp);
         if (!/TICKET-\d+/.test(text)) flag(`specs/${e}/tickets/${te}: no global TICKET-xxx id found in the file`);
         if (!TICKET_STATUS.test(text)) flag(`specs/${e}/tickets/${te}: no valid **Status**: line found — a ticket without a status is unworkable (expected one of ⬜ todo, 🔨 in progress, 🧪 testing/review, ✅ done, ⛔ blocked)`);
+        // T2/T3 tickets need the Algorithm/Flow section — a bare file+function
+        // manifest leaves the actual logic/branching to be guessed, which is
+        // exactly the ambiguity a junior dev or cheap model can't resolve on
+        // its own (unlike T1, where there's genuinely one obvious way to do it).
+        const tierMatch = text.match(TICKET_TIER);
+        if (tierMatch && (tierMatch[1] === 'T2' || tierMatch[1] === 'T3') && !ALGORITHM_HEADING.test(text)) {
+          flag(`specs/${e}/tickets/${te}: Tier ${tierMatch[1]} ticket has no "## Algorithm / Flow" section — required above T1, see ticket-decomposition/SKILL.md's "Ticket Format"`);
+        }
       }
       if (hasTicketFile && !ticketEntries.includes('00-index.md')) {
         flag(`specs/${e}/tickets/: has ticket files but no 00-index.md — every feature with tickets needs its entry point (spec refs + How to Review + status table), never skipped`);
