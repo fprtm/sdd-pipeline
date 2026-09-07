@@ -142,7 +142,11 @@ Design direction is a consequential decision the user didn't necessarily specify
 2. **What direction, if starting fresh?** Present 2–3 candidates **with a concrete preview each** — a sample screen sketch or actual palette/type swatch, not just a label ("minimal vs expressive" with nothing to look at is picking blind). Recommend one. Ask light/dark preference and hard brand constraints.
 3. **How much wireframe detail?** Structure-only (screens, hierarchy, primary action) vs fully detailed (every component, states, interactions, the *why* per screen). Default structure-only for small/medium; fully detailed on request or for large/full.
 
-Record the answers at the top of the `-ux.md` doc. **Then check in again after each flow** — direction confirmed once doesn't mean the rest gets designed unsupervised in one silent batch (standard/strict check in per flow; vibe may batch).
+**Do not write ux.md, design.md, or any ux-screens/ file before this step completes — no exception for "the direction seemed obvious."** A direction that reads as reasonable after the fact is not evidence it was actually confirmed rather than assumed; the two are indistinguishable from the output alone, which is exactly why this step exists and exactly why skipping it is easy to miss.
+
+Record the answer at the top of the `-ux.md` doc as **`**Direction confirmed**:`** — one of `user picked <option>` (state which), `respect-existing` (found in codebase/brand guide), or `assumed default — <one-sentence reason, e.g. prototype mode, not asked>`. This is the same audit-trail principle as `sdlc-reason` and `design.md`'s `Design source`: a direction that "sounds thought-through" is not proof it was actually confirmed with the user rather than invented in the moment. `check-file-hygiene.mjs` enforces this line is present.
+
+**Then check in again after each flow** — direction confirmed once doesn't mean the rest gets designed unsupervised in one silent batch (standard/strict check in per flow; vibe may batch).
 
 ## 1. Principles & Direction
 

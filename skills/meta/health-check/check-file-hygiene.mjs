@@ -209,6 +209,13 @@ for (const e of ls(specsDir)) {
           flag(`specs/${e}/${fe}: missing a nav-header link back to the feature's entry point in the first few lines (e.g. "[← Back to 00-index.md](00-index.md)") — see doc-generator/SKILL.md's "Document Formats"`);
         }
       }
+      // ux.md must record whether direction was actually confirmed with the
+      // user, respected from existing design, or assumed — same audit-trail
+      // principle as sdlc-reason/Design source. A direction that "sounds
+      // thought-through" is not proof §0's confirm-first step actually ran.
+      if (fe === 'ux.md' && !/\*\*Direction confirmed\*\*:\s*\S+/i.test(readText(fp))) {
+        flag(`specs/${e}/ux.md: missing "**Direction confirmed**:" — see skills/think/ux-design/SKILL.md's "§0 Confirm Direction First"`);
+      }
     }
   }
 }

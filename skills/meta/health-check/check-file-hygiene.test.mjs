@@ -131,9 +131,10 @@ test('all eight allowed spec filenames pass in one feature folder', () => {
   const dir = scratch();
   const feat = join(dir, 'specs', '002-full-feature');
   mkdirSync(feat, { recursive: true });
-  for (const f of ['fsd.md', 'sds.md', 'prd.md', 'threats.md', 'ux.md', 'erd.md', 'tests.md']) {
+  for (const f of ['fsd.md', 'sds.md', 'prd.md', 'threats.md', 'erd.md', 'tests.md']) {
     writeFileSync(join(feat, f), `[← Back to fsd.md](fsd.md)\n\n# ${f}`);
   }
+  writeFileSync(join(feat, 'ux.md'), '[← Back to fsd.md](fsd.md)\n\n# ux.md\n\n**Direction confirmed**: user picked option B\n');
   writeFileSync(join(feat, 'dod.md'), '# dod.md'); // exempt from nav-header requirement
   withIndex(dir, '- [Full Feature](specs/002-full-feature/)');
   const { code, out } = run(dir);
@@ -158,6 +159,32 @@ test('dod.md and idea.md are exempt from the nav-header requirement', () => {
   writeFileSync(join(feat, 'fsd.md'), '[← Back](fsd.md)\n\n# FSD');
   writeFileSync(join(feat, 'dod.md'), '# DoD checklist, no link');
   writeFileSync(join(feat, 'idea.md'), '# Idea, no link');
+  withIndex(dir, '- [x](specs/001-my-feature/)');
+  const { code, out } = run(dir);
+  assert.equal(code, 0, out);
+});
+
+test('ux.md missing "**Direction confirmed**:" is flagged', () => {
+  const dir = scratch();
+  const feat = join(dir, 'specs', '001-my-feature');
+  mkdirSync(feat, { recursive: true });
+  writeFileSync(join(feat, 'fsd.md'), '[← Back](fsd.md)\n\n# FSD');
+  writeFileSync(join(feat, 'ux.md'), '[← Back](fsd.md)\n\n# UX\n\n## Direction\n\nSome direction, no confirmation record.');
+  withIndex(dir, '- [x](specs/001-my-feature/)');
+  const { code, out } = run(dir);
+  assert.equal(code, 1);
+  assert.match(out, /missing "\*\*Direction confirmed\*\*:"/);
+});
+
+test('ux.md with "**Direction confirmed**:" passes', () => {
+  const dir = scratch();
+  const feat = join(dir, 'specs', '001-my-feature');
+  mkdirSync(feat, { recursive: true });
+  writeFileSync(join(feat, 'fsd.md'), '[← Back](fsd.md)\n\n# FSD');
+  writeFileSync(
+    join(feat, 'ux.md'),
+    '[← Back](fsd.md)\n\n# UX\n\n**Direction confirmed**: assumed default — prototype mode, not asked\n'
+  );
   withIndex(dir, '- [x](specs/001-my-feature/)');
   const { code, out } = run(dir);
   assert.equal(code, 0, out);

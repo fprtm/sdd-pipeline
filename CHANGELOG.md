@@ -3,6 +3,24 @@
 All notable changes to SDD Pipeline. Versioning is [SemVer](https://semver.org/).
 Plain-language where possible.
 
+## [6.6.0] — 2026-09-06
+
+Same isikelas project, one more finding: `ux.md` opened with a declarative
+"## Direction" section but no record that `ux-design/SKILL.md`'s §0 ("Confirm
+Direction First" — present 2-3 candidates, ask, record the answer before
+writing anything) had actually happened. A direction that reads as
+reasonable is not evidence it was confirmed with the user rather than
+assumed — the same audit gap `sdlc-reason` and `Design source` already
+closed, just not extended to this third instance yet.
+
+### Added
+- **`ux.md` must record `**Direction confirmed**:`** — `user picked <option>`,
+  `respect-existing`, or `assumed default — <reason>`. Enforced by
+  `check-file-hygiene.mjs`.
+- **§0's instruction strengthened to an explicit prohibition**: no ux.md,
+  design.md, or ux-screens/ file may be written before this step completes —
+  no exception for "the direction seemed obvious."
+
 ## [6.5.0] — 2026-09-06
 
 Two more findings from live usage: tickets were still leaving real ambiguity
