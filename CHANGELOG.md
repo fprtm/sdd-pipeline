@@ -3,6 +3,77 @@
 All notable changes to SDD Pipeline. Versioning is [SemVer](https://semver.org/).
 Plain-language where possible.
 
+## [6.8.0] — 2026-09-11
+
+A structural review pass over the whole pipeline (not one live finding this
+time, but a full read-through) surfaced six problem clusters: mode behavior
+scattered across ~30 duplicate tables, a judgment gate that could see its own
+build conversation, real contradictions between skill files, a leftover
+duplicate agent skill, no lifecycle rule for generated artifacts, and two
+capability gaps — nothing stopped a new session from re-creating a spec that
+already existed, and there was no way to point the pipeline at an
+undocumented codebase or ask it to explain one.
+
+### Added
+- **Unified mode matrix** — `orchestrator/SKILL.md` now holds the single
+  22-phase × 5-mode behavior table. ~30 skill files had their own
+  mode tables stripped and replaced with a reference to it — one source of
+  truth instead of thirty that could silently drift apart.
+- **Judgment gate independence** — `prove/judgment` now runs in a fresh
+  context that never saw the build conversation, and its Rule 4 has explicit
+  blocking authority instead of advisory-only findings.
+- **Reuse Gate** (`build/doc-generator`) + **artifact inventory**
+  (`think/context-loader`, new step 5) — before allocating a new feature
+  number, the pipeline now matches the current task against existing
+  `specs/`/`changes/`/`decisions/` by semantics, not exact slug, and updates
+  in place on a match. Closes the failure mode where a new session,
+  unaware of prior work, wrote a second spec for the same feature under a
+  different number.
+- **Diagram suite** for large/multi-role products — Use Case Spec,
+  Process Flow, Sequence Diagram, and Activity Diagram, size-gated so
+  small/medium tasks stay lightweight. Plus a **per-role index**
+  (`docs/sdd/roles/{role}.md`) and **cross-reference enforcement** (every
+  ERD entity cites its UC, every flow cites its spec — checked mechanically
+  by `health-check`, not just asked for in prose).
+- **ERD template upgrade** — the default template is now field-level
+  complete (types, constraints, enum values with transition rules, index
+  rationale) instead of a 4-field skeleton.
+- **Artifact lifecycle tiers** (`build/doc-generator`) — Evergreen /
+  Transactional / Accumulating, each with a concrete rule for when to
+  archive or prune. Plus three new staleness warnings in `health-check`.
+- **`/sdd-pipeline:docs`** — new command. Generates retroactive
+  documentation for a codebase that already works but has little or no
+  written spec: scan → propose a doc plan → deliberate on genuine
+  ambiguities → write, batched so it never dumps a wall of finished
+  artifacts on unreviewed assumptions.
+- **`/sdd-pipeline:learn`** — new command. Read-only deep-read of a module,
+  a flow, or the whole project; produces a structured explanation (purpose,
+  data flow, key files, dependencies, gaps) with an optional save to
+  project memory. No files are created or modified unless asked.
+
+### Fixed
+- Six real contradictions between skill files resolved (see individual
+  skill diffs) — cases where one file's stated behavior directly
+  disagreed with another's for the same phase/mode combination.
+- Vibe and prototype mode visibility: vibe's completion output now lists
+  every assumed value explicitly; prototype's minimum sinks (deliberation
+  ledger, DoD, `OVERRIDE:none` constraints) are no longer silently
+  droppable.
+
+### Removed
+- **`skills/agents/model-strategy/`** — confirmed by diff to be a duplicate
+  of `skills/build/model-router/`. References to it removed from
+  `INSTALL.md` and `ARCHITECTURE.md`.
+
+### Changed
+- Trimmed non-actionable prose across the skill set (~15% reduction) —
+  restating the same instruction in three places doesn't make it three
+  times more likely to be followed, just three times more likely to drift.
+- Plugin manifest (`plugin.json`) now registers all 7 commands
+  (`discover`, `spec`, `implement`, `check`, `docs`, `learn`, `update`) —
+  `update` had shipped as a skill folder since an earlier release without
+  ever being added to the manifest.
+
 ## [6.7.0] — 2026-09-07
 
 Reviewed a real screen spec (`client-intake-form.md`, a separate project)
