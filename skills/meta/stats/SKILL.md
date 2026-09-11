@@ -87,6 +87,8 @@ At end of each monthly file, maintain a running summary:
 
 ## Mode Behavior
 
+Defer to orchestrator matrix (`skills/orchestrator/SKILL.md`) on conflict. Skill-specific addition below: prototype mode still tracks `gates_skipped`.
+
 | Mode | Stats Behavior |
 |------|---------------|
 | **prototype** | Track minimally (files changed, security issues, and `gates_skipped` — the skip trail is cheap and applies even here). No footer. |
@@ -108,7 +110,6 @@ Keep only last 10 entries in index. Full history lives in monthly files.
 
 ## Rules
 
-1. **Never fabricate stats** — Only count what SDD Pipeline actually caught, not what might exist.
-2. **Append-only per task** — Don't edit previous entries. Monthly summary recalculated.
-3. **Stats are evidence** — They prove SDD Pipeline's value. Accuracy matters.
-4. **No PII in stats** — Don't log file contents, just counts and types.
+1. **Never fabricate stats** — only count what SDD Pipeline actually caught, not what might exist.
+2. **Append-only per task** — don't edit previous entries. Monthly summary recalculated.
+3. **No PII in stats** — don't log file contents, just counts and types.

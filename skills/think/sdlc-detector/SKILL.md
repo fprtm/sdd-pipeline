@@ -4,9 +4,9 @@ Detect the project's SDLC model and adapt SDD Pipeline behavior accordingly. **M
 
 ## Two Layers, Not One — Don't Confuse Them
 
-**`sdlc` is the SDLC *model*** — the overall shape of the development lifecycle: Waterfall, Iterative, V-Model, Spiral, Agile, DevOps, RAD, Incremental, or Solo. This is the level software-engineering literature means by "SDLC model" (see [GeeksforGeeks' SDLC models overview](https://www.geeksforgeeks.org/software-engineering/sdlc-models-types-phases-use/) for the reference taxonomy this follows).
+**`sdlc` is the SDLC *model*** — the overall shape of the development lifecycle: Waterfall, Iterative, V-Model, Spiral, Agile, DevOps, RAD, Incremental, or Solo.
 
-**`agile-framework` is a second, nested field** — it only exists when `sdlc: agile`, and names *which* Agile framework the team actually runs day to day: Scrum, Kanban, Scrumban, XP, or none (Agile in name only, no named framework). **Scrum and Kanban are not SDLC models** — they're specific ways of running Agile, one level below it. Treating them as siblings of Waterfall (an earlier version of this skill did exactly that) is a category error: a team can be "Agile + Kanban" or "Agile + Scrum", but there's no such thing as being "Kanban" instead of having an SDLC model at all.
+**`agile-framework` is a second, nested field** — it only exists when `sdlc: agile`, and names *which* Agile framework the team actually runs day to day: Scrum, Kanban, Scrumban, XP, or none (Agile in name only, no named framework). **Scrum and Kanban are not SDLC models** — they're specific ways of running Agile, one level below it. Treating them as siblings of Waterfall is a category error: a team can be "Agile + Kanban" or "Agile + Scrum", but there's no such thing as being "Kanban" instead of having an SDLC model at all.
 
 ## Detection Strategy
 
@@ -25,7 +25,7 @@ If declared, use it. Skip detection.
 
 ### Reasoning Is Not Optional
 
-Whenever SDLC is set — by config, auto-detect, or asking the user — state **why** in one sentence, and save it as `sdlc-reason` alongside the value(s). This isn't decoration: a developer who inherits this project later should understand *why* Agile+Kanban was assumed without re-deriving it from board configs. Auto-detect's reason is the signal that triggered it (`"WIP-limited board found in .github/project.yml"`); an asked answer's reason is the user's own words, kept verbatim.
+Whenever SDLC is set — by config, auto-detect, or asking the user — state **why** in one sentence, and save it as `sdlc-reason` alongside the value(s). Auto-detect's reason is the signal that triggered it (`"WIP-limited board found in .github/project.yml"`); an asked answer's reason is the user's own words, kept verbatim.
 
 ### 2. Auto-Detect from Signals
 
@@ -146,6 +146,8 @@ Iterative's adaptation, plus: **a risk-analysis note is required before each cyc
 | **Decision Log** | Lightweight entries. |
 
 ## Mode Interaction
+
+Defer to orchestrator matrix on conflict. Skill-specific additions below.
 
 | Mode | SDLC Impact |
 |------|-------------|

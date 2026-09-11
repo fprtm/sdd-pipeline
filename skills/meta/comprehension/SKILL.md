@@ -1,6 +1,6 @@
 # Comprehension Aid
 
-Help humans UNDERSTAND what was built. Bridge the gap between AI generation speed and human comprehension speed.
+Help humans UNDERSTAND what was built.
 
 ## When to Generate
 
@@ -35,10 +35,4 @@ After BUILD phase completes, produce a brief explanation of what was created and
 
 ## Mode Behavior
 
-| Mode | Format |
-|------|--------|
-| prototype | Skip |
-| vibe | 2-3 sentences as part of completion message |
-| standard | Full format (~15 lines) |
-| strict | Detailed walkthrough with data flow description |
-| emergency | Skip |
+**Mode behavior**: see unified mode matrix in `skills/orchestrator/SKILL.md`.

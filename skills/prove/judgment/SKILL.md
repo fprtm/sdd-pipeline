@@ -1,19 +1,14 @@
 # AI Output Judgment
 
-Force explicit human judgment on AI-generated output. Verification (types/tests/lint) proves the code *runs* — judgment proves a human *understands and accepts* it. These are different gates, and skipping the second one is how comprehension debt accumulates.
+Force explicit human judgment on AI-generated output. Verification (types/tests/lint) proves the code *runs* — judgment proves a human *understands and accepts* it. These are different gates.
 
-## Why This Exists — The Evidence
+## Context Independence
 
-Cited findings on AI-generated code (same sources as `README.md`'s problem statement — kept in sync, don't restate the numbers without the citation):
+The judgment gate MUST run in a fresh context that has never seen the BUILD conversation. The agent that wrote the code cannot reliably judge its own work — it inherits every assumption and blind spot from the build session.
 
-| Finding | Source | Implication for judgment |
-|---|---|---|
-| AI-generated code carries ~1.7x more defects per pull request than human-written code | [GitClear, 2025](https://www.gitclear.com/ai_assistant_code_quality_2025_research) | Security-sensitive AI output needs *harder* scrutiny than human code, not equal |
-| AI-generated code contains ~2.74x more vulnerabilities than human-written code, XSS the worst category | [Veracode, 2025 GenAI Code Security Report](https://www.veracode.com/resources/analyst-reports/2025-genai-code-security-report/) | Some vulnerability classes need a dedicated, named check |
-| ~45% of AI-generated code samples contained at least one exploitable vulnerability | [Veracode, 2025 GenAI Code Security Report](https://www.veracode.com/resources/analyst-reports/2025-genai-code-security-report/) | "It passed tests" is not "it's safe" |
-| Developers using AI assistants wrote measurably less secure code while reporting *higher* confidence in its security | [Perry et al., Stanford, 2023](https://arxiv.org/pdf/2211.03622) | Confidence after AI assistance is a bias signal, not an evidence signal |
-
-Two further observations this gate is built around, without a single cited figure behind them: AI output is syntactically clean and well-formatted — the exact surface signal reviewers historically used as merge confidence, so it must be explicitly discounted as evidence of correctness (the **plausibility trap**) — and AI generates code far faster than a human reviews it, so generation has to be throttled to review capacity or review becomes theater. Comprehension debt — the gap between code in the repo and code the team actually understands — compounds with every merged change nobody can explain, working or not.
+- **Input to the judgment context**: spec documents (FSD/SDS/ERD/threats) + the code diff + test results + coverage numbers. Nothing else.
+- **Excluded from the judgment context**: the grill transcript, the build-time reasoning, the implementation conversation, and any prior PROVE-layer output.
+- **Single-agent environments** (dispatch unavailable): re-read the spec and diff cold, as if reviewing someone else's PR. Announce this constraint: "Single-agent judgment — reviewing cold from spec + diff."
 
 ## The Judgment Gate
 
@@ -63,7 +58,7 @@ Do not generate faster than the user can judge:
 
 ### 5. Review Guide — The Developer's Verification Map
 
-The comprehension aid explains *what was built*. The review guide tells the developer *what to verify and where to focus*. Without it, the developer either reads everything at equal depth (impossible at 10x generation speed) or skims and hopes (theater, not review).
+The comprehension aid explains *what was built*. The review guide tells the developer *what to verify and where to focus*.
 
 **Produce a review guide for every task that generated code**, appended to the verification report alongside the judgment block. Skip only for micro tasks and emergency fixes (those get the review guide in the post-fix follow-up).
 
@@ -77,7 +72,7 @@ Tag every changed file (or function, for large files) with a tier:
 | 🟡 | **VERIFY INTENT** | Business logic, validation rules, error handling, state transitions, API contract implementation | Verify the logic matches the spec. Tests should cover it — check that they do. |
 | 🟢 | **LIGHT SCAN** | Boilerplate, config, type definitions, re-exports, pure UI layout with no logic, scaffolding, test fixtures | Scan for anything surprising. If nothing stands out, move on. Tests covering it raise confidence further. |
 
-Tier assignment follows the same zones as Security Prior Escalation (§3) — code that would get flagged for security review is always 🔴. The tiers exist so the developer spends 80% of their review time on the 20% of code that actually carries risk.
+Tier assignment follows the same zones as Security Prior Escalation (§3) — code that would get flagged for security review is always 🔴.
 
 #### Review Guide Format
 
@@ -136,6 +131,8 @@ Append to the verification report (`skills/prove/report/`):
 
 ## Mode Behavior
 
+Defer to orchestrator matrix on conflict. Skill-specific additions:
+
 | Mode | Judgment Gate |
 |------|---------------|
 | prototype | Skip — but note in final output: "prototype code, unjudged" |
@@ -149,4 +146,8 @@ Append to the verification report (`skills/prove/report/`):
 1. Judgment is about the *human's* understanding, not the AI's confidence. High model confidence is not a substitute.
 2. Never present neatness as evidence. "Clean, well-structured code" is a formatting fact, not a correctness claim.
 3. The weakest-point line is mandatory in every judged report. "No weaknesses" is not an acceptable answer — every change has a most-fragile part.
-4. This gate produces information, not refusals. If the user wants to merge unjudged, log it (decision log if it passes rule-of-three) and proceed.
+4. This gate produces information AND has blocking authority. Minimum blocking conditions — the gate MUST block (not just report) when:
+   - A `settled` value in the spec has no corresponding assertion in the code (value was lost in translation)
+   - A 🔴 DEEP REVIEW chunk has zero test coverage
+   - A High/Critical SEC control has no executable security test
+   If the user explicitly overrides a block, log the override in the decision log with the specific blocked finding. The gate may also flag non-blocking findings as warnings.

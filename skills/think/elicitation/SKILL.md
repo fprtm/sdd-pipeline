@@ -61,10 +61,4 @@ When user can't answer:
 
 ## Mode Behavior
 
-| Mode | Behavior |
-|------|----------|
-| prototype | Skip entirely |
-| vibe | 0-1 questions. Auto-infer. Only ask if genuinely blocked. |
-| standard | Full adaptive questioning per task size |
-| strict | Ask thoroughly. Confirm understanding before proceeding. |
-| emergency | Skip entirely. Focus on the error. |
+**Mode behavior**: see unified mode matrix in `skills/orchestrator/SKILL.md`.

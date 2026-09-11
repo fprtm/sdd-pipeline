@@ -89,10 +89,4 @@ A pattern is only an anti-pattern IN CONTEXT. Factory pattern with 12 product ty
 
 ## Mode Behavior
 
-| Mode | Behavior |
-|------|----------|
-| prototype | Check #5 (hallucinated API) and #9 (secrets) only |
-| vibe | Auto-fix all silently |
-| standard | Fix and note what changed |
-| strict | Report each detection with explanation, fix after acknowledgment |
-| emergency | Skip |
+**Mode behavior**: see unified mode matrix in `skills/orchestrator/SKILL.md`.

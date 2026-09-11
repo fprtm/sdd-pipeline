@@ -1,10 +1,6 @@
 # SDD Grill
 
-Interview the user relentlessly until a shared understanding is reached — BEFORE any spec is written or code is touched. This is where architecture, scope, and direction decisions get challenged, not rubber-stamped after the fact.
-
-## Why This Exists
-
-Most bad AI-agent outcomes trace back to a decision made casually in conversation ("let's use microservices", "we'll need real-time sync") that never got interrogated before it became a plan. By the time the orchestrator writes the spec and the ticket breakdown, the direction is often already locked. Grill runs *before* that lock-in, at the moment the decision is still soft.
+Interview the user relentlessly until a shared understanding is reached — BEFORE any spec is written or code is touched. This is where architecture, scope, and direction decisions get challenged, not rubber-stamped after the fact. Grill runs *before* a casually-stated decision locks into a plan, at the moment the decision is still soft.
 
 ## Trigger
 
@@ -134,9 +130,24 @@ Borrow these directly when the frontier touches architecture:
 2. Never ask the user something SDD Pipeline (or a sub-agent) can look up.
 3. Batch the whole frontier per round — don't drip questions one at a time, don't dump everything ignoring dependency order.
 4. If the user wants to stop early ("enough, just build it with X"), stop immediately and treat their answer as the frontier's final state — don't insist on finishing every branch.
-5. Grilling never writes specs, tickets, or a `changes/` file. It writes glossary/ADR entries only. Those belong to the SPEC step, triggered by an explicit build signal.
+5. Grilling never writes specs, tickets, or a `changes/` file — those belong to the SPEC step, triggered by an explicit build signal. It writes glossary/ADR entries **and the deliberation ledger**. At the end of **each round** (not batched to the end of the grill), append one row per settled question to `docs/sdd/specs/{NNN}-{slug}/deliberation.md` (or `docs/sdd/changes/deliberation-{slug}.md` for small/medium tasks without a specs folder). If the file doesn't exist yet, create it with this header:
+
+   ```
+   | Question | Agent Recommendation | User's Verbatim Answer | Status |
+   |----------|---------------------|----------------------|--------|
+   ```
+
+   Each row records one question's outcome. Status is one of:
+   - `settled` — user gave an explicit answer
+   - `assumed` — no explicit answer; state what was assumed and why in the User's Verbatim Answer column (e.g., "ASSUMED: cascade delete — user said 'whatever makes sense', defaulting to cascade per FK convention")
+   - `unresolved` — question was asked but not answered and remains in the frontier
+
+   This is an **append-only** operation — never rewrite or reorder previous rows. The ledger is the ground truth that downstream fidelity checks compare against; without it, the spec's fidelity check compares a document against the agent's own memory of the conversation, which is circular.
+6. Every value marked `assumed` in the deliberation ledger must be shown to the user at the end of the grill, even in vibe/prototype mode. Assumed values are the one thing that is never hidden — the user must see and either confirm or override each one before the grill closes.
 
 ## Mode Interaction
+
+Defer to orchestrator matrix on conflict. Skill-specific additions below.
 
 | Mode | Grill Behavior |
 |------|----------------|

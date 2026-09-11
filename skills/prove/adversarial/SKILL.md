@@ -69,12 +69,4 @@ Generate tests from these categories, picking only those RELEVANT to the task:
 - Focus on the categories most likely to reveal real bugs in THIS specific task.
 - **Every test must name the specific behavior it expects** — "should handle gracefully" is not an assertion; "should return 403 with body `{error: 'forbidden'}`" is.
 
-## Mode Behavior
-
-| Mode | Behavior |
-|------|----------|
-| prototype | Skip |
-| vibe | Skip |
-| standard | 5-8 targeted tests across the most relevant categories |
-| strict | 8-15+ comprehensive tests, all relevant categories covered |
-| emergency | Skip |
+**Mode behavior**: see unified mode matrix in `skills/orchestrator/SKILL.md`.

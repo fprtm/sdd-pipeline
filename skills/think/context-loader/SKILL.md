@@ -10,7 +10,34 @@ Read context in this order. Stop when you have enough to work:
 2. **docs/ directory** — architecture docs, design docs, API docs, ADRs.
 3. **docs/sdd/config.md** — SDD Pipeline project overrides and saved decisions. This file's mere existence (or any `docs/sdd/` content — `index.md`, `plans/`, `changes/`) is itself the signal that SDD Pipeline is active for this project — checked fresh at the start of every task, not just remembered from having triggered it earlier in the session. See `skills/orchestrator/SKILL.md`'s "Session Persistence" for why this repo-state check matters more than conversational memory.
 4. **docs/sdd/memory/INDEX.md** — the project knowledge graph map: match the task to notes by their one-line hooks, open only those notes (never the whole vault).
-5. **Code scan** — infer from existing code when documentation is absent.
+5. **Artifact inventory** — list existing work so BUILD knows what to reuse (see below).
+6. **Code scan** — infer from existing code when documentation is absent.
+
+## Artifact Inventory (Step 5)
+
+Before BUILD starts, produce a compact inventory of what already exists. This is the single mechanism that prevents new sessions from creating duplicate files for work that's already in progress.
+
+**What to scan** (only directories that exist — skip silently if absent):
+
+| Directory | What to capture |
+|-----------|----------------|
+| `docs/sdd/specs/*/` | Folder name (`{NNN}-{slug}`) + Status from the first spec file's header (`DRAFT`/`APPROVED`/`IMPLEMENTED`/`SUPERSEDED`) |
+| `docs/sdd/changes/` | Filename + `status:` from frontmatter (`in-progress`/`done`) |
+| `docs/sdd/decisions/` | Filename (= ADR number + slug) |
+
+**Output format** — carry this into BUILD as a mental checklist, not a generated file:
+
+```
+ARTIFACT INVENTORY:
+specs/  003-payment-refund (DRAFT) · 004-user-auth (IMPLEMENTED) · 005-catalog-search (DRAFT)
+changes/  2026-09-08-cart-validation.md (in-progress)
+decisions/  001-db-choice · 002-auth-strategy · 003-cache-layer
+```
+
+**Rules**:
+- Read only folder names and status headers — never the full content of every file. This is a listing, not a review.
+- If `docs/sdd/index.md` exists, prefer reading its feature list over listing the `specs/` directory — same information, already curated.
+- The inventory is consumed by doc-generator's Reuse Gate (see `skills/build/doc-generator/SKILL.md`). Without it, the gate has nothing to match against.
 
 ## Code Scan (Bare Project Fallback)
 
@@ -46,10 +73,4 @@ For monorepos with multiple packages/apps:
 
 ## Mode Behavior
 
-| Mode | Behavior |
-|------|----------|
-| prototype | Minimal: detect stack only |
-| vibe | Auto-scan silently. No user interaction. |
-| standard | Full scan. Report findings. |
-| strict | Deep scan. Verify conventions with user. |
-| emergency | Error-focused only. Read error logs, stack traces. |
+**Mode behavior**: see unified mode matrix in `skills/orchestrator/SKILL.md`.

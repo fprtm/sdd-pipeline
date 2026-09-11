@@ -7,7 +7,7 @@ description: SDD Pipeline orchestrator — auto-applies THINK/BUILD/PROVE guardr
 
 You are operating under **SDD Pipeline** — spec in front, judgment behind: a system that gives humans control over and trust in AI-generated code through three phases: **THINK → BUILD → PROVE**.
 
-For direct access to a single phase without full auto-detection, use one of the standalone commands: `/sdd-pipeline:discover` (product discovery — fog to settled decisions, five seats), `/sdd-pipeline:spec` (architecture/spec — auto-decomposes large work into tickets), `/sdd-pipeline:implement` (code with guardrails), `/sdd-pipeline:check` (adaptive QA: verifies a fresh change, audits the codebase otherwise, always ends with the impact summary).
+For direct access to a single phase without full auto-detection, use one of the standalone commands: `/sdd-pipeline:discover` (product discovery — fog to settled decisions, five seats), `/sdd-pipeline:spec` (architecture/spec — auto-decomposes large work into tickets), `/sdd-pipeline:implement` (code with guardrails), `/sdd-pipeline:check` (adaptive QA: verifies a fresh change, audits the codebase otherwise, always ends with the impact summary), `/sdd-pipeline:docs` (generate retroactive documentation for an existing codebase with little or no docs — scan, propose, deliberate, write), `/sdd-pipeline:learn` (deep-read a module, flow, or the whole project and produce a structured explanation — read-only, no code changes).
 
 ## The Fixed Sequence — Ask Before Execute, Always
 
@@ -59,7 +59,54 @@ Detect mode from context. User can override explicitly.
 
 **Tone is not a signal.** A casual prompt does not mean vibe mode, and a terse one does not mean the user waived rigor — someone typing "bikin checkout dong" about a payment system is still building a payment system. `vibe` and `prototype` are entered only when the user *asks* for them or `config.md` sets them as default. Guessing a lower ceremony level from how a message is written is how guardrails come off without anyone deciding they should.
 
-Load the corresponding mode file from `skills/modes/[mode]/SKILL.md` for behavior rules.
+Load the corresponding mode file from `skills/modes/[mode]/SKILL.md` for mode-specific process steps (trigger detection, checkpoint pattern, emergency process). The **behavior matrix** below is the single source of truth for what each phase does per mode — individual mode files and per-skill mode tables defer to this matrix on any conflict.
+
+### Unified Mode Matrix — Single Source of Truth
+
+Every phase × mode cell lives here. No other file may contradict this table. Mode files add *process* (how emergency triggers, how strict checkpoints work); this matrix owns *what runs and at what depth*.
+
+#### THINK Layer
+
+| Phase | prototype | vibe | standard | strict | emergency |
+|-------|-----------|------|----------|--------|-----------|
+| Elicitation | 5 seats, 1 fast round each (skip on routine) | 5 seats, 1 round, auto-accept recs (0-1 Qs on routine) | Adaptive: 0–5 Qs by size | 5+ thorough Qs, confirm understanding | Skip — focus on error |
+| Context | Minimal: stack detect | Auto-scan silently | Full scan, report | Deep scan, verify with user | Error-focused only |
+| Scope guard | No limits | Soft limits, warn internally | Hard limits, pause if exceeded | Strict limits, justify + approve | No limits |
+| Complexity | Detect, don't block | Detect silently, auto-escalate | Report, user decides | Detailed breakdown, address each | Skip |
+| SDLC detector | Detect + announce; skip slow adaptations | Detect silently, adapt silently | Full adaptation, context in plan | Full + formal compliance | Skip |
+| Arch analyzer | Skip | Run silently, flag CRITICAL only | Full analysis, show recs | Full, require approval | Skip |
+| Threat model | Skip | Zone-triggered silently | Zone-triggered | Mandatory | Skip (post-fix) |
+
+#### BUILD Layer
+
+| Phase | prototype | vibe | standard | strict | emergency |
+|-------|-----------|------|----------|--------|-----------|
+| Constraints | OVERRIDE:none rules only (#7 secrets) | Run silently, auto-correct | Visible, flag, explain, correct | All visible, pause + approve each | Skip overridable; OVERRIDE:none stays |
+| Anti-patterns | Hallucinated APIs + secrets only | Auto-fix silently | Fix and note | Report each, fix after ack | Skip |
+| Written record | Shown, auto-approved | Written + auto-approved silently | Shown, wait for approval/"go" | MUST be explicitly approved | Skip (post-fix retrospective) |
+| Change plan | Skip | Auto-declare, no approval | Declare + confirm, pause on deviation | Declare + approve EACH file | Skip |
+| Doc generator | Minimum: DoD only | Generate silently | Generate, show summary | Full suite, require review before BUILD | Skip (post-fix report) |
+| Execution guard | Loop after 5 tries, no progress signals | Loop after 3 tries, no progress | Loop after 3 tries, progress at milestones | Loop after 2 tries, progress at every decision | Loop after 2 tries, escalate FAST |
+
+#### PROVE Layer
+
+| Phase | prototype | vibe | standard | strict | emergency |
+|-------|-----------|------|----------|--------|-----------|
+| Verification | Quick smoke test | Types + tests + lint silently; surface failures only | All 4 layers | All 4 layers + manual review checkpoint | Quick smoke test |
+| Adversarial | Skip | Skip | 3–5 targeted tests | 5–10+ comprehensive | Skip |
+| Security | Secrets check only | Auto-check, alert CRITICAL only | Full domain checklist | Full + recommend manual review | Critical items only (secrets, injection) |
+| Performance | Skip | Skip | Detect and flag | Detect, flag, require resolution | Skip |
+
+#### META Layer
+
+| Phase | prototype | vibe | standard | strict | emergency |
+|-------|-----------|------|----------|--------|-----------|
+| Report | 1-line: "Works." / "Broken: [error]" | 1-line verdict + top 1 thing to check | Full actionable (~15–20 lines) | Detailed + blind spots + all decisions | 1-line: "Fix applied. [result]" |
+| Decision log | Skip | Auto-log silently | Log and reference in report | Log EVERYTHING, full audit trail | Post-facto emergency entry |
+| Comprehension | Skip | 2–3 sentences in completion | Full output (~15 lines) | Detailed walkthrough + data flow | Skip |
+| Insight | Skip | Brief 1–2 line note | Per-task notes + periodic summary | Continuous per-decision | Skip |
+| Memory | Don't save | Save automatically | Save automatically | Save with detailed context | Don't save |
+| Stats | Minimal (files + security). No footer | Track everything. 1-line footer | Track everything. 2-line footer | Track everything. Full stats in report | Track fix. Brief. No footer |
 
 ### What Mode May and May Not Dial
 
@@ -166,6 +213,7 @@ Inconsistent behavior ("sometimes it makes a plan, sometimes not, and I don't kn
 ```
 THINK (parallel)               BUILD (sequential)            PROVE (parallel)
 ├─ elicitation ──┐             ├─ doc-generator (adaptive)   ├─ verification ──┐
+│  + diagram suite (large)    │
 ├─ context-loader ├─ merge ──→ ├─ test-plan (medium+)        ├─ adversarial    ├─ merge → REPORT
 ├─ scope-guard   ─┤            ├─ TESTS FIRST (medium+) ←─┐ ├─ diagnose ┤      + REVIEW GUIDE
 ├─ complexity    ─┤            ├─ constraints check      │ ├─ coverage-check ┤      + JUDGMENT
@@ -210,7 +258,7 @@ The **ship gate** (large/full): work doesn't ship while a Must/Should traceabili
 After pipeline:
 - Update traceability (`skills/meta/traceability/`) where it applies per the gates table — run its checker, report the coverage summary
 - Generate verification report (`skills/prove/report/`)
-- Run the judgment gate (`skills/prove/judgment/`) — weakest point, hallucination-risk zones, security escalation, comprehension check
+- Run the judgment gate (`skills/prove/judgment/`) — weakest point, hallucination-risk zones, security escalation, comprehension check. **Must be dispatched to a fresh context** per the dispatch rules below (§ Multi-Agent Dispatch) — the judgment gate is the one check where context independence matters most.
 - Generate comprehension aid (`skills/meta/comprehension/`)
 - Log decisions gated by rule-of-three (`skills/meta/decision-log/`)
 - Update glossary if new domain terms surfaced (`skills/meta/glossary/`)
@@ -233,6 +281,7 @@ When multi-agent is available (Claude Code Agent tool, Codex multi-agent):
 - BUILD: split by file/component if independent, serialize shared files
 - PROVE: spawn each layer as separate agent, merge results
 - SDD Grill: fact-finding sub-agents dispatched per frontier round for anything the environment can answer (existing patterns, adapter counts, git history) — never for decisions, those stay with the user
+- JUDGMENT GATE: dispatch to a fresh sub-agent that receives ONLY spec docs + diff + test results — never the build conversation. This is the one check where independence matters most.
 
 When single-agent only (OpenCode, Cursor): run sequentially, use sub-agent patterns from `skills/agents/subagent-patterns/`.
 

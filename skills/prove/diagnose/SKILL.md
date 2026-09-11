@@ -113,6 +113,8 @@ SECURITY TESTS:
 
 ## Mode Behavior
 
+Defer to orchestrator matrix on conflict. Skill-specific additions:
+
 | Mode | Checklist | Executable security tests |
 |------|-----------|--------------------------|
 | prototype | Check secrets only | Skip |

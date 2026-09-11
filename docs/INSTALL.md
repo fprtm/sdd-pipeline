@@ -13,7 +13,7 @@ Inside Claude Code, no terminal needed:
 /plugin install sdd-pipeline
 ```
 
-That's it. SDD Pipeline registers as a plugin — the orchestrator (auto-triggers on coding tasks) and all 4 slash commands (`/sdd-pipeline:discover`, `/sdd-pipeline:spec`, `/sdd-pipeline:implement`, `/sdd-pipeline:check`) become available immediately.
+That's it. SDD Pipeline registers as a plugin — the orchestrator (auto-triggers on coding tasks) and all 7 slash commands (`/sdd-pipeline:discover`, `/sdd-pipeline:spec`, `/sdd-pipeline:implement`, `/sdd-pipeline:check`, `/sdd-pipeline:docs`, `/sdd-pipeline:learn`, `/sdd-pipeline:update`) become available immediately.
 
 **Note**: this method only sets up the skill/command layer. To also get the pre-commit hook, CI workflow, and `docs/sdd/` project files (glossary, decisions, plans, etc.), run the manual installer once with `--with-hooks --with-ci --with-templates` (see below) — it's safe to run alongside a plugin install.
 
@@ -94,8 +94,8 @@ If you don't want the full install, use `--only` with a comma-separated list of 
 | `meta` | decision-log, comprehension, insight, health-check, memory, stats, glossary, traceability, handoff |
 | `modes` | prototype, vibe, standard, strict, emergency |
 | `constraints` | universal, web, cli, mobile, library, api |
-| `agents` | orchestration, model-strategy, subagent-patterns, parallel-work |
-| `commands` | the 5 standalone slash commands |
+| `agents` | orchestration, subagent-patterns, parallel-work |
+| `commands` | the 7 standalone slash commands |
 
 Shortcuts for common combinations:
 

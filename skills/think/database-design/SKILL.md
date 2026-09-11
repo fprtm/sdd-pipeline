@@ -1,10 +1,10 @@
 # Database Design — The Data Model, Designed Before It's Built
 
-The schema is one of the most basic engineering artifacts — every lifecycle has a data-modeling step. **Produce it automatically whenever the app stores data; never wait for the user to ask.** Runs in the design phase the moment a datastore is involved, and again whenever implementation adds or changes a migration. Also on "design the schema / data model / ERD / add a table / migration".
+**Produce it automatically whenever the app stores data; never wait for the user to ask.** Runs in the design phase the moment a datastore is involved, and again whenever implementation adds or changes a migration. Also on "design the schema / data model / ERD / add a table / migration".
 
 Output: the ERD at `docs/sdd/specs/{NNN}-{slug}/erd.md` — inside the same feature folder as its FSD/SDS (found by number, per doc-generator's "Number-First Lookup" rule), format in `skills/build/doc-generator/formats.md` — these rules govern what goes *into* it. **A data-persisting feature whose design phase produced no schema doc does not pass the design gate.**
 
-Bad schemas don't start bad — they get **crowded**: one table absorbing every new field because adding a column feels cheaper than modeling a new entity. This skill stops that before it starts.
+Guard against **crowded** tables: one table absorbing every new field because adding a column feels cheaper than modeling a new entity.
 
 ## Deliberation Agenda — Discuss Before the ERD Is Written
 

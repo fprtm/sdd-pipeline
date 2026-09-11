@@ -2,6 +2,8 @@
 
 Fix-first. For production outages, critical bugs, and urgent issues. Minimum overhead, maximum speed.
 
+**Phase behavior**: see the unified mode matrix in `skills/orchestrator/SKILL.md`. This file adds process rules unique to emergency mode.
+
 ## Trigger Detection
 
 Activate emergency mode when prompt contains urgency signals:
@@ -9,33 +11,6 @@ Activate emergency mode when prompt contains urgency signals:
 - "fix now", "ASAP", "production issue", "outage"
 - "server not responding", "users can't access"
 - Or user explicitly says "emergency mode"
-
-## Behavior
-
-| Phase | Setting |
-|-------|---------|
-| Elicitation | Skip. Focus on the error. |
-| Context | Error-focused only: read error logs, stack traces, recent changes. |
-| Scope guard | No limits. Fix what's broken. |
-| Complexity | Skip. |
-| Constraints | Skip all *overridable* ones — speed matters more than style. The handful marked `OVERRIDE: none` (no hardcoded secrets, above all) are never skipped, in any mode; see orchestrator Priority Rule 3. |
-| Anti-patterns | Skip. |
-| Plan file | Skip. Fix first. Post-fix plan retrospective written to archive. |
-| Change plan | Skip. |
-| Doc generator | Skip. Generate post-fix report only. |
-| SDLC detector | Skip. Fix the bug, process later. |
-| Arch analyzer | Skip. Don't refactor architecture during emergency. |
-| Stats | Track what was fixed. Brief entry. No footer. |
-| Execution guard | Loop detection after 2 tries. Escalate FAST. |
-| Verification | Quick smoke test: does the fix work? |
-| Adversarial | Skip. |
-| Security | Full checklist deferred to post-fix, but critical items (secrets, injection) still run — matches `skills/prove/diagnose/`'s own emergency row. Never fully skipped. |
-| Performance | Skip. |
-| Report | 1-line: "Fix applied. [test result]." |
-| Decision log | Post-facto: "Emergency fix: [what] [why] [files touched]." |
-| Comprehension | Skip. |
-| Insight | Skip. |
-| Memory | Don't save. |
 
 ## Emergency Process
 

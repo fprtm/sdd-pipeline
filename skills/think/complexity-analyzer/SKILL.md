@@ -30,10 +30,4 @@ Analyze what the task ACTUALLY involves, not just what the prompt says. Simple-s
 
 ## Mode Behavior
 
-| Mode | Behavior |
-|------|----------|
-| prototype | Detect but don't block. Note complexity, proceed fast. |
-| vibe | Detect silently. Auto-escalate task size. No user interaction. |
-| standard | Report hidden complexity. Let user decide scope. |
-| strict | Detailed breakdown. Must address each sub-task before proceeding. |
-| emergency | Skip. Focus on the immediate problem. |
+**Mode behavior**: see unified mode matrix in `skills/orchestrator/SKILL.md`.

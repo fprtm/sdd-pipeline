@@ -1,6 +1,6 @@
 # UX Design — The Interface, Designed Before It's Built
 
-A product with screens has a UI whether or not anyone designed it — the only question is whether it was decided deliberately or fell out of ad-hoc component choices. This is the design-phase peer of `skills/think/arch-analyzer/` for the interface: the FE gets built to a system, not improvised. Runs whenever there IS a UI (medium+ with screens; skip only for API-only/CLI), or on "design the UI / design system / palette / wireframe / UX".
+The design-phase peer of `skills/think/arch-analyzer/` for the interface: the FE gets built to a system, not improvised. Runs whenever there IS a UI (medium+ with screens; skip only for API-only/CLI), or on "design the UI / design system / palette / wireframe / UX".
 
 Output: **`docs/sdd/design-system/design.md`** (the one entry doc for the UI — always) + `docs/sdd/specs/{NNN}-{slug}/ux.md` (per-feature UX spec, bundled with its FSD/SDS/threats siblings inside the same feature folder) + `docs/sdd/design-system/ux-screens/<flow-slug>.md` (one file per flow, living alongside `design.md` — a flow isn't owned by one feature the way `ux.md` is, it can be revisited by a later feature, so it stays project-level).
 
@@ -171,7 +171,7 @@ Per screen, at the depth §0 confirmed:
 - **Fully detailed**: every section/component named, hierarchy tied to §2 tokens, **the why** (layout/primary-action reasoning, rejected alternative if any), and **interactions** — what happens on tap, on validation, on edge cases ("qty exceeds quota → adjust or show alternate dates", not just "there's an error state"). Layout with no interaction spec is half-specified — the FE still has to invent the behavior.
 - **Plain language throughout** — readable outside design; glossary terms are fine, anything else explained inline.
 
-**This screen serves three different readers, not one** — a human reviewing it, a coding agent building it, and (increasingly) a design-generation tool (Stitch, Figma AI, Claude's own design tooling) mocking it up from the same file. That's why the two sections below are structured (short prose + tables), not free paragraphs: structure is what a design-gen tool and a coding agent can both consume without re-interpreting natural language, while staying skimmable for a human.
+The two sections below are structured as short prose + tables, not free paragraphs — consumable by a human reviewer, a coding agent, and a design-generation tool (Stitch, Figma AI, etc.) alike.
 
 **`## Layout & Visual Composition`** — required on every screen file, this is the *UI* half (§3's bullets above are the *UX* half):
 - **Structure**: the grid/columns/regions for this screen specifically (e.g. "single column, max-width 480px, centered" — only state it if it's not just "whatever the global layout default is").

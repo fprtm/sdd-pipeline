@@ -302,6 +302,8 @@ The user picks a candidate from the report → hand off to **SDD Grill** (`skill
 
 ## Mode Behavior
 
+Defer to orchestrator matrix on conflict. Skill-specific additions below.
+
 | Mode | Architecture Analyzer |
 |------|----------------------|
 | **prototype** | Skip analysis. Build fast, refactor later. |

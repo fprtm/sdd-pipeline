@@ -46,10 +46,16 @@ Then, for **every** step that produces a document:
 1. **Announce the domain**: `Step 2/6 — Database design. Deliberating schema before writing ERD.`
 2. **Deliberate**: Load the domain's **deliberation agenda** from its think/ skill and run it as a grill session — frontier/round mechanics per `skills/think/grill/SKILL.md` (the "technical domain deliberation" subject type), every question carrying a recommendation, adversarial toward the agent's own defaults. When the frontier is empty, the domain is settled.
 3. **Document**: Write the artifact based on what was settled. The document is a record of deliberation, not a creative work done in isolation.
-4. **Fidelity check** (NEW — do this before reporting, not after): re-read every settled answer from step 2 against the just-written document, one by one. For each: does the document state this *the way the user settled it* — same values, same names, same behavior — or did writing it introduce a paraphrase, a silent substitution, a rounded-off approximation, or a dropped detail? A document is not "based on what was settled" because the agent remembers the gist; it's based on what was settled when every specific value (column name, cascade rule, status code, threshold number, screen state) traces back to an answer the user actually gave. Fix any drift found before moving to Report — never report a doc as done while known to diverge from what was agreed. If a decision was intentionally changed while writing (a contradiction only surfaced once put on paper), that's not silent-fixable — it goes back to the user as a fork, not a unilateral correction.
-5. **Report**: What landed (filenames), what was settled during deliberation, and anything that was assumed. Includes the fidelity check's outcome — "checked N settled decisions against the document, 0 drift" or the specific corrections made.
+4. **Fidelity check** (do this before reporting, not after): compare the **deliberation ledger file** (`docs/sdd/specs/{NNN}-{slug}/deliberation.md` or `docs/sdd/changes/deliberation-{slug}.md`) against the just-written document — not memory against document. The ledger is the ground truth; the comparison is file-to-file, never recall-to-file.
 
-**Why this step exists**: deliberation depth (see the agenda depth requirements below) is worthless if the document written afterward doesn't faithfully carry it. A model writing a document from "shared understanding" is reconstructing from memory of the conversation, not transcribing it — and reconstruction drifts. The fidelity check is the difference between "we discussed this thoroughly" and "the thing we discussed is what got written down."
+   For each row in the ledger with status `settled`: find the corresponding value in the document. If the value differs — paraphrased, rounded, substituted, or dropped — that's drift. Fix it before reporting. The document must state the value **the way the user settled it**: same names, same numbers, same behavior.
+
+   For each value in the document that has **no corresponding ledger row**: mark it as `assumed` in both places — add an inline annotation `[ASSUMED — reason]` in the document, and append a new row to the ledger with status `assumed` and the reason.
+
+   If a decision was intentionally changed while writing (a contradiction only surfaced once put on paper), that's not silent-fixable — it goes back to the user as a fork, not a unilateral correction.
+5. **Report**: What landed (filenames), what was settled during deliberation, and anything that was assumed. Includes the fidelity check's outcome — "checked N settled decisions against the ledger, 0 drift" or the specific corrections made.
+
+The deliberation ledger (written per-round by the grill, per `skills/think/grill/SKILL.md` Rule 5) is the fidelity check's ground truth: a file written incrementally during the conversation, not a summary reconstructed after the fact.
 
 Steps that don't produce a document (ticket decomposition) use the existing announce → run → report → check-in protocol.
 
@@ -66,9 +72,11 @@ Steps that don't produce a document (ticket decomposition) use the existing anno
 
 The deliberation is grill's **third subject type** — not a single decision (mid-session) and not a whole product (the five-seat agenda). It's a technical domain being shaped before its document is written. The frontier is seeded by the agenda topics in the think/ skill. Questions enter the frontier as their prerequisites settle. The session ends when every topic is settled and the document can be written from shared understanding.
 
-**Depth check before writing**: before declaring the frontier empty and moving to document writing, verify that each agenda topic was settled at its **depth requirement** level (see the agenda in each think/ skill). A topic discussed at headline level ("we'll use 3NF", "cascade on delete") without going through each entity/endpoint/screen is NOT settled — push it back to the frontier. The depth requirements exist because the agent's natural tendency is to label topics as settled after one sentence and move to writing the document. The document is only as good as the deliberation that preceded it.
+**Depth check before writing**: before declaring the frontier empty and moving to document writing, verify that each agenda topic was settled at its **depth requirement** level (see the agenda in each think/ skill). A topic discussed at headline level ("we'll use 3NF", "cascade on delete") without going through each entity/endpoint/screen is NOT settled — push it back to the frontier.
 
-**Topics are domain-gated, not mode-gated.** If the product has a database, DB deliberation happens regardless of mode. Mode controls depth:
+**Topics are domain-gated, not mode-gated.** If the product has a database, DB deliberation happens regardless of mode.
+
+Defer to orchestrator matrix (`skills/orchestrator/SKILL.md`, Elicitation row) on conflict. Skill-specific additions below — mode controls deliberation depth per topic:
 
 | Mode | Deliberation behavior |
 |------|----------------------|
@@ -141,15 +149,15 @@ Before writing each FSD, deliberate — with **depth requirements** enforced per
 
 Anything **not** on that list — filenames, numbering, doc formats, diagram shapes, which template applies — is decided internally. The user picks direction, never bookkeeping.
 
-**Mode dial** — the ceremony scales like everything else in this framework:
+**Mode dial for document writing** (deliberation depth: same as the topic table above):
 
-| Mode | Deliberation | Document writing |
-|------|-------------|-----------------|
-| **prototype** | One round per topic, recommendations accepted by default | Run straight through, announce only |
-| **vibe** | Same as prototype, no council unless genuinely hard to reverse | Batch artifacts, one summary at end |
-| **standard** | Full frontier rounds, council on rule-of-three | Full protocol: announce → deliberate → write → report |
-| **strict** | Full rounds + explicit confirmation per topic | Full protocol + explicit approval before writing |
-| **emergency** | Not applicable — emergency skips SPEC entirely | — |
+| Mode | Document writing |
+|------|-----------------|
+| **prototype** | Run straight through, announce only |
+| **vibe** | Batch artifacts, one summary at end |
+| **standard** | Full protocol: announce → deliberate → write → report |
+| **strict** | Full protocol + explicit approval before writing |
+| **emergency** | Not applicable — emergency skips SPEC entirely |
 
 ## What Happens When Called
 
@@ -171,9 +179,7 @@ Anything **not** on that list — filenames, numbering, doc formats, diagram sha
 - Database-touching work → `docs/sdd/specs/{NNN}-{slug}/erd.md`
 - Large scope → tickets at `docs/sdd/specs/{NNN}-{slug}/tickets/` with a frontier work order, announced as: "Scope is large — split into N tickets, starting with the unblocked ones."
 
-**Why `specs/{NNN}-{slug}/`, not a flat `design/`**: this folder is the whole numbered spec bundle for one feature (FSD/SDS/PRD/threat model/UX/ERD/tickets — none of the written specs visual). Visual design lives in `docs/sdd/design-system/` (project-wide) — `design.md` and `ux-screens/`, both there because they aren't owned by one feature number the way `fsd.md`/`sds.md`/etc. are. Naming the spec bundle "design" was the exact ambiguity the `/design`→`/spec` command rename (v4.0.0) tried to kill; folding everything else — ERD, tests, DoD, tickets — into one folder per feature (rather than five separate top-level directories that happen to share a number) closes the remaining fragmentation.
-
-**Run `check-file-hygiene.mjs` before declaring the run complete.** This command writes more files in one pass than any other, which makes it the most likely place for a filename to drift from convention — and a convention followed "probabilistically" is exactly what the mechanical checker exists to catch. A run that ends without the checker passing isn't finished.
+**Run `check-file-hygiene.mjs` before declaring the run complete.** A run that ends without the checker passing isn't finished.
 
 ## How to Review This Feature — Tell the Human Where to Start, Every Time
 

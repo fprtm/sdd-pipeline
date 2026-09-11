@@ -21,6 +21,21 @@ SDD Pipeline auto-determines which documents to generate. User can always skip o
 | **New project** | PRD + SDS + ERD (if DB) + FSD + DoD |
 | **Micro task** (typo, rename, 1-liner) | Nothing — announce "micro task, no docs" |
 
+### Diagram Suite — Size-Gated Extras for Complex Products
+
+The base table above covers most tasks. For **large/full products with multi-role complexity** (≥3 distinct actor roles), the following diagram documents trigger in addition to the base docs:
+
+| Doc Type | Trigger | What it captures |
+|----------|---------|------------------|
+| **Use Case Spec** | Large + multi-role (≥3 actors) | One file per role — PlantUML use case diagram + UC table per actor. Captures WHO does WHAT at system boundary level. |
+| **Process Flow** | Large + multi-role (≥3 actors) | Per-role flow + one cross-actor end-to-end flow. Mermaid/PlantUML flowchart showing happy path + decision points. |
+| **Sequence Diagram** | Medium+ with multi-service or multi-actor interaction | Mermaid `sequenceDiagram` embedded in markdown. Shows temporal ordering of calls between actors/services. |
+| **Activity Diagram** | Medium+ with technical process detail (validation chains, trigger cascades, branching logic) | Mermaid/PlantUML activity diagram. Shows branching, parallel forks, guard conditions. |
+
+**Size gate keeps small tasks lightweight.** Small/medium tasks get FSD+DoD (maybe SDS). The diagram suite only kicks in when the task is genuinely complex enough to need visual documentation — not every endpoint needs a sequence diagram.
+
+**Detection signals for multi-role**: ≥3 distinct named roles in the PRD/FSD user stories, or the user explicitly describes a multi-role product. Sequence/activity diagrams trigger on complexity, not role count — a 2-service integration with 5-step handshake needs a sequence diagram even for a medium task.
+
 ### Detection Signals
 
 How SDD Pipeline detects task type:
@@ -53,15 +68,18 @@ Every generated doc for a feature lives inside **one folder**, `docs/sdd/specs/{
 | ERD | `docs/sdd/specs/{NNN}-{slug}/erd.md` |
 | Test Plan | `docs/sdd/specs/{NNN}-{slug}/tests.md` |
 | DoD | `docs/sdd/specs/{NNN}-{slug}/dod.md` |
+| Use Case Spec | `docs/sdd/specs/{NNN}-{slug}/uc-{role}.md` (one per actor role) |
+| Process Flow | `docs/sdd/specs/{NNN}-{slug}/flow-{role}.md` + `flow-e2e.md` (cross-actor) |
+| Sequence Diagram | `docs/sdd/specs/{NNN}-{slug}/seq-{interaction}.md` |
+| Activity Diagram | `docs/sdd/specs/{NNN}-{slug}/activity-{process}.md` |
+| Role Index | `docs/sdd/roles/{role}.md` (one per actor, project-wide — see "Per-Role View") |
 | Tickets (large scope) | `docs/sdd/specs/{NNN}-{slug}/tickets/{NN}-{ticket-slug}.md` + `00-index.md` |
 
 - **NNN**: zero-padded sequence (`001`, `002`, …) — next number = highest existing feature-folder number + 1
 - **slug**: kebab-case of the feature name (e.g., `user-auth`, `payment-flow`), fixed once the folder is created
 - Example: `docs/sdd/specs/003-payment-refund/fsd.md`, `docs/sdd/specs/003-payment-refund/sds.md` — same folder, same feature, different doc types
 
-**Why `specs/`, not `design/`**: this directory holds *written specifications* — FSD/SDS/PRD/threat model, none of them visual — while `docs/sdd/design-system/` holds the actual visual design (tokens, screens, UI patterns). Naming both "design" was the same collision the `/design`→`/spec` command rename fixed in v4.0.0, just one level down in the file tree; `specs/` closes it for good.
-
-**Why one folder per feature, not flat numbered files**: `docs/sdd/tickets/{feature-slug}/` already worked this way — grouping by folder made a fitur's ticket set instantly visible as one directory instead of files that merely happened to share a prefix. Extending the same shape to `specs/` means everything tied to one feature's spine number (FSD, SDS, ERD, tickets, tests, DoD) sits in one place a reader can open once, instead of being split across `specs/`, `erd/`, `test-plans/`, `dod/`, and `tickets/{slug}/` as five separate top-level directories that all happen to share a number.
+**`specs/`, not `design/`**: this directory holds *written specifications* (FSD/SDS/PRD/threat model, none visual); `docs/sdd/design-system/` holds the actual visual design (tokens, screens, UI patterns). Don't conflate the two.
 
 ### Number-First Lookup — Never Regenerate the Slug to Find a Folder
 
@@ -86,7 +104,7 @@ After generating, update `docs/sdd/index.md` with a link to the feature folder a
 **Status**: DRAFT | APPROVED | IMPLEMENTED | SUPERSEDED by {NNN}
 ```
 
-This is the same "never delete, mark instead" instinct as the decision log and the traceability matrix's dropped-ID rule, applied to design docs: `Date` answers "how old is this," `Updated`+`Version` answer "has this actually changed since I last read it, and how much" without diffing history, and `Status` answers "is this still the live version" without cross-checking the index. A doc sitting at `v1`/`Status: DRAFT` for months is itself a signal worth noticing.
+A doc sitting at `v1`/`Status: DRAFT` for months is itself a signal worth noticing.
 
 ## The ID Spine — Stable IDs for Traceability
 
@@ -97,6 +115,8 @@ The numbered filenames double as the traceability spine (`skills/meta/traceabili
 | `FSD-003` | The FSD *file* `specs/003-{slug}/fsd.md` — the folder's number IS the ID | Folder name + filename |
 | `SDS-003` / `PRD-003` / `ERD-003` | Same rule for `sds.md`/`prd.md`/`erd.md` in the same folder | Folder name + filename |
 | `FSD-003.2` | Flow/behavior #2 *inside* FSD-003 — use when the matrix needs a finer link | `### FSD-003.2 — …` heading in the file |
+| `UC-003-perusahaan` | Use case spec for role "perusahaan" in feature 003 | `uc-perusahaan.md` filename |
+| `FLOW-003-e2e` | Cross-actor end-to-end flow for feature 003 | `flow-e2e.md` filename |
 | `ADR-005` | Decision file `decisions/005-{slug}.md` (see `skills/meta/decision-log/`) | Filename |
 | `REQ-001` / `REQ-NF-001` | A single requirement (item-level, global counter) | Table row in a PRD |
 | `FR-001` (or whatever prefix the project declares) | Same as `REQ`, under a project's own pre-existing convention — set `req-prefix:` in `docs/sdd/config.md` if this project used a different requirement prefix before adopting SDD Pipeline. Default `REQ` needs no config. | Table row in a PRD |
@@ -122,9 +142,44 @@ Rules that make this real rather than aspirational:
 - **A missing doc is a create, not a skip.** If the touched area has no doc yet, the ticket creates one — "there was nothing to update" doesn't pass.
 - Behavior changed → update the user doc; interface changed → update the dev doc + JSDoc, same diff.
 
+## Per-Role View — One Entry Point Per Actor
+
+For products with ≥3 actor roles, generate `docs/sdd/roles/{role}.md` — one file per role. This is an **index with links**, not content duplication.
+
+Each role file contains:
+- **Role summary**: who this actor is, their primary goals (1-2 sentences)
+- **Use cases**: links to all `uc-{role}.md` files across features that involve this role
+- **Flows**: links to all `flow-{role}.md` files
+- **Specs**: links to FSD/SDS sections that mention this role
+- **Tickets**: links to tickets that touch this role's functionality
+- **ERD entities**: which entities this role owns or interacts with
+
+**Rules**:
+- Role files are **Evergreen** (lifecycle tier) — update whenever a new feature adds a UC or flow for that role.
+- Role files link by ID (`UC-003-perusahaan`, `FSD-003.2`), not by prose summary. If the source file changes, the link still works.
+- Only generate role files when the diagram suite triggers (large + multi-role). For 2-role products, the FSD user stories are sufficient.
+- Role slugs are kebab-case of the role name as used in the product, not translated: `perusahaan`, `job-seeker`, `admin`, `mentor`.
+
+## Cross-Reference Enforcement
+
+Every document must cite its upstream sources. This is not optional — orphan references are treated as warnings by health-check.
+
+| Document type | Must cite |
+|---------------|-----------|
+| ERD entity | At least one UC or FSD that uses it |
+| Flow step | The FSD or UC it implements |
+| Sequence participant | The SDS component or FSD actor it represents |
+| Activity branch | The FSD error/alternate flow or business rule it encodes |
+| Decision (ADR) | The spec or ticket that triggered it |
+| Ticket | Its parent FSD/SDS/PRD by ID |
+
+**How to cite**: inline `(Refs: FSD-003, UC-003-perusahaan)` at the end of the relevant section or table row. Same convention as the existing ID spine.
+
+**Mechanical check**: health-check's cross-reference orphan scan (see `skills/meta/health-check/`) greps for entities/flows/decisions that cite nothing, and for cited IDs that don't resolve to an existing file. This turns "did we connect everything?" from a judgment call into a grep.
+
 ## Mermaid Diagram — Required in Every FSD and SDS
 
-Every FSD and SDS must include one compact Mermaid diagram giving the user a visual at a glance — most users grasp a 10-node flowchart faster than 10 paragraphs:
+Every FSD and SDS must include one compact Mermaid diagram giving the user a visual at a glance:
 
 - **FSD** → a `flowchart` of the user/data flow (what goes in, what happens, what comes out)
 - **SDS** → a component/`flowchart` diagram of module relationships, or a `sequenceDiagram` if the interesting part is the interaction order
@@ -132,9 +187,25 @@ Every FSD and SDS must include one compact Mermaid diagram giving the user a vis
 
 Keep it small: if the diagram needs more than ~12 nodes, it's covering too much — split it or simplify. A diagram that needs a paragraph to explain should be redrawn, not explained.
 
+## Reuse Gate — Check Before Create
+
+Before allocating a new feature number or creating any spec file, match the current task against the artifact inventory from context-loader (step 5). This gate runs once per task, before the "One Doc at a Time" flow below.
+
+1. **Read the inventory.** If context-loader produced an artifact inventory, use it. If not (bare project, first run), skip this gate — there's nothing to match against.
+2. **Match by semantics, not exact slug.** Compare the task's subject to each existing spec folder and in-progress change file. Match on meaning: "payment refund" matches `003-payment-refund`, "refund flow" matches `003-payment-refund`, "add refund endpoint" matches `003-payment-refund`. Don't require exact string equality.
+3. **Decide**:
+   - **Match found, status DRAFT or APPROVED** → this is an update to existing work. Use that folder (`specs/{NNN}-*/`), update the relevant files inside it. Do NOT allocate a new number.
+   - **Match found, status IMPLEMENTED** → the feature shipped. If the task is a revision/enhancement of the same feature, update in-place and bump Version/Updated. If it's a genuinely different feature in the same area, allocate a new number and link back.
+   - **Match found, status SUPERSEDED** → ignore it, treat as no match.
+   - **Match found in `changes/` with status `in-progress`** → this task may be a continuation. Read the change file to confirm, then update it instead of creating a new one.
+   - **No match** → new feature. Allocate next number per normal rules.
+4. **Announce the decision.** Always state which path was taken: `Updating existing FSD-003 (payment-refund, DRAFT)` or `No existing spec matches — allocating 007.` This makes the reuse/create decision visible and auditable.
+
+**The failure this gate prevents**: session 1 creates `003-payment-refund/fsd.md`. Session 2 gets the same task, doesn't check, creates `007-payment-refund/fsd.md`. Now two specs describe the same feature with diverging content.
+
 ## One Doc at a Time — Announce, Write, Report
 
-A task that needs six documents is six steps, not one. Generating the whole suite in a single silent pass and revealing it at the end means every assumption made in doc #1 is already baked into docs #2–6 by the time the user can correct it — and correcting it then costs a rewrite of all six.
+A task that needs six documents is six steps, not one — never generate the whole suite in a single silent pass.
 
 For each document, in order:
 
@@ -150,13 +221,15 @@ For each document, in order:
 
 ## Mode Behavior
 
-| Mode | Doc Generation |
-|------|---------------|
-| **prototype** | Skip all docs. Speed first. |
-| **vibe** | Generate docs silently. Don't show to user. Available in docs/sdd/ for later review. |
-| **standard** | Generate relevant docs. Show summary of what was created. |
-| **strict** | Generate all applicable docs. Require user review of FSD/SDS before BUILD proceeds. |
-| **emergency** | Skip docs. Generate post-fix report only. |
+**Mode behavior**: see unified mode matrix in `skills/orchestrator/SKILL.md`.
+
+## Artifact Lifecycle Tiers
+
+| Tier | Artifacts | Rule |
+|------|-----------|------|
+| Evergreen | config.md, glossary.md, index.md, traceability.md, design-system/design.md, stack-guide.md, spec docs (FSD/SDS/ERD) | Update in-place. Live as long as the feature lives. |
+| Transactional | Tickets (done), change files (done + merged), verification reports, deliberation ledgers (after doc verified) | Archive or delete after purpose fulfilled. Tickets → `archive/`. Change files older than 14 days with `status: done` → delete. Reports → keep only the latest per feature. Ledgers → move to `archive/` after fidelity check passes. |
+| Accumulating | decisions/, memory/, mockup PNGs | Review periodically — every 5 new features or quarterly, whichever comes first. Prune superseded ADRs, stale memories, outdated mockups. |
 
 ## Rules
 
@@ -167,6 +240,8 @@ For each document, in order:
 5. **Mermaid for diagrams** — Use Mermaid syntax for all diagrams. FSD/SDS must each carry one compact diagram (see "Mermaid Diagram" section).
 6. **Elicitation answered = spec written** — if elicitation/grill questions were asked and answered, a spec (at minimum) MUST be generated before BUILD. Questions without a written spec is a broken contract: the user spent effort answering, the answers must land somewhere durable, not evaporate into the conversation.
 7. **Always announce what was (not) generated** — "Generated: 003-payment-refund-fsd.md, 002-payment-refund-dod.md" or "No docs — bug fix, report only." Never leave the user guessing why a doc did or didn't appear.
-6. **No file paths or line numbers in durable docs** (FSD, SDS, PRD) — they go stale before the doc does. Describe behavior and interfaces instead. Test plans and DoD checklists are exempt since they're inherently tied to the current state of the code.
-7. **Use glossary terms** — reference `docs/sdd/glossary.md` (see `skills/meta/glossary/`) for canonical terminology. Don't introduce a new synonym for a term that's already defined.
-8. **A document is a transcription of what was settled, not a summary of it.** After a deliberation session, writing "based on our discussion" and reconstructing from memory is how specific values silently drift (a cascade rule becomes the "usual" one, a threshold gets rounded, a status code gets swapped for a more common one). Run the fidelity check (step 3 above) every time a document follows a deliberation — this is not optional polish, it's the step that makes the deliberation worth having had.
+8. **No file paths or line numbers in durable docs** (FSD, SDS, PRD) — they go stale before the doc does. Describe behavior and interfaces instead. Test plans and DoD checklists are exempt since they're inherently tied to the current state of the code.
+9. **Use glossary terms** — reference `docs/sdd/glossary.md` (see `skills/meta/glossary/`) for canonical terminology. Don't introduce a new synonym for a term that's already defined.
+10. **A document is a transcription of what was settled, not a summary of it.** Run the fidelity check (step 3 above) every time a document follows a deliberation.
+12. **Cross-references are mandatory** — every ERD entity cites a UC/FSD, every flow cites a spec, every decision cites its trigger. An orphan entity (no upstream ref) or a dangling cite (ID doesn't resolve) is a defect, not a style issue. See "Cross-Reference Enforcement" above.
+13. **Ledger traceability** — every decided value in a generated document must either (a) trace to a `settled` row in the deliberation ledger (`docs/sdd/specs/{NNN}-{slug}/deliberation.md` or `docs/sdd/changes/deliberation-{slug}.md`), or (b) be explicitly marked `[ASSUMED — reason]` inline in the document and have a corresponding `assumed` row appended to the ledger. A value that appears in the document with no ledger row and no `[ASSUMED]` annotation is an unmarked assumption — `check-file-hygiene.mjs` may flag documents with unmarked values that have no ledger row.

@@ -48,10 +48,4 @@ During execution, if you notice something unrelated that could be improved:
 
 ## Mode Behavior
 
-| Mode | Behavior |
-|------|----------|
-| prototype | No scope limits |
-| vibe | Soft limits. Warn internally, don't interrupt user. |
-| standard | Hard limits. Pause if exceeded. |
-| strict | Strict limits. Must justify and get approval for each deviation. |
-| emergency | No scope limits. Fix what's broken. |
+**Mode behavior**: see unified mode matrix in `skills/orchestrator/SKILL.md`.

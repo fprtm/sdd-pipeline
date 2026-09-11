@@ -8,8 +8,6 @@ disable-model-invocation: true
 
 The ASK step of the fixed sequence (`ASK → SPEC → PLAN → BUILD → CHECK`), and the widest part of this framework by design.
 
-**Why it's this big.** AI writes code several times faster than a human can review it, so review is the bottleneck — and you don't beat a bottleneck by reviewing faster. You beat it by making fewer decisions *need* reviewing. A decision settled here costs a sentence. The same decision discovered after code exists costs a migration, a refactor, and a review nobody has capacity for. This command exists to move decisions to where they're cheap.
-
 **What it does not do.** Discovery moves *decision* risk, not *execution* risk. It will not prevent a race condition, an off-by-one, or a hallucinated API — those stay the judgment gate's problem in PROVE. Don't let a thorough discovery become an argument for a thinner CHECK.
 
 ## Two Gears — Shifted Automatically, Announced Out Loud
@@ -60,8 +58,6 @@ Gear 2 works through five seats, in dependency order. A seat earns its place by 
 
 Discover settles **WHICH**: which entities exist, which architecture approach, which stack, which flows are in v1. It does **not** settle **HOW**: how entities relate in detail, which code patterns apply, what cascade behavior to use, what interaction states each screen has. Those are design decisions that belong to the SPEC step's deliberation — where each think/ skill has a deliberation agenda that gets grilled before its document is written.
 
-The reason for the split: discover operates before the shape is firm enough to make detailed design decisions. Choosing cascade behavior when the entity model isn't settled yet is premature. But by the time spec runs, the entities, the stack, and the scope are settled — and now detailed design decisions have enough foundation to be meaningful.
-
 **This means discover is not the only place decisions get made.** Spec's deliberation is equally rigorous — same grill mechanics, same recommendations, same council on hard decisions. The difference is scope: discover settles the product's shape, spec's deliberation settles each domain's design detail within that shape.
 
 ## Hand-off
@@ -72,7 +68,7 @@ When the user signals they want to build ("oke gua mau seriusin ini", "let's do 
 
 ## Mode Interaction
 
-Mode dials **how deep each seat goes**, never **which seats exist**:
+Defer to orchestrator matrix (`skills/orchestrator/SKILL.md`, Elicitation row) on conflict. Skill-specific additions below — mode dials **how deep each seat goes**, never **which seats exist**:
 
 | Mode | Behavior |
 |------|----------|

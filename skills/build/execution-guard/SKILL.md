@@ -20,15 +20,7 @@ B) Skip this part and flag it for you to investigate
 C) You investigate and tell me what to do
 ```
 
-**Loop thresholds by mode**:
-
-| Mode | Max retries before escalation |
-|------|------------------------------|
-| prototype | 5 |
-| vibe | 3 |
-| standard | 3 |
-| strict | 2 |
-| emergency | 2 |
+**Loop thresholds by mode**: see unified mode matrix in `skills/orchestrator/SKILL.md` ("Execution guard" row).
 
 ## Stuck Escalation
 
@@ -44,17 +36,13 @@ Do NOT silently spin. Transparency beats stubbornness.
 
 Periodic status updates during execution so the user knows what's happening.
 
-| Mode | Signal Frequency |
-|------|-----------------|
-| prototype | None |
-| vibe | None |
-| standard | At key milestones: "Database schema created. Moving to API routes." |
-| strict | At every significant decision: "About to create users table with columns: id, email, password_hash, role, created_at. Proceed?" |
-| emergency | None |
+**Signal frequency by mode**: see unified mode matrix in `skills/orchestrator/SKILL.md` ("Execution guard" row).
 
 ## Reviewable Chunks — Never Generate More Than Can Be Reviewed
 
-The 10x generation-vs-review gap is not solved by reviewing faster — it's solved by **generating in reviewable units**. A 500-line diff is not reviewable in one pass; five 100-line chunks, each with context, are.
+Generate in reviewable units, not one large diff. A 500-line diff is not reviewable in one pass; five 100-line chunks, each with context, are.
+
+Defer to orchestrator matrix on conflict. Skill-specific additions below.
 
 ### Chunk Protocol
 
@@ -70,6 +58,8 @@ For medium+ tasks in standard/strict mode, implementation is broken into chunks.
 4. **Micro-approval checkpoint** (mode-dependent — see table below)
 
 ### Mode Behavior for Chunks
+
+Defer to orchestrator matrix on conflict. Skill-specific additions:
 
 | Mode | Chunking behavior |
 |------|-------------------|
@@ -107,13 +97,9 @@ Track what the developer has and hasn't reviewed:
 
 **The throttle activates on debt**: if there are 2+ unacknowledged 🔴 chunks and a new 🔴 chunk is about to be generated, pause and state the debt. The developer can override, but the debt is made visible.
 
-This is not about slowing the developer down — it's about making the cost of skipping review visible instead of invisible. Code that ships unreviewed ships anyway if the developer chooses it; what changes is whether they *know* they chose it.
-
 ## Session Awareness
 
 Detect rapid iteration (3+ prompts within 2 minutes):
 
 - Switch to lightweight mode: skip elicitation, reuse last context, minimal verification.
 - Resume normal depth when iteration pace slows.
-
-This prevents SDD Pipeline from being annoying during "change this... no wait, try this... actually do that" sessions.

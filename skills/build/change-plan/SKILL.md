@@ -54,10 +54,4 @@ After task completion, the change summary is included in the verification report
 
 ## Mode Behavior
 
-| Mode | Behavior |
-|------|----------|
-| prototype | Skip entirely |
-| vibe | Auto-declare, no approval needed, note deviations in summary |
-| standard | Declare and confirm before starting. Pause on deviation. |
-| strict | Declare, get approval per file, re-approve on any deviation |
-| emergency | Skip entirely |
+**Mode behavior**: see unified mode matrix in `skills/orchestrator/SKILL.md`.

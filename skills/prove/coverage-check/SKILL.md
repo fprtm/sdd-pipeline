@@ -49,6 +49,8 @@ A passing percentage is necessary but not sufficient:
 
 ## Mode Behavior
 
+Defer to orchestrator matrix on conflict. Skill-specific additions:
+
 **The gate always runs.** Mode dials *narration* and *whether a FAIL blocks* — never whether coverage is measured. (Same rule as everywhere else in this framework: mode controls depth and visibility, not coverage.)
 
 | Mode | Measured? | Narrated | FAIL behavior |

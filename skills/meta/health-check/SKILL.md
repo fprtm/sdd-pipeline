@@ -45,6 +45,19 @@ Scan the codebase against the active constraint and anti-pattern sets:
 - Overall: [GOOD / FAIR / NEEDS ATTENTION]
 ```
 
+### Staleness Warnings
+
+9. **Stale done tickets**: warn if >5 tickets with `done`/`✅` status exist outside an `archive/` directory.
+10. **Old change files**: warn if any `changes/*.md` with `status: done` is older than 14 days (check the `updated:` frontmatter date against today).
+11. **Report accumulation**: warn if >2 verification reports exist for the same feature spec number.
+
+### Cross-Reference Orphan Check
+
+12. **Orphan ERD entities**: grep all `erd.md` files for entity names, then check whether each entity is cited by at least one `uc-*.md`, `fsd.md`, or `flow-*.md` in the same feature folder. An entity that nothing references is likely dead or undocumented — warn.
+13. **Dangling references**: grep all spec files for `Refs:` lines, extract cited IDs (`FSD-xxx`, `UC-xxx-role`, `ADR-xxx`, `TICKET-xxx`, `SEC-xxx`), and verify each ID resolves to an existing file or heading. A cited ID that points nowhere is a broken link — warn.
+14. **Unlinked flows**: grep `flow-*.md` and `seq-*.md` files for missing `Refs:` lines. Every flow/sequence document must cite at least one FSD or UC. A flow that cites nothing is disconnected from the spec — warn.
+15. **Role index drift**: if `docs/sdd/roles/` exists, check that every `uc-{role}.md` and `flow-{role}.md` across all spec folders has a corresponding link in `roles/{role}.md`. A UC/flow that exists but isn't in the role index is invisible to role-based navigation — warn.
+
 ## Rules
 
 1. Health check REPORTS only. It does NOT auto-fix.

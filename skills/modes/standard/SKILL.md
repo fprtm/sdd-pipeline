@@ -2,32 +2,7 @@
 
 Balanced. Default mode for daily development. Guardrails are visible but not oppressive.
 
-## Behavior
-
-| Phase | Setting |
-|-------|---------|
-| Elicitation | Adaptive: 0 (micro) to 3-5 (large) questions. |
-| Context | Full scan. Report findings. |
-| Scope guard | Hard limits based on task type. Pause if exceeded. |
-| Complexity | Report hidden complexity. Let user decide scope. |
-| Constraints | Visible. Flag violations. Explain rationale. Self-correct. |
-| Anti-patterns | Fix and note what changed. |
-| Written record | `changes/{date}-{slug}.md` (small/medium) or the ticket breakdown (large). Shown to user. Wait for approval or "go". |
-| Change plan | Declare and confirm before starting. Pause on deviation. |
-| Doc generator | Generate relevant docs based on task type triggers. Show summary of what was created. |
-| SDLC detector | Full SDLC adaptation. Context shown in plan. |
-| Arch analyzer | Full analysis for new projects. Consistency check for existing. Show recommendations. |
-| Stats | Track everything. Show 2-line footer after completion. |
-| Execution guard | Loop detection after 3 tries. Progress at key milestones. |
-| Verification | All 4 layers. |
-| Adversarial | 3-5 targeted tests. |
-| Security | Full relevant domain checklist. |
-| Performance | Detect and flag. |
-| Report | Full actionable report (~15-20 lines). |
-| Decision log | Log and reference key decisions in report. |
-| Comprehension | Full output (~15 lines). |
-| Insight | Per-task notes + periodic summary. |
-| Memory | Save automatically. |
+**Phase behavior**: see the unified mode matrix in `skills/orchestrator/SKILL.md`. This file adds process rules unique to standard mode.
 
 ## Plan Handling
 
@@ -45,4 +20,4 @@ SDD Pipeline: 2 anti-patterns fixed, 1 security issue caught, 4 files changed
 
 ## This Is the Default
 
-If no mode is detected or specified, use standard mode. It's the right balance for most professional development work.
+If no mode is detected or specified, use standard mode.

@@ -118,10 +118,11 @@ alone leaves that guessed. No implementation code, just the manifest:]
 
 ## Algorithm / Flow
 
-**Required for T2/T3, and for any ticket touching a schema/table — optional
-for T1 CRUD glue where there's genuinely one obvious way to do it.** This is
-what removes the guessing a junior dev or cheap model would otherwise do —
-name the actual steps/branches, not just the function signature.
+**Required for ALL tiers.** T1 may be brief (3–5 lines), but never empty.
+Even "CRUD glue" has a cascade rule, a validation order, or an error
+response that must be stated. This is what removes the guessing a junior
+dev or cheap model would otherwise do — name the actual steps/branches,
+not just the function signature.
 
 For a function/service, pseudocode-level steps (not full code):
 ```
@@ -149,7 +150,9 @@ rules** — not just "create the table":
 **If `tests.md` exists for this feature**: reference the `TEST-xxx` per
 criterion — don't restate the test's content here, that's what causes the
 two copies to drift. `tests.md` is the source of truth for what the test
-actually asserts.
+actually asserts. **However, the AC line must still state the decided value
+being tested** (e.g., "422 on duplicate email") — the prohibition is on
+duplicating the full test implementation, not on naming what's being verified.
 - [ ] Given [precondition], when [action], then [observable outcome] — TEST-030
 - [ ] [Testable criterion] — TEST-031
 
@@ -245,6 +248,8 @@ This is a **default, not a lock** — the user can override it explicitly at any
 
 ## Mode Behavior
 
+Defer to orchestrator matrix on conflict. Skill-specific additions:
+
 | Mode | Ticket Decomposition |
 |------|----------------------|
 | **prototype** | For genuinely small scope: build in one pass, no tickets. For `large` scope (new system, multi-component): still decompose into vertical slices — speed-first doesn't mean losing the ability to parallelize or track what's done vs. what's left. Tickets can be lightweight (title + one-line "what to build" + files + blockers, skip DoD/tier/traceability refs), but they exist. |
@@ -253,6 +258,11 @@ This is a **default, not a lock** — the user can override it explicitly at any
 | **strict** | Show the breakdown, require explicit approval per ticket before starting, full DoD per ticket |
 | **emergency** | Skip — fix first, decompose the follow-up work later if needed |
 
+## Ticket Lifecycle
+
+- After verification passes and the ticket is marked `✅ done`, move it to `tickets/archive/` (or `specs/{NNN}-{slug}/tickets/archive/` for the one-folder-per-feature layout). The ticket remains in git history; archiving keeps the working directory clean and prevents done tickets from loading into agent context.
+- `check-file-hygiene.mjs` warns when >5 tickets with `done` status exist outside `archive/`.
+
 ## Rules
 
 1. Vertical-slice by default. Layer-splitting is the exception, reserved for mechanical/wide refactors.
@@ -260,5 +270,6 @@ This is a **default, not a lock** — the user can override it explicitly at any
 3. Compute and show blocking edges explicitly — don't leave dependency order implicit.
 4. Confirm granularity with the user before writing ticket files — this is a judgment call, not a mechanical process.
 5. Tickets are **exempt** from the no-file-paths durability rule (they die at merge) — `Files likely touched:` is required, and steps should name real files/functions. FSD/SDS/PRD keep the rule.
-6. **Self-containment test**: could someone who never read the PRD finish this ticket from the ticket alone? Point at the exact spec sections that define every shape ("use the payload from FSD-003.2, don't invent it") — if executing the ticket would require guessing a field, a path, or a contract, it isn't ready.
+6. **Self-containment test**: could someone who never read the PRD finish this ticket from the ticket alone? Every decided value (cascade rule, threshold, status code, error message, column name, validation rule) referenced by the ticket must appear **literally** in the ticket body — not just a pointer. Format: state the value, then cite the source in parentheses (e.g., "cascade = RESTRICT (ERD-001, users.org_id)"). A ticket that only says "Refs: FSD-003" without the actual values is incomplete. If executing the ticket would require guessing a field, a path, or a contract, it isn't ready.
 7. Every ticket traces upward (`Refs:` an FSD, SEC, or ADR) — no freelance tickets; `check-traceability.mjs` flags them.
+8. **Spec → ticket fidelity check**: after writing tickets, for each ticket that references a spec section (FSD/SDS/ERD), verify that every decided value in that spec section appears literally in the ticket. This mirrors the deliberation→document fidelity check from the THINK phase. A ticket whose values don't match the spec it references is a broken handoff — the implementing agent will build against stale or missing data.

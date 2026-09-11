@@ -10,7 +10,7 @@ A decision earns an ADR entry only if **all three** are true:
 2. **Surprising without context** — a future reader would ask "wait, why did we do it this way?"
 3. **Result of a real trade-off** — there were genuine alternatives, not one obvious path
 
-If any of the three is missing, don't log it. This is a deliberate change from "log every non-trivial decision" — that approach produces a decisions folder nobody reads because it's 90% noise. A tight, curated log stays useful; a bloated one gets ignored.
+If any of the three is missing, don't log it.
 
 ### Examples
 
@@ -70,6 +70,8 @@ Most entries should be 3-5 lines total. If it's growing past half a page, it's p
 
 ## Mode Behavior
 
+Defer to orchestrator matrix (`skills/orchestrator/SKILL.md`) on conflict. Skill-specific additions below: rule-of-three application per mode, strict sign-off on borderline (2 of 3) decisions, emergency post-facto format.
+
 | Mode | Behavior |
 |------|----------|
 | prototype | Skip entirely |
@@ -84,4 +86,4 @@ When starting a new task, check `docs/sdd/decisions/` and `docs/sdd/glossary.md`
 - "Have we already decided on an auth approach?"
 - "What ORM was chosen and why?"
 
-This prevents re-debating settled decisions — and because the log is curated (not bloated), searching it is actually fast. Treat a found decision as binding by default; if `docs/sdd/config.md` sets `team.shared-decisions: false`, surface it and confirm it still applies to the current task instead of treating it as settled without asking (see orchestrator's "Team Support").
+This prevents re-debating settled decisions. Treat a found decision as binding by default; if `docs/sdd/config.md` sets `team.shared-decisions: false`, surface it and confirm it still applies to the current task instead of treating it as settled without asking (see orchestrator's "Team Support").

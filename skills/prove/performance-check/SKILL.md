@@ -102,6 +102,8 @@ PERFORMANCE CHECK — EXECUTABLE:
 
 ## Mode Behavior
 
+Defer to orchestrator matrix on conflict. Skill-specific additions:
+
 | Mode | Static scan | Executable tests |
 |------|-------------|------------------|
 | prototype | Skip | Skip |

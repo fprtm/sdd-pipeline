@@ -25,7 +25,7 @@ Assign **one full vertical slice per agent** (route → service → domain → t
 node skills/agents/parallel-work/check-parallel-safety.mjs docs/sdd/tickets
 ```
 
-It parses the tickets (each ticket's `Files likely touched:` / `Dependencies:` / `Status:` / `Claimed by:` fields — see `skills/build/ticket-decomposition/`'s format), finds those eligible right now (not done, not claimed, dependencies met), and outputs **strict-safe clusters** (zero shared files) plus **near-safe pairs** (1–2 shared files — a human judgment call, neither silently included nor excluded). Use its output as the starting plan. Real grounding: two "independent-looking" adapter tickets both needed to edit the same module factory — a shared file is a merge collision waiting to happen even with perfectly separate business logic, and the checker surfaces it instead of hoping someone notices by reading two file lists side by side.
+It parses the tickets (each ticket's `Files likely touched:` / `Dependencies:` / `Status:` / `Claimed by:` fields — see `skills/build/ticket-decomposition/`'s format), finds those eligible right now (not done, not claimed, dependencies met), and outputs **strict-safe clusters** (zero shared files) plus **near-safe pairs** (1–2 shared files — a human judgment call, neither silently included nor excluded). Use its output as the starting plan.
 
 ## 3. Always Confirm the Plan Before Spawning — Every Mode, No Exception
 
@@ -45,7 +45,7 @@ Before starting a ticket, the agent sets `**Claimed by:** <agent-id>, <worktree 
 
 Merge in dependency-wave order (never a dependent ticket's branch before its dependency lands). Per ticket: review passes → rebase onto current base → merge (one PR per ticket, per `skills/build/git-workflow/`). If two merged branches conflict despite the overlap check, that's a signal the tickets weren't actually independent — fix now, tighten the file lists next time.
 
-**Trial-merging branches to verify they combine cleanly happens in its own worktree too — never in the repo's main checkout.** The main checkout is exactly the directory a human or another live session is most likely using; a `git checkout` from another session can silently move you off the branch mid-trial. A dedicated worktree has no such race.
+**Trial-merging branches to verify they combine cleanly happens in its own worktree too — never in the repo's main checkout.** A `git checkout` from another session can silently move you off the branch mid-trial in the main checkout; a dedicated worktree has no such race.
 
 ## Exit Gate
 

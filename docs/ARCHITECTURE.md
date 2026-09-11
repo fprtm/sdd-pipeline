@@ -367,14 +367,13 @@ sequenceDiagram
 |---|---|---|---|
 | **orchestration** | Cost-benefit gate (parallelize? by task-size × phase table); hard cap **6 parallel agents** (overridable only with explicit user consent + logged); conflict resolution protocol for shared files (patch requests, not direct writes, serialized in dependency order, re-verified after merge) | `agents/parallel-work`, `prove/judgment` (review-capacity backing the cap), `build/ticket-decomposition`, `build/change-plan`, `build/anti-patterns`, `build/constraints`, `think/arch-analyzer` (ADR-conflict analogy) | Runtime-dependent: real spawn on Claude Code, `config.toml` roles on Codex, sequential on OpenCode/Cursor |
 | **parallel-work** | Implementation-phase-only protocol: git worktree isolation, ticket claiming (`**Claimed by:**` line), Kanban ticket-status flow as the coordination surface, merge in dependency-wave order, trial-merge always in its own worktree (never the main checkout) | `check-parallel-safety.mjs`, `agents/orchestration` (complements, doesn't replace), `build/ticket-decomposition` (ticket field format), `prove/judgment`, `build/git-workflow` | Requires locked contracts (FSD/schema/API) + genuinely independent tickets; plan confirmation required every mode, no exception |
-| **model-strategy** | Same CHEAP/MID/STRONG tier routing table as `build/model-router`; advisory only, ignored in single-model environments | reads `CHECK:` metadata from constraint packs | multi-model environments only |
 | **subagent-patterns** | Sequential-simulation patterns for runtimes without real concurrent agents (e.g. OpenCode) | referenced by `agents/orchestration` | single-agent runtimes |
 
 ---
 
 ## 10. Commands — `skills/commands/` (manual entry points)
 
-The orchestrator usually triggers invisibly, but 4 commands let you start at a specific step deliberately. Each has `disable-model-invocation: true` — they're never auto-triggered.
+The orchestrator usually triggers invisibly, but 7 commands let you start at a specific step deliberately. Each has `disable-model-invocation: true` — they're never auto-triggered.
 
 ```mermaid
 flowchart LR
@@ -388,6 +387,12 @@ flowchart LR
     IMPL --> CHECK
     CHECK -.gap found.-> IMPL
     DISC -->|"gear shift announced"| DISC
+    DOCS["/docs\nscan existing codebase,\npropose + generate retroactive docs"]
+    DOCS -.feeds into.-> SPEC
+    DOCS -.feeds into.-> IMPL
+    LEARN["/learn\ndeep-read module/flow/project,\nstructured explanation (read-only)"]
+    LEARN -.understanding feeds.-> DISC
+    LEARN -.understanding feeds.-> SPEC
 ```
 
 | Command | Frontmatter description | Branches to | Writes |
@@ -396,6 +401,8 @@ flowchart LR
 | **spec** | "Deliberate each domain with the user, then write it down — architecture, database, UX, app flows, threat model, and (when large) vertical-slice tickets. Deliberation uses grill mechanics; documents capture what was settled. This is the SPEC step of the pipeline, not visual/UI design." | `think/arch-analyzer`, `think/database-design`, `think/ux-design`, `think/threat-model`, `think/grill` (domain deliberation), `build/doc-generator`, `build/ticket-decomposition` | `docs/sdd/specs/{NNN}-{slug}/` (fsd/sds/erd/threats/ux/tickets, all siblings), `docs/sdd/design-system/design.md`; stops honestly before BUILD if no execution signal |
 | **implement** | "Execute an existing plan, spec, or ticket with build-time guardrails active." | `build/constraints`, `build/anti-patterns`, `build/change-plan`, `build/execution-guard`, `build/model-router` | working code + change summary |
 | **check** | "Adaptive QA — verifies a fresh change if one exists, audits the whole codebase otherwise, always ends with an impact summary." | **VERIFY** branch (fresh diff exists) → `prove/verification` + adversarial + diagnose + performance-check + judgment; **AUDIT** branch (no diff) → `meta/health-check`, read-only | `docs/sdd/reports/{date}-{slug}.md` (verify only) + always an impact digest from `meta/stats` |
+| **docs** | "Generate retroactive documentation for an existing codebase with little or no docs — scan, propose, deliberate, write." | `think/context-loader` (full scan), `build/doc-generator` (adaptive), diagram suite (if multi-role) | `docs/sdd/specs/{NNN}-{slug}/` (FSD/SDS/ERD/UC/flows), `docs/sdd/roles/`, `docs/sdd/index.md`, `docs/sdd/config.md`, `docs/sdd/traceability.md` |
+| **learn** | "Deep-read a module, flow, or the whole project and produce a structured explanation — read-only, no code changes." | code scan + `git log` (optional) | conversational output only; optionally `docs/sdd/memory/` notes if user asks to save |
 
 ---
 

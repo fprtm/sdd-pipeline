@@ -35,10 +35,6 @@ This skill is ADVISORY. It provides routing hints for environments that support 
 - **Multi-model environments**: use these recommendations to assign sub-tasks to appropriate models.
 - **Single-model environments** (most current setups): ignore this skill. Run everything on the available model.
 
-## Estimated Savings
-
-40-60% token cost reduction vs running everything on STRONG tier. The savings come from offloading mechanical tasks (lint, logging, formatting) to cheap models.
-
 ## Constraint Metadata
 
 Each constraint in the constraints engine should be marked:

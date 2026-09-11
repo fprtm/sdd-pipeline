@@ -2,32 +2,15 @@
 
 Speed-first. For MVPs, hackathons, proof-of-concepts. Minimum viable guardrails.
 
-## Behavior
+**Phase behavior**: see the unified mode matrix in `skills/orchestrator/SKILL.md`. This file adds process rules unique to prototype mode.
 
-| Phase | Setting |
-|-------|---------|
-| Elicitation | Skip on a routine task. On a new product/feature, the five discovery seats still all get asked — one fast round each. Mode dials depth, not coverage. |
-| Context | Minimal: detect stack only. |
-| Scope guard | No limits. |
-| Complexity | Detect but don't block. |
-| Constraints | Critical security only (#7 no secrets, #9 no dead code with secrets). |
-| Anti-patterns | Check hallucinated APIs (#5) and secrets (#9) only. |
-| Plan file | Skip. No plan file generated. |
-| Change plan | Skip. |
-| Doc generator | Skip. No docs generated. |
-| SDLC detector | Detect and announce (cheap, shapes ticket/scope behavior). Skip adaptations that slow work down. |
-| Arch analyzer | Skip. Build fast, refactor later. |
-| Stats | Track minimally (files changed + security issues only). No footer. |
-| Execution guard | Loop detection after 5 tries. No progress signals. |
-| Verification | Quick smoke test: does it run? |
-| Adversarial | Skip. |
-| Security | Secrets check only. |
-| Performance | Skip. |
-| Report | 1-line: "Works." or "Broken: [error]" |
-| Decision log | Skip. |
-| Comprehension | Skip. |
-| Insight | Skip. |
-| Memory | Don't save. Prototype decisions aren't meant to persist. |
+## Minimum Sinks
+
+Prototype is fast, not blind. Even at maximum speed, these sinks always run:
+
+1. **Deliberation ledger** — if a grill or elicitation happened, the ledger file is written (settled/assumed/unresolved rows). A prototype built on unrecorded assumptions can't be evaluated later.
+2. **DoD** — a 3-line definition of done is the floor. Without it, "done" is whatever the agent felt like stopping at.
+3. **OVERRIDE:none constraints** — secrets (#7) are never skipped, in any mode.
 
 ## When to Use
 

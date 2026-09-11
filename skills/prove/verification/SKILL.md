@@ -65,6 +65,8 @@ If any layer fails:
 
 ## Mode Behavior
 
+Defer to orchestrator matrix on conflict. Skill-specific additions:
+
 | Mode | Layers |
 |------|--------|
 | prototype | Quick smoke test only (does it run?) |

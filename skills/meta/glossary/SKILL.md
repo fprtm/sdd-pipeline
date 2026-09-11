@@ -4,7 +4,7 @@ Maintain a single source of truth for what terms mean in this project. Prevents 
 
 ## Why This Exists
 
-Ambiguous terminology is a root cause of specification ambiguity (problem #1 in SDD Pipeline's original analysis). If "user" sometimes means "authenticated account" and sometimes means "any visitor," every downstream decision built on that word inherits the ambiguity. The glossary makes the project's vocabulary explicit and enforces one canonical word per concept.
+If "user" sometimes means "authenticated account" and sometimes means "any visitor," every downstream decision built on that word inherits the ambiguity. The glossary makes the project's vocabulary explicit and enforces one canonical word per concept.
 
 ## File
 
@@ -74,6 +74,8 @@ Updates happen **inline**, the moment a term is resolved — never batched into 
 4. Keep entries short. If a definition needs a paragraph, the term is probably actually two terms — split it.
 
 ## Mode Behavior
+
+Defer to orchestrator matrix on conflict. Skill-specific additions:
 
 | Mode | Behavior |
 |------|----------|

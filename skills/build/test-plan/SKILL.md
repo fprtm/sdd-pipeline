@@ -23,8 +23,6 @@ A flow with only positive cases is an incomplete row: name it in the plan as a g
 
 ## Tests Before Code — The Developer Reviews Intent, Not Implementation
 
-The fundamental review problem: AI generates 500 lines of implementation code, the developer has to understand all 500 lines. No amount of post-hoc review tooling changes this arithmetic.
-
 **Tests-first changes what the developer reviews.** Instead of reviewing the implementation (complex, dense, implementation-specific), the developer reviews the test code (shorter, expresses intent, maps directly to the spec they helped create through deliberation).
 
 ### The Protocol
@@ -40,18 +38,14 @@ For medium+ tasks in standard/strict mode:
 
 ### Mode Behavior for Tests-First
 
+Defer to orchestrator matrix on conflict. Skill-specific additions:
+
 | Mode | Tests-first behavior |
 |------|---------------------|
 | **prototype** | Skip — code and tests generated together |
 | **vibe** | Tests written first, auto-approved, no pause |
 | **standard** | Tests written first, shown to developer, proceed after presenting |
 | **strict** | Tests written first, developer must explicitly approve before implementation begins |
-
-### Why This Works
-
-The test code is a **translation of the spec into executable assertions**. The spec came from deliberation (which the developer participated in). So the developer is reviewing a translation of their own decisions — not an opaque implementation of their decisions. If the translation is faithful, the implementation is constrained to match.
-
-This doesn't eliminate the need for code review (🔴 items still need deep review — tests can pass while containing a security flaw). But it **shifts the bulk of review** from "is this implementation correct?" to "do these tests capture what I asked for?" — a question that's both faster to answer and one the developer is better positioned to judge.
 
 ### Tests-First Does NOT Mean
 

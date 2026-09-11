@@ -36,15 +36,9 @@ Every 5 tasks (or when user asks), generate:
 
 1. Tone: helpful coach. NOT judgmental critic.
 2. Observations should be ACTIONABLE: "You tend to skip tests for utility functions. Consider testing at least the edge cases."
-3. "What SDD Pipeline prevented" makes the value visible — shows what would have shipped without the framework.
+3. "What SDD Pipeline prevented" = the most significant issue caught, described briefly.
 4. This is OPTIONAL. User can disable insights.
 
 ## Mode Behavior
 
-| Mode | Behavior |
-|------|----------|
-| prototype | Skip |
-| vibe | Brief 1-2 line after-action note |
-| standard | Per-task notes + periodic summary |
-| strict | Detailed per-task analysis |
-| emergency | Skip |
+**Mode behavior**: see unified mode matrix in `skills/orchestrator/SKILL.md`.
