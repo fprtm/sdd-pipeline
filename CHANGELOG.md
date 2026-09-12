@@ -3,6 +3,57 @@
 All notable changes to SDD Pipeline. Versioning is [SemVer](https://semver.org/).
 Plain-language where possible.
 
+## [6.9.0] — 2026-09-11
+
+Prompted by a design discussion about multi-agent "engineering control plane"
+architectures (planner/worker/reviewer separation, evidence ledgers, state
+machines). The core critique translated cleanly to a real gap here: only
+`prove/judgment` ran in a context independent of the agent that wrote the
+code. Every other PROVE-layer skill — verification, adversarial, coverage,
+performance — had no such rule, meaning the implementer was, by default,
+also its own verifier for most of the review surface. Fixed that
+consistently, plus four adjacent gaps the same discussion surfaced.
+
+### Added
+- **Context independence extended to all PROVE-layer skills**
+  (`verification`, `adversarial`, `coverage-check`, `performance-check`) —
+  same pattern `judgment` already used: dispatch available → separate
+  sub-agent per `agents/subagent-patterns`; single-agent → explicit cold
+  re-check, constraint announced out loud. Closes the gap where 4 of 5
+  PROVE gates had no independence rule at all.
+- **Defect Report format** (`build/ticket-decomposition`) — a failed 🧪
+  contract check now writes a structured Finding/Reproduction/Expected/
+  Actual/Severity block onto the ticket and returns it to 🔨, instead of
+  looping back to implementation on a verbal "fix this" that leaves no
+  record for the next pass (possibly a different agent) to work from.
+- **Acceptance Criteria lock at approval** (`build/ticket-decomposition`) —
+  once a ticket is approved, its AC is frozen. Post-approval changes need
+  a visible `AC revised: [reason]` line and the same approval level as the
+  original ticket. Closes the gap where an implementer could quietly
+  reshape AC to match what got built, making the 🧪 contract check
+  circular.
+- **Evidence column in the traceability matrix** (`meta/traceability`) —
+  every 🟢 row now carries the actual command + result + date that backs
+  the claim, not just a status glyph. An empty or stale Evidence cell on a
+  🟢 row is itself a defect; evidence older than the code it verifies
+  demotes the row to 🟡.
+- **Review Profiles** (`prove/judgment` §3) — generalized the previously
+  hardcoded "Security Prior Escalation" into a profile mechanism (security
+  always active, UX and architecture profiles triggered by what the change
+  touches, project-extensible via `config.md`). Same escalation principle,
+  no longer locked to one category.
+- **Execution mode as a second routing dimension** (`build/model-router`) —
+  alongside model tier (CHEAP/MID/STRONG), sub-tasks now also route by
+  execution mode (read-only / read-mostly / read-write / read-write-docs-
+  only). A cheap model can run read-only, a strong model can run
+  read-write — the two dimensions don't imply each other. In single-agent
+  environments this becomes an announced discipline rather than an
+  enforced boundary.
+
+### Changed
+- Documentation (`docs/ARCHITECTURE.md`) updated to reflect all of the
+  above across the affected skill rows.
+
 ## [6.8.0] — 2026-09-11
 
 A structural review pass over the whole pipeline (not one live finding this

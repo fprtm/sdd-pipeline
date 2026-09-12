@@ -166,6 +166,13 @@ vague pointer to a document that doesn't exist.
 - [Explicitly excluded from this ticket — usually deferred to a later ticket]
 ```
 
+### Acceptance Criteria Are Locked at Approval
+
+Once a ticket is approved (per orchestrator's "What Gets Approved" — shown to the user, moved past 🔨's starting gate), its Acceptance Criteria are **frozen**. The implementer does not get to quietly reshape the AC to match what got built — that turns the 🧪 contract check into theater, since it would just be re-reading criteria the implementer already edited to pass.
+
+- **Need to change AC after approval** (a genuine spec gap surfaced during implementation, not "this is inconvenient to build"): add a visible `**AC revised**: [what changed] — [reason]` line directly below the ticket's status line, and get the same approval level the original ticket got (standard: shown, wait for ack; strict: explicit confirmation). This is the same discipline as the override protocol in `build/constraints` — inform, then proceed, always logged, never silent.
+- **A silent AC edit with no revision line is indistinguishable from an implementer marking its own homework** — treat finding one as a contract-check failure in itself, independent of whether the underlying code is correct.
+
 ## The Feature Index (`00-index.md`) — The Human's Entry Point
 
 A `large` feature produces a spec bundle of several documents (FSD, SDS, ERD, threats, UX) plus a directory of tickets — everything living inside `docs/sdd/specs/{NNN}-{slug}/`. Nobody should have to guess which one to open first. `specs/{NNN}-{slug}/tickets/00-index.md` is the **one required entry point** for the whole feature: written alongside the ticket breakdown, in the same run, never skipped for `large` scope. (`check-file-hygiene.mjs` enforces this mechanically — a `tickets/` folder with ticket files but no `00-index.md` is flagged.)
@@ -240,7 +247,25 @@ This is a **default, not a lock** — the user can override it explicitly at any
 2. Run it through the normal SDD pipeline (THINK/BUILD/PROVE) as its own task.
 3. When the code + tests are written and the branch/PR is open → set 🧪. **This is the handoff state**: a review agent (or the human) picks up 🧪 tickets — the PROVE pass and review happen here, concurrent with other agents' 🔨 work.
 4. **The 🧪 review is a contract check, not a vibe check — mandatory, never skipped**: read the ticket's own `Acceptance Criteria` and `Deliverables` line by line against what was actually built. Flag any mismatch before it moves further — a ticket that "looks done" but doesn't hit its own Given/When/Then doesn't get to ✅. Single agent: re-read the ticket cold, as if reviewing someone else's PR, not from memory of writing it (Pattern 1, `skills/agents/subagent-patterns/`). Dispatch available: a separate sub-agent does this pass — the implementer never marks its own homework.
-5. Review + gates pass and the branch merges → set ✅, recompute the frontier — newly-unblocked tickets become available. Hit a real blocker → set ⛔ with a one-line reason next to it, don't sit on 🔨 silently.
+5. **Contract check fails → back to 🔨 with a Defect Report, never a silent redo.** Set status back to 🔨 and attach a Defect Report (see below) directly under the ticket's status line — the next work pass reads it before touching code. Looping straight back into implementation with only a verbal "fix this" loses the specifics; the next pass (possibly a different agent, possibly the same one days later) needs the finding on the record.
+6. Review + gates pass and the branch merges → set ✅, recompute the frontier — newly-unblocked tickets become available. Hit a real blocker → set ⛔ with a one-line reason next to it, don't sit on 🔨 silently.
+
+### Defect Report — What a Failed Contract Check Leaves Behind
+
+```markdown
+## Defect Report — [date]
+
+**Finding**: [what's wrong, one sentence]
+**Reproduction**: [exact steps or input that shows the problem]
+**Expected**: [what the AC/spec says should happen]
+**Actual**: [what actually happens]
+**Severity**: P1 (blocks ✅) | P2 (should fix before ✅) | P3 (note, doesn't block)
+```
+
+Rules:
+- Written by whoever ran the failed contract check (sub-agent or single-agent cold-read) — not by the implementer explaining away the gap.
+- Stays attached to the ticket until the next 🧪 pass either closes it (fixed, re-verified) or the ticket is explicitly re-scoped (AC changed, logged per "Acceptance Criteria Are Locked" below — not silently dropped).
+- Multiple defects on one ticket = multiple report blocks, not one blended paragraph — each needs its own repro and severity so the fix pass can triage.
 6. **Update the status the moment it changes, not batched at the end** — the board (see `check-parallel-safety.mjs --board`) is only trustworthy if statuses are live. Also update the feature's status counts row in `index.md`.
 7. **Frontier tickets that are parallel-safe (no shared files, no blocking edge) get dispatched together, not worked one at a time "to be safe."** If multi-agent dispatch is available and the cost-benefit gate (`skills/agents/orchestration/`) clears, spawning the whole safe set at once is the default move for medium/large work, not an optional nicety — say so explicitly when presenting the breakdown, don't just mention it's *possible*. Single-agent environments fall back to sequential frontier order automatically; nothing breaks, it's just slower.
 

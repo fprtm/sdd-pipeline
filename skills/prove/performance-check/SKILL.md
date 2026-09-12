@@ -2,6 +2,8 @@
 
 Two layers: **static pattern detection** (scan code for anti-patterns) and **executable performance verification** (run the test plan's performance cases and check actual measurements).
 
+**Context independence**: same rule as `prove/verification` — dispatch available → separate sub-agent (`agents/subagent-patterns` Pattern 1); single-agent → re-measure cold, announce the constraint. Executable measurements (Layer 2 below) are commands that actually ran, so the independence requirement matters less here than for judgment calls — but the static scan (Layer 1) is exactly the kind of pattern-recognition an implementer can rationalize away in their own code ("this loop is fine because...").
+
 ## Patterns to Detect
 
 ### 1. O(n²) or Worse

@@ -2,6 +2,14 @@
 
 Multi-layer verification orchestrator. Runs after BUILD phase completes.
 
+## Context Independence
+
+The agent that wrote the code should not be the sole verifier of its own work — same principle as `prove/judgment`'s gate, applied one layer earlier.
+
+- **Dispatch available** (Claude Code Agent tool, or equivalent): run verification as a separate sub-agent per `skills/agents/subagent-patterns/`'s Pattern 1 — give it the spec, the diff, and the commands to run; it has not seen the implementation reasoning.
+- **Single-agent environments**: re-run and re-read the results cold, as if verifying someone else's PR — don't lean on "it worked when I wrote it." Announce the constraint: "Single-agent verification — re-checked cold from diff + spec."
+- This does not replace `prove/judgment`'s independence requirement — judgment still runs in a fresh context after verification completes. Verification independence catches issues before judgment even starts.
+
 ## Every Result Comes From a Command That Actually Ran
 
 This is the rule the whole PROVE phase rests on. A verification report is worthless — worse than absent, because it manufactures confidence — if any line in it was inferred rather than observed.

@@ -35,16 +35,29 @@ Explicitly self-audit against the plausibility trap before presenting results:
 
 Name the weakest part of the output in the report. Every report must contain a "weakest point" line — an output with no named weak point means the self-audit didn't happen.
 
-### 3. Security Prior Escalation
+### 3. Review Profiles — Escalate Beyond What Automated Checks Cover
 
-Because AI output statistically under-performs on security, any AI-generated change touching these zones gets flagged for human eyes **even when all automated checks pass**:
+The principle: some categories of change are where AI-generated code statistically under-performs even when every automated check passes, and those categories differ by concern (security, UX, architecture). Rather than one hardcoded security rule, this is a **profile mechanism** — each profile names its zones, and any profile relevant to the change escalates to human eyes.
 
+**Security profile** (always active — this is the original rule, unchanged in substance):
 - Auth/session/token handling
 - Input crossing a trust boundary (user input, external API responses, file uploads)
 - Anything cryptographic
 - Deserialization, HTML rendering, SQL construction
 
-Flag format: "This change touches [zone]. Automated checks passed, but this is a category where AI-generated code statistically fails most — recommend human review of [specific lines/behavior]."
+**UX profile** (active whenever the change touches user-facing interaction — see `think/ux-design`):
+- New or changed interaction state (loading, error, empty, success) with no corresponding test/screenshot
+- A flow with branching (role-dependent, conditional) where only one branch was manually verified
+- Destructive actions (delete, cancel, irreversible submit) with no confirmation step specified in the FSD
+
+**Architecture profile** (active on changes to module boundaries, shared interfaces, or anything `think/arch-analyzer` deliberated):
+- A new dependency between modules that weren't previously coupled
+- A change to a shared interface/contract consumed by more than one caller
+- A pattern introduced that doesn't match what the arch deliberation settled on
+
+**Flag format** (same shape regardless of profile): "This change touches [zone] ([profile] profile). Automated checks passed, but this is a category where AI-generated code statistically fails most — recommend human review of [specific lines/behavior]."
+
+Profiles are **additive, not exclusive** — a change can trigger security + architecture at once; list every triggered profile, don't collapse to the first match. A project can extend this with its own profile via `docs/sdd/config.md`'s `custom-constraints:` block (same mechanism `build/constraints` already uses) — same shape (zones + flag format), project-specific content.
 
 ### 4. Review-Capacity Throttle
 
@@ -72,7 +85,7 @@ Tag every changed file (or function, for large files) with a tier:
 | 🟡 | **VERIFY INTENT** | Business logic, validation rules, error handling, state transitions, API contract implementation | Verify the logic matches the spec. Tests should cover it — check that they do. |
 | 🟢 | **LIGHT SCAN** | Boilerplate, config, type definitions, re-exports, pure UI layout with no logic, scaffolding, test fixtures | Scan for anything surprising. If nothing stands out, move on. Tests covering it raise confidence further. |
 
-Tier assignment follows the same zones as Security Prior Escalation (§3) — code that would get flagged for security review is always 🔴.
+Tier assignment follows the same zones as the Review Profiles (§3) — code that would get flagged under any active profile is always 🔴.
 
 #### Review Guide Format
 
@@ -125,7 +138,7 @@ Append to the verification report (`skills/prove/report/`):
 ### Judgment
 - Weakest point: [the one part of this change most worth a human's skepticism]
 - Hallucination-risk zones: [APIs/patterns generated from memory, not verified against this project]
-- Security escalation: [none | zones touched + what to manually check]
+- Review profile escalations: [none | profile: zones touched + what to manually check, one line per triggered profile]
 - Comprehension check: [the 1-3 questions a reviewer should be able to answer]
 ```
 

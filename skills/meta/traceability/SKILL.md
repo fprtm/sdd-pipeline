@@ -20,10 +20,10 @@ The matrix is powerful and expensive. Match it to the work (same philosophy as p
 
 One row per **REQ**, expanded to the leaves. Keep it a Markdown table so it diffs in review. The file header also holds the **global ID counters** (next free REQ/SEC/TICKET/TEST — see doc-generator's ID Spine section).
 
-| REQ | FSD | ADR | SEC | Ticket | Test | Status |
-|-----|-----|-----|-----|--------|------|--------|
-| REQ-001 | FSD-003.1 | ADR-001 | SEC-004 | TICKET-018 | TEST-030, TEST-041 | 🟢 covered |
-| REQ-005 | FSD-004 | ADR-001 | — | TICKET-025 | — | 🔴 no test |
+| REQ | FSD | ADR | SEC | Ticket | Test | Status | Evidence |
+|-----|-----|-----|-----|--------|------|--------|----------|
+| REQ-001 | FSD-003.1 | ADR-001 | SEC-004 | TICKET-018 | TEST-030, TEST-041 | 🟢 covered | `pnpm test order.test.ts` → 2/2 pass, 2026-09-11 |
+| REQ-005 | FSD-004 | ADR-001 | — | TICKET-025 | — | 🔴 no test | — |
 
 Status legend:
 - 🟢 **covered** — has FSD + ticket + ≥1 passing test (and SEC if sensitive)
@@ -31,6 +31,15 @@ Status legend:
 - 🟡 **not built** — FSD + ticket exist, no passing test / not implemented
 - 🔴 **gap** — a required link missing where it shouldn't be (a Must REQ with no test, a High SEC with no verifying test)
 - ⚪ **dropped** — deliberately out of scope; keep the row, strike the ID, never reuse it
+
+### Evidence Column — A Claim, Not Just a Status
+
+A status glyph alone is an assertion; the Evidence column is what makes it checkable. **Every row marked 🟢 must carry a one-line Evidence entry**: the actual command that ran, its result summary, and the date — the same discipline `prove/verification`'s "Every Result Comes From a Command That Actually Ran" rule already requires at run time, just persisted instead of said once and forgotten.
+
+- **Format**: `` `command` `` → result (N/M pass, or the specific measured value) `,` date. Keep it to one line — this is a pointer to evidence, not a copy of the test output.
+- **A 🟢 row with an empty or stale Evidence cell is itself a defect** — `check-traceability.mjs` should treat it the same as a missing test link, since an unverifiable "covered" claim is functionally identical to an uncovered requirement.
+- **Stale evidence**: if the code touching a REQ changed after the Evidence date, the row demotes to 🟡 until re-verified — a passing test from three refactors ago proves nothing about the current code.
+- Skip this column entirely at `small`/`micro` sizes where the full matrix doesn't apply (per the gating table above) — the DoD floor's own verification section covers that ground more cheaply.
 
 ## Run the Checker — Don't Eyeball It
 

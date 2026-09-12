@@ -58,7 +58,7 @@ Always confirm addressed or consciously N/A: input validation & output encoding 
 - `skills/build/ticket-decomposition/` must create a ticket for each control that needs code (tiered honestly — usually not the cheapest tier).
 - `/sdd-pipeline:check` on the affected area re-runs this skill: confirm nothing regressed and no new boundary-crossing flow appeared without a threat pass.
 - `skills/prove/diagnose/` findings cite the SEC-xxx they verify or violate, when a threat model exists.
-- `skills/prove/judgment/`'s security-prior escalation still applies on top — automated pass ≠ human sign-off in these zones.
+- `skills/prove/judgment/`'s Review Profiles (security profile) still apply on top — automated pass ≠ human sign-off in these zones.
 
 ## Exit Gate
 

@@ -28,12 +28,25 @@ Multi-model routing for token efficiency. Assign sub-tasks to the cheapest model
 | Comprehension summary | MID | Needs understanding |
 | Report generation | MID | Synthesis |
 
+## Execution Mode — Alongside Model Tier, Not Instead Of
+
+Model tier answers "how capable a model does this sub-task need." Execution mode answers a different question: "what kind of access does this sub-task need." The two are independent dimensions — a cheap model can run read-only, a strong model can run read-write.
+
+| Sub-task shape | Execution mode | Rationale |
+|-----------------|-----------------|-----------|
+| Codebase exploration, `/sdd-pipeline:learn`, context-loader's scan | **Read-only** | Nothing here should ever touch a file — matching a read-only agent profile (e.g. `Explore`) makes that a property of the dispatch, not a hoped-for discipline |
+| Verification, adversarial testing, coverage-check, judgment | **Read-mostly** (may write test files, must not alter implementation) | The whole point of these gates is checking someone else's change — write access to the implementation defeats the gate |
+| Implementation, `/sdd-pipeline:implement`, ticket execution | **Read-write** | The only category that should be touching production code |
+| `/sdd-pipeline:docs` retroactive doc generation | **Read-write, docs-only** | Scans code but only ever writes to `docs/` — never touches source |
+
+**Where this matters in practice**: when dispatch is available and the runtime distinguishes agent capability profiles (a read-only research agent vs. a full read-write coding agent), route by this table in addition to model tier. When it isn't — single-agent environments running everything in one context — this becomes a discipline instead of an enforced boundary: state the mode out loud before starting ("read-only pass — no files touched") the same way single-agent context-independence passes announce their constraint elsewhere in this pipeline. An agent that says "read-only" and then edits a file has violated something worth noticing, even without a runtime that would have blocked it.
+
 ## Usage
 
-This skill is ADVISORY. It provides routing hints for environments that support multi-model dispatch.
+This skill is ADVISORY. It provides routing hints for environments that support multi-model dispatch or multi-profile agent dispatch.
 
-- **Multi-model environments**: use these recommendations to assign sub-tasks to appropriate models.
-- **Single-model environments** (most current setups): ignore this skill. Run everything on the available model.
+- **Multi-model / multi-profile environments**: use the model tier table and the execution mode table together to route sub-tasks.
+- **Single-model, single-profile environments** (most current setups): the model tier table doesn't apply (nothing to route to), but the execution mode table still sets a discipline — announce read-only vs read-write intent per the rule above, even without a runtime boundary enforcing it.
 
 ## Constraint Metadata
 

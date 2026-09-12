@@ -2,6 +2,8 @@
 
 A coverage number is easy to game and easy to misread. This gate makes it mean something: it checks the **threshold** *and* the **right lines**. Called by `skills/prove/verification/` (Layer 2) at medium+ sizes, and standalone when the user asks "check coverage", "are we at 80%", "is this well tested".
 
+**Context independence**: same rule as `prove/verification` — dispatch available → run as a separate sub-agent (`agents/subagent-patterns` Pattern 1); single-agent → re-check cold, announce the constraint. The honesty checks in Step 3 are exactly the kind of self-grading risk this guards against — an agent auditing its own coverage claims is the weakest form of this check.
+
 **Environment safety first**: the LOCAL-only hard stop from `skills/build/test-plan/` applies — confirm the test target is local/ephemeral before running anything.
 
 ## Step 1 — Run Coverage the Project's Way
