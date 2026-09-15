@@ -3,6 +3,52 @@
 All notable changes to SDD Pipeline. Versioning is [SemVer](https://semver.org/).
 Plain-language where possible.
 
+## [6.10.0] — 2026-09-15
+
+Triggered by real-world failure reports from a live project (`floppi-company-os`)
+running on multiple models (Claude, Qwen3.8, GLM-5.3) through OpenCode. Two
+findings, both about where generated files end up and whether they ever leave:
+
+`/sdd-pipeline:docs` (added in 6.8.0) wrote retroactive documentation into
+`docs/sdd/specs/{NNN}-{slug}/` — the same tree spec-first work uses. That's
+wrong: a spec drives a build (tickets cite it, traceability tracks it, a
+deliberation ledger backs its fidelity check); retroactive documentation of
+code that already exists has none of that relationship. Burning spine
+numbers on descriptive docs corrupts the traceability matrix for any real
+spec-first work the project does later.
+
+Separately, the live project had four ad-hoc cross-feature consistency-review
+reports (genuinely useful — they found and fixed two real spec/kernel
+contradictions) sitting as loose files directly in `specs/`, all four
+claiming the same fake feature number `000`. No skill told the agent where
+this *kind* of output belongs, so it improvised, and nothing in the pipeline
+ever revisits a finished report to ask whether it's still needed.
+
+### Changed (breaking for `/sdd-pipeline:docs` output location)
+- **`/sdd-pipeline:docs` now writes to `docs/system/`, never
+  `docs/sdd/specs/`.** Descriptive documents borrow FSD/SDS/ERD *shapes* for
+  structure but carry no spine ID, no `Status: DRAFT/APPROVED/IMPLEMENTED`,
+  and no traceability entry — nothing here was ever a spec that drove a
+  ticket. `docs/sdd/config.md` remains shared (mode/domain/SDLC detection is
+  project-wide); `docs/sdd/traceability.md` is never bootstrapped by this
+  command.
+- **Consolidation pass added to `/sdd-pipeline:docs`'s Propose phase** — before
+  the doc plan is shown, small/tightly-coupled modules are grouped into a
+  single proposed combined doc instead of one file each, shown as an
+  adjustable proposal (not a silent decision). Addresses generated-doc-count
+  bloat reported on a real multi-module codebase.
+
+### Added
+- **Ad-hoc audit/consistency-review reports get a defined home and a
+  lifecycle** (`build/doc-generator`, `meta/health-check`): output goes to
+  `docs/sdd/reports/{date}-{slug}.md` (never `specs/`, never a borrowed
+  feature number) with a `Status: OPEN | RESOLVED` header. Findings fixed in
+  the same session that found them flip the report to `RESOLVED`
+  immediately. `health-check` now warns on any `RESOLVED` report older than
+  14 days (move to `reports/archive/`) and on any loose file sitting
+  directly in `specs/` instead of inside a `{NNN}-{slug}/` folder — the
+  exact shape of the four `000-*.md` files found in the field.
+
 ## [6.9.0] — 2026-09-11
 
 Prompted by a design discussion about multi-agent "engineering control plane"

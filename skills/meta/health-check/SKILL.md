@@ -50,6 +50,8 @@ Scan the codebase against the active constraint and anti-pattern sets:
 9. **Stale done tickets**: warn if >5 tickets with `done`/`✅` status exist outside an `archive/` directory.
 10. **Old change files**: warn if any `changes/*.md` with `status: done` is older than 14 days (check the `updated:` frontmatter date against today).
 11. **Report accumulation**: warn if >2 verification reports exist for the same feature spec number.
+12. **Stale resolved audit reports**: warn on any `docs/sdd/reports/*.md` carrying `Status: RESOLVED` whose date is older than 14 days — move it to `reports/archive/`. A resolved audit sitting in the live tree indefinitely is exactly the accumulation this tier exists to prevent (see `doc-generator`'s Artifact Lifecycle Tiers). An audit report still `Status: OPEN` is never flagged, no matter its age — open findings are live work, not clutter.
+13. **Misplaced audit reports**: warn on any file in `docs/sdd/specs/` that isn't a `{NNN}-{slug}/` feature folder — a loose `.md` file directly in `specs/` (especially one that reads like a cross-feature audit rather than a single feature's spec) belongs in `docs/sdd/reports/` instead. `check-file-hygiene.mjs` already flags stray files at this level mechanically; this staleness pass is the human-readable summary of the same finding.
 
 ### Cross-Reference Orphan Check
 

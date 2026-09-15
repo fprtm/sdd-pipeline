@@ -81,6 +81,14 @@ Every generated doc for a feature lives inside **one folder**, `docs/sdd/specs/{
 
 **`specs/`, not `design/`**: this directory holds *written specifications* (FSD/SDS/PRD/threat model, none visual); `docs/sdd/design-system/` holds the actual visual design (tokens, screens, UI patterns). Don't conflate the two.
 
+**`specs/` is for documents that drive a build — never for ad-hoc audit or consistency-review output.** A request like "check these three already-built features against the real kernel for contradictions" produces findings, not a spec — it has no ticket built from it, no deliberation ledger to check fidelity against, and no legitimate feature number to claim. Writing it into `specs/` as a fake `000-*` or borrowed number pollutes the spine (two unrelated audits both claiming `000` is exactly the duplicate-number collision `check-file-hygiene.mjs` flags) and leaves a report with no exit condition sitting in a tree meant for live specs.
+
+**Ad-hoc audit/consistency-review output goes to `docs/sdd/reports/{date}-{slug}.md`** (same flat, dated convention `prove/report` already uses) with a lifecycle:
+- **Status**: `OPEN` (has at least one unresolved finding) or `RESOLVED` (every finding's fix has been applied and confirmed)
+- If findings get fixed in the same session that produced the report, flip `Status` to `RESOLVED` before the session ends — don't leave a report claiming open work that's actually done
+- A `RESOLVED` report is **Transactional** (see Artifact Lifecycle Tiers below): `meta/health-check` flags it for archival once stale
+- Retroactive documentation of an existing codebase (`/sdd-pipeline:docs`) is a *different* kind of output entirely — see that command's own file, which writes to `docs/system/`, not `specs/` or `reports/`.
+
 ### Number-First Lookup — Never Regenerate the Slug to Find a Folder
 
 **The rule that keeps this safe**: a feature's folder is looked up by its **number**, never reconstructed from its name.
@@ -228,7 +236,7 @@ For each document, in order:
 | Tier | Artifacts | Rule |
 |------|-----------|------|
 | Evergreen | config.md, glossary.md, index.md, traceability.md, design-system/design.md, stack-guide.md, spec docs (FSD/SDS/ERD) | Update in-place. Live as long as the feature lives. |
-| Transactional | Tickets (done), change files (done + merged), verification reports, deliberation ledgers (after doc verified) | Archive or delete after purpose fulfilled. Tickets → `archive/`. Change files older than 14 days with `status: done` → delete. Reports → keep only the latest per feature. Ledgers → move to `archive/` after fidelity check passes. |
+| Transactional | Tickets (done), change files (done + merged), verification reports, ad-hoc audit/consistency-review reports (once `RESOLVED`), deliberation ledgers (after doc verified) | Archive or delete after purpose fulfilled. Tickets → `archive/`. Change files older than 14 days with `status: done` → delete. Verification reports → keep only the latest per feature. Audit/consistency-review reports → move to `reports/archive/` once `Status: RESOLVED` and older than 14 days. Ledgers → move to `archive/` after fidelity check passes. |
 | Accumulating | decisions/, memory/, mockup PNGs | Review periodically — every 5 new features or quarterly, whichever comes first. Prune superseded ADRs, stale memories, outdated mockups. |
 
 ## Rules

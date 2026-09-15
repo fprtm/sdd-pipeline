@@ -328,8 +328,8 @@ docs/sdd/
 │   └── archive/
 ├── changes/              # Small/medium changes: ONE dated self-contained file per topic
 │   └── YYYY-MM-DD-{slug}.md   # frontmatter (description/status/updated) + brief + decisions + tickets + tests inline — replaces plan+report for lite work
-├── reports/              # Verification reports per task
-├── specs/                # ONE FOLDER PER FEATURE — everything tied to a spine number lives here
+├── reports/              # Verification reports per task, + ad-hoc audit/consistency-review reports (Status: OPEN|RESOLVED — RESOLVED + stale moves to reports/archive/)
+├── specs/                # ONE FOLDER PER FEATURE — everything tied to a spine number lives here. Spec-first work ONLY — never an ad-hoc audit report (those go in reports/, see above), never retroactive documentation of existing code (that goes in docs/system/, see below)
 │   └── {NNN}-{slug}/     # {NNN} IS the spine ID (FSD-003 = specs/003-x/fsd.md); folder found by number, never by regenerating the slug
 │       ├── fsd.md · sds.md · prd.md · threats.md · ux.md · erd.md   # bare filenames — whichever apply
 │       ├── tests.md · dod.md
@@ -340,6 +340,12 @@ docs/sdd/
 │   ├── design.md         # direction + tokens SSOT + screen inventory (skills/think/ux-design/) — required entry doc whenever there's a UI
 │   └── ux-screens/       # One priority-tagged flow file per user journey — a flow can be revisited across features, so it lives here, not in a specs/ folder
 └── stats/                # Monthly stats (2026-08.md)
+
+docs/system/              # Retroactive documentation of an EXISTING codebase (skills/commands/docs/) — separate tree, no spine ID, never a substitute for docs/sdd/specs/
+├── index.md
+├── overview.md            # written first — system-level description
+├── {slug}/                # one per documented module — overview.md · component.md · erd.md · uc-{role}.md · flow-{role}.md, whichever apply
+└── roles/{role}.md         # per-actor index, same shape as docs/sdd/roles/ but for descriptive docs
 ```
 
 Tree conventions are **mechanically enforced**: run `check-file-hygiene.mjs` (bundled with `skills/meta/health-check/`) after writing or renaming anything under `docs/sdd/` — markdown conventions are followed probabilistically; the script catches what got missed.

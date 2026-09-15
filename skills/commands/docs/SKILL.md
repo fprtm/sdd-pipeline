@@ -1,12 +1,20 @@
 ---
 name: docs
-description: Generate documentation for an existing codebase that has little or no docs. Scans code to identify features, modules, entities, and flows, then generates the appropriate doc suite (FSD/SDS/ERD/UC/flows) per feature — with deliberation where decisions are ambiguous. Works on brownfield codebases, not greenfield.
+description: Generate documentation for an existing codebase that has little or no docs. Scans code to identify features, modules, entities, and flows, then generates a descriptive doc suite (system overview/ERD/UC/flows) per module — with deliberation where decisions are ambiguous. Works on brownfield codebases, not greenfield. Output lives in docs/system/, never docs/sdd/specs/.
 disable-model-invocation: true
 ---
 
 # /sdd-pipeline:docs
 
-Generate retroactive documentation for a codebase that already works but lacks written specs. This is the **onboarding docs** command — it turns implicit knowledge (scattered across code, commit history, and tribal memory) into the same structured artifacts the pipeline would have produced if it had been there from the start.
+Generate retroactive documentation for a codebase that already works but lacks written specs. This is the **onboarding docs** command — it turns implicit knowledge (scattered across code, commit history, and tribal memory) into structured artifacts describing the system **as it actually is**.
+
+## `docs/system/`, Not `docs/sdd/specs/` — Different Purpose, Different Home
+
+`docs/sdd/specs/{NNN}-{slug}/` is where **specs that drive a build** live: an FSD written before code exists, whose spine ID (`FSD-003`) gets cited by tickets, tracked in the traceability matrix, verified against a deliberation ledger. It's the *plan*.
+
+This command produces the opposite thing: a description of code that **already exists**, often written years after the fact, with no ticket ever built "from" it and no deliberation ledger to check fidelity against. Writing that into `specs/` would burn spine numbers on documents that were never specs to begin with, and would corrupt the traceability matrix for any *future* spec-first work in the same project.
+
+**Output goes to `docs/system/{slug}/`** — same document shapes (borrowing FSD/SDS/ERD formats from `skills/build/doc-generator/formats.md` for structure), no spine ID, no `FSD-xxx` framing, no traceability entry. `docs/sdd/specs/` is never touched by this command.
 
 ## When to Use
 
@@ -43,10 +51,14 @@ Present the scan results as a **documentation plan** — what will be generated 
 ```
 DOCS PLAN — [project name]
 
-Features identified: [N]
-  1. [feature-name] — [1-line description] → FSD + DoD
-  2. [feature-name] — [1-line description] → FSD + SDS + DoD
+Modules identified: [N] (after consolidation — see below)
+  1. [module-name] — [1-line description] → overview + DoD-equivalent checklist
+  2. [module-name] — [1-line description] → overview + component doc
   ...
+
+Consolidation candidates:
+  - [module A], [module B], [module C] are small and share [entity/concern] —
+    proposed as ONE combined doc instead of three. Keep separate instead? (y/n)
 
 Entities identified: [N]
   → ERD (field-level, covering all entities)
@@ -57,20 +69,24 @@ Actors identified: [N roles]
   → Role Index per role (if ≥3 roles)
 
 Architecture:
-  → SDS (system-level: how modules connect)
+  → System overview (how modules connect)
 
-Estimated docs: [N] files across [N] feature folders
+Estimated docs: [N] files across [N] module folders in docs/system/
 
-Proceed? (user can add/remove/reorder)
+Proceed? (user can add/remove/reorder/merge)
 ```
 
-**Wait for user approval.** The user may say "skip ERD", "only do features 1-3", "add a threat model". Adjust the plan accordingly.
+**Wait for user approval.** The user may say "skip ERD", "only do modules 1-3", "add a threat model", "keep 7/8/9 separate instead of merged". Adjust the plan accordingly.
+
+### Consolidation Pass — Before Proposing, Not After
+
+Run this before the plan above is shown, not as an afterthought: group modules that are small (a thin CRUD layer, a single-entity concern) and tightly coupled (share the same entity, one is a trivial extension of another) into a single combined doc candidate. Show the grouping as a proposed merge in the plan, not a silent decision — the user sees the estimated file count *with* consolidation already applied, and can un-merge anything that doesn't fit. This is what keeps a large brownfield codebase from producing one doc per file-system directory when three of those directories are really one concern.
 
 ### Phase 3: Deliberate + Write
 
-For each feature in the approved plan, follow doc-generator's "One Doc at a Time" flow:
+For each module in the approved (post-consolidation) plan, one doc at a time — announce, write, report, same discipline as `doc-generator`'s loop:
 
-1. **Reuse Gate first** — check if any `docs/sdd/specs/` folders already exist for this feature (context-loader's artifact inventory). If yes, update rather than create.
+1. **Reuse Gate first** — check if `docs/system/{slug}/` already exists for this module. If yes, update rather than create.
 
 2. **Deliberate where ambiguous** — retroactive docs describe what EXISTS, so most decisions are already made by the code. But some things are ambiguous:
    - Business rules that are implicit in code but not documented → ask the user: "The code does X when Y happens — is this intentional behavior or a bug?"
@@ -79,10 +95,10 @@ For each feature in the approved plan, follow doc-generator's "One Doc at a Time
 
    **The bar for deliberation is higher here than in `/spec`** — most things are observable from the code. Only deliberate when the code genuinely doesn't answer the question.
 
-3. **Write the doc** — using the templates from `skills/build/doc-generator/formats.md`. Every doc includes:
-   - Metadata header (Date, Updated, Version, Status — status is `IMPLEMENTED` since the code exists)
-   - Cross-references (`Refs:` to other docs in the suite)
-   - Mermaid diagram where required (FSD flowchart, SDS component diagram, ERD)
+3. **Write the doc** — borrow structure from `skills/build/doc-generator/formats.md`'s templates, but as a **descriptive document, not a spec artifact**:
+   - Metadata header uses Date/Updated/Version like other docs, but **no `Status: DRAFT|APPROVED|IMPLEMENTED`** (that field means "where is this in the build lifecycle" — meaningless for something describing already-shipped code) and **no `FSD-xxx`/`SDS-xxx`/`ERD-xxx` ID** (no spine, no traceability entry, no ticket ever cites it)
+   - Cross-references (`Refs:`) point to other `docs/system/` files, never to `docs/sdd/specs/`
+   - Mermaid diagram where it clarifies structure or flow
 
 4. **Fidelity check against the code, not a ledger** — since there's no deliberation ledger (the code IS the source of truth), the fidelity check compares the document against the actual code behavior. Every claim in the doc must be verifiable by reading the code.
 
@@ -90,13 +106,14 @@ For each feature in the approved plan, follow doc-generator's "One Doc at a Time
 
 ### Phase 4: Stitch
 
-After all feature docs are written:
+After all module docs are written:
 
-1. **Generate/update `docs/sdd/index.md`** — link every new feature folder with relationships
-2. **Generate role indexes** (if ≥3 roles) — `docs/sdd/roles/{role}.md` per actor
+1. **Generate/update `docs/system/index.md`** — link every module doc with relationships (separate from `docs/sdd/index.md`, which indexes `specs/`)
+2. **Generate role indexes** (if ≥3 roles) — `docs/system/roles/{role}.md` per actor
 3. **Run cross-reference check** — verify all `Refs:` resolve, all ERD entities are cited, no orphans
-4. **Bootstrap `docs/sdd/config.md`** if it doesn't exist — detected mode, domain, SDLC, stack
-5. **Bootstrap `docs/sdd/traceability.md`** — allocate ID counters based on what was generated
+4. **Bootstrap `docs/sdd/config.md`** if it doesn't exist — detected mode, domain, SDLC, stack (this one file IS shared with the main pipeline, since mode/domain/SDLC detection applies project-wide regardless of which doc tree is active)
+
+**No traceability.md bootstrap** — that matrix tracks REQ→FSD→TICKET→TEST for spec-driven work; retroactive documentation has none of those, so seeding it here would create empty or fabricated rows. If the project later adopts spec-first work via `/sdd-pipeline:spec`, traceability bootstraps naturally at that point.
 
 ## Scope Control — Don't Boil the Ocean
 
@@ -118,16 +135,18 @@ For large codebases, documenting everything in one session is impractical. The u
 
 | Artifact | Location |
 |----------|----------|
-| Feature specs (FSD/SDS/DoD) | `docs/sdd/specs/{NNN}-{slug}/` |
-| ERD | `docs/sdd/specs/{NNN}-{slug}/erd.md` (grouped by domain) |
-| Use Case Specs | `docs/sdd/specs/{NNN}-{slug}/uc-{role}.md` (if ≥3 roles) |
-| Process Flows | `docs/sdd/specs/{NNN}-{slug}/flow-{role}.md` (if ≥3 roles) |
-| Sequence Diagrams | `docs/sdd/specs/{NNN}-{slug}/seq-{interaction}.md` (if multi-service) |
-| Role Indexes | `docs/sdd/roles/{role}.md` (if ≥3 roles) |
-| System SDS | `docs/sdd/specs/001-system-architecture/sds.md` (always, as first doc) |
-| Index | `docs/sdd/index.md` |
-| Config | `docs/sdd/config.md` |
-| Traceability | `docs/sdd/traceability.md` |
+| Module overview (FSD-shaped, no spine ID) | `docs/system/{slug}/overview.md` |
+| Component doc (SDS-shaped, no spine ID) | `docs/system/{slug}/component.md` |
+| ERD | `docs/system/{slug}/erd.md` (grouped by domain), or `docs/system/erd.md` if project-wide |
+| Use Case Specs | `docs/system/{slug}/uc-{role}.md` (if ≥3 roles) |
+| Process Flows | `docs/system/{slug}/flow-{role}.md` (if ≥3 roles) |
+| Sequence Diagrams | `docs/system/{slug}/seq-{interaction}.md` (if multi-service) |
+| Role Indexes | `docs/system/roles/{role}.md` (if ≥3 roles) |
+| System overview | `docs/system/overview.md` (always, written first) |
+| Index | `docs/system/index.md` |
+| Config (shared) | `docs/sdd/config.md` |
+
+**Never written by this command**: anything under `docs/sdd/specs/`, `docs/sdd/traceability.md`. Those belong to spec-first work only.
 
 ## Mode Behavior
 
