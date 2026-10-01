@@ -1,10 +1,12 @@
 # Installing SDD Pipeline
 
-Two ways to install: the **plugin marketplace** (fastest, Claude Code only) or the **manual script** (works with any supported agent, more control).
+Two installation paths serve different operational needs: the **plugin marketplace** for a managed skill/command install in Claude Code or Codex/ChatGPT, and the **manual script** for project-scoped files, enforcement, and any supported harness.
 
 ---
 
-## Option 1: Plugin Marketplace (Recommended for Claude Code)
+## Option 1: Plugin Marketplace (Claude Code or Codex/ChatGPT)
+
+### Claude Code
 
 Inside Claude Code, no terminal needed:
 
@@ -13,15 +15,34 @@ Inside Claude Code, no terminal needed:
 /plugin install sdd-pipeline
 ```
 
-That's it. SDD Pipeline registers as a plugin — the orchestrator (auto-triggers on coding tasks) and all 8 slash commands (`/sdd-pipeline:discover`, `/sdd-pipeline:spec`, `/sdd-pipeline:implement`, `/sdd-pipeline:check`, `/sdd-pipeline:docs`, `/sdd-pipeline:learn`, `/sdd-pipeline:handoff`, `/sdd-pipeline:update`) become available immediately.
+### Codex / ChatGPT desktop app
 
-**Note**: this method only sets up the skill/command layer. To also get the pre-commit hook, CI workflow, and `docs/sdd/` project files (glossary, decisions, plans, etc.), run the manual installer once with `--with-hooks --with-ci --with-templates` (see below) — it's safe to run alongside a plugin install.
+Add the marketplace once, then install the plugin:
+
+```bash
+codex plugin marketplace add fprtm/sdd-pipeline
+codex plugin add sdd-pipeline@sdd-pipeline
+```
+
+For a release already installed in Codex, refresh the marketplace and reinstall:
+
+```bash
+codex plugin marketplace upgrade sdd-pipeline
+codex plugin add sdd-pipeline@sdd-pipeline
+codex plugin list
+```
+
+Start a new task after reinstalling so the runtime loads the new skill set. The plugin cache version shown by `codex plugin list` is the installed version, not merely the repository version.
+
+Both marketplace hosts install the orchestrator and the same eight explicit entry skills: discover, spec, implement, check, docs, learn, handoff, and update. Claude Code presents them as `/sdd-pipeline:*` commands; Codex exposes plugin skills through its own skill/command interface, so use the host picker or explicit skill mention if the exact slash syntax is not available.
+
+**Note**: this method only sets up the skill/command layer. To also get the pre-commit hook, CI workflow, and the `docs/sdd/` project tree (`config.md`, `index.md`, `changes/`, `decisions/`, `reports/`, `specs/`, `stats/`, and `memory/`), run the manual installer once with `--with-hooks --with-ci --with-templates` (see below) — it's safe to run alongside a plugin install.
 
 ---
 
 ## Option 2: Manual Install (Any Agent)
 
-Use this if you're on Codex, OpenCode, Cursor, want project-scoped install, want only specific skill phases, or want enforcement hooks / CI / templates.
+Use this for project-scoped installation, OpenCode/Cursor and other harnesses, selective phases, or enforcement hooks / CI / templates. It is also the way to install the project artifacts that a marketplace plugin intentionally does not create.
 
 ### Step 1 — Get the code
 
@@ -73,7 +94,7 @@ scaffolded.
 ./install/install.sh --agent claude --with-hooks --with-ci
 ```
 
-- `--with-hooks` — installs a pre-commit hook (checks for secrets, missing scope declarations on large changes, security review on auth/payment code, oversized diffs, missing tests, missing decision log entry on large changes, and — regardless of whether a human or an agent is committing — any real source change with no accompanying `docs/sdd/{changes,plans,decisions,design,tickets}` record at all). Requires the current directory to be a git repo.
+- `--with-hooks` — installs a pre-commit hook (checks for secrets, missing scope declarations on large changes, security review on auth/payment code, oversized diffs, missing tests, missing decision log entry on large changes, and — regardless of whether a human or an agent is committing — any real source change with no accompanying `docs/sdd/{changes,decisions,specs}` record at all). Requires the current directory to be a git repo.
 - `--with-ci` — copies a GitHub Actions workflow to `.github/workflows/sdd-check.yml` that runs the same class of checks on every PR.
 
 You can combine every flag in one call:
@@ -139,7 +160,7 @@ git pull
 
 `--update` overwrites the installed skill files but leaves your project's `docs/sdd/config.md` (and everything else in `docs/sdd/`) untouched — your mode defaults, constraint overrides, and history are preserved. Read `CHANGELOG.md` yourself for the diff before running this manually — the `/update` skill exists specifically so you don't have to remember to do that.
 
-If you installed via the plugin marketplace, update through Claude Code's own plugin update mechanism instead.
+If you installed via a plugin marketplace, use that host's marketplace update path instead: Claude Code's plugin UI, or the Codex commands shown above. Do not mix a manual `--update` with a marketplace cache and assume both targets changed.
 
 ---
 

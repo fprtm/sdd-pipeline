@@ -2,11 +2,24 @@
 
 **Spec-Driven Development. Spec in front, judgment behind.**
 
-A skill framework that gives you control over — and trust in — AI-generated code. Works with Claude Code, Codex, OpenCode, Cursor, and any agent that reads Markdown.
+SDD Pipeline is an engineering control plane for AI-assisted software delivery. It turns an otherwise ephemeral agent conversation into a governed path from intent to evidence: decisions are made before code, work is bounded before execution, and claims are challenged after tests pass.
+
+It works with Claude Code, Codex, OpenCode, Cursor, and any agent that reads Markdown. The public product contract is deliberately small: one orchestrator, eight manual commands, a portable artifact model, and zero-dependency verification tooling. See the [architecture](docs/ARCHITECTURE.md), [installation and operations guide](docs/INSTALL.md), and [release policy](docs/RELEASE-POLICY.md).
 
 > **Naming note**: "SDD" here is *Spec-Driven Development* — the framework's name. One of the document types the pipeline generates used to also be called "SDD" (Software Design Document) — same three letters, unrelated meaning, a real collision. That document type is now called **SDS (Software Design Specification)** instead (`docs/sdd/specs/{NNN}-{slug}/sds.md`, spine ID `SDS-003`) specifically to avoid it; "SDD" unqualified always means the framework from here on.
 >
 > **Second naming note**: `docs/sdd/specs/` (the FSD/SDS/PRD/threat-model bundle, none of it visual) is a different directory from `docs/sdd/design-system/` (the actual visual design — tokens, screens, UI patterns). Both used to sit under a directory literally named `design/`, which was the same "design" ambiguity the `/design`→`/spec` command rename fixed in v4.0.0 — just one level down, in the file tree instead of the command name. v5.6.0 renamed the directory to `specs/`; v5.8.0 went further and made it **one folder per feature** (`specs/{NNN}-{slug}/fsd.md`, `sds.md`, `erd.md`, `tickets/`, … all siblings) instead of five separate top-level directories that happened to share a number.
+
+## Product Contract
+
+SDD Pipeline is designed to make AI-assisted delivery reviewable, not merely faster. Its operating contract is:
+
+1. **Intent is explicit.** Discovery settles the problem; specification settles the design; a change record or vertical-slice ticket bounds execution.
+2. **Authority stays narrow.** The agent does not silently deploy, spend, target production, erase artifacts, or expand a handoff's authority.
+3. **Evidence is distinguishable from assertion.** Tests, coverage, security checks, and traceability record the command or artifact behind a claim; an unrun check is never reported as passed.
+4. **Review is independent where the harness permits it.** Implementation, review, verification, and sensitive-work security review use separate actor identities when fresh contexts exist; otherwise the limitation is reported as degraded independence.
+
+These are product guarantees about the pipeline's workflow and observable records—not a claim that every host can force an LLM to obey prose. The [limitations](#limitations) section states that boundary directly.
 
 ## The Problem
 
@@ -177,7 +190,7 @@ Fastest path, inside Claude Code:
 /plugin install sdd-pipeline
 ```
 
-For Codex/OpenCode/Cursor, project-scoped installs, partial installs (`--only`), enforcement hooks, CI, updating, or uninstalling — see **[docs/INSTALL.md](docs/INSTALL.md)**.
+For Codex/ChatGPT, OpenCode, Cursor, project-scoped installs, partial installs (`--only`), enforcement hooks, CI, updating, or uninstalling — see **[docs/INSTALL.md](docs/INSTALL.md)**.
 
 Project configuration:
 

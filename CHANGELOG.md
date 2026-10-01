@@ -3,6 +3,8 @@
 All notable changes to SDD Pipeline. Versioning is [SemVer](https://semver.org/).
 Plain-language where possible.
 
+For compatibility promises, deprecation, and release operation, see [the release policy](docs/RELEASE-POLICY.md).
+
 ## [6.11.0] — 2026-10-01
 
 ### Added

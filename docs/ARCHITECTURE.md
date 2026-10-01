@@ -51,13 +51,26 @@ There is no `/brainstorm` command any more: a foggy idea and a forming decision 
 
 This sequence is **fixed** — same order every time. Only *depth* adapts, driven by four things the orchestrator detects on every task:
 
+### Control boundaries
+
+The diagram is an execution flow, not a claim that every component has the same authority. The system is deliberately split into four boundaries:
+
+| Boundary | Responsibility | Cannot honestly claim |
+|---|---|---|
+| **Intent** — ASK, SPEC, PLAN | Settles scope and produces the approved work order | That an unstated product decision was approved |
+| **Execution** — BUILD | Changes code under constraints and records what changed | That a changed implementation satisfies an untested requirement |
+| **Evidence** — CHECK | Runs and records verification, traceability, coverage, security, and judgment checks | That a check was executed when no evidence exists |
+| **Governance** — META | Preserves canonical truth, controls artifact lifecycle, narrows handoffs, and tracks actor separation | That a single actor's self-review is independent |
+
+The orchestrator coordinates these boundaries; it does not collapse them. This is why the public surface remains one auto-routed orchestrator plus eight explicit commands while the internal skill tree can evolve without changing the adoption model.
+
 ```mermaid
 flowchart TD
     REQ["User request"] --> ORC["Orchestrator\nskills/orchestrator/SKILL.md"]
     ORC --> MODE["Mode\nprototype · vibe · standard · strict · emergency"]
     ORC --> SIZE["Task size\nmicro · small · medium · large"]
     ORC --> DOM["Domain\nweb · cli · mobile · library · api"]
-    ORC --> SDLC["SDLC\nscrum · kanban · waterfall · solo"]
+    ORC --> SDLC["SDLC\nagile · waterfall · iterative · v-model · spiral\ndevops · rad · incremental · solo"]
 
     MODE & SIZE & DOM & SDLC --> DEPTH["Pipeline depth for this task"]
     DEPTH --> THINK_P["THINK phase"]
