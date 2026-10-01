@@ -13,7 +13,7 @@ Inside Claude Code, no terminal needed:
 /plugin install sdd-pipeline
 ```
 
-That's it. SDD Pipeline registers as a plugin — the orchestrator (auto-triggers on coding tasks) and all 7 slash commands (`/sdd-pipeline:discover`, `/sdd-pipeline:spec`, `/sdd-pipeline:implement`, `/sdd-pipeline:check`, `/sdd-pipeline:docs`, `/sdd-pipeline:learn`, `/sdd-pipeline:update`) become available immediately.
+That's it. SDD Pipeline registers as a plugin — the orchestrator (auto-triggers on coding tasks) and all 8 slash commands (`/sdd-pipeline:discover`, `/sdd-pipeline:spec`, `/sdd-pipeline:implement`, `/sdd-pipeline:check`, `/sdd-pipeline:docs`, `/sdd-pipeline:learn`, `/sdd-pipeline:handoff`, `/sdd-pipeline:update`) become available immediately.
 
 **Note**: this method only sets up the skill/command layer. To also get the pre-commit hook, CI workflow, and `docs/sdd/` project files (glossary, decisions, plans, etc.), run the manual installer once with `--with-hooks --with-ci --with-templates` (see below) — it's safe to run alongside a plugin install.
 
@@ -47,7 +47,7 @@ cd sdd-pipeline
 
 All of the above install the exact same `SKILL.md` files — the "Agent Skills" format (`SKILL.md` + YAML frontmatter) is a shared open standard across every harness in this table as of 2026, not something sdd-pipeline maintains separately per agent. Only the *discovery path* differs; nothing in the skill content changes between rows.
 
-**One reliability note, not a format difference**: skills here lean on cross-referencing each other (one skill saying "see X for how to ask") to avoid duplicating rules seven times over. Every harness *can* resolve that, but not all of them resolve it with the same consistency at every reasoning-effort tier — if a harness seems to skip steps a stronger model on the same harness wouldn't, that's usually this, not a missing feature. The framework's mechanical checkers (`check-file-hygiene.mjs`, `check-traceability.mjs`, `check-parallel-safety.mjs`) exist precisely because they don't depend on any model chasing a reference chain correctly — run them via `--with-hooks`/`--with-ci` (Step 4 below) on any harness where this is a concern; they catch what got missed regardless of which agent wrote the file.
+**One reliability note, not a format difference**: skills here lean on cross-referencing each other (one skill saying "see X for how to ask") to avoid duplicating rules seven times over. Every harness *can* resolve that, but not all of them resolve it with the same consistency at every reasoning-effort tier — if a harness seems to skip steps a stronger model on the same harness wouldn't, that's usually this, not a missing feature. The framework's mechanical checkers (`check-file-hygiene.mjs`, `check-traceability.mjs`, `check-parallel-safety.mjs`, `check-retirement.mjs`) exist precisely because they don't depend on any model chasing a reference chain correctly — run them via `--with-hooks`/`--with-ci` (Step 4 below) on any harness where this is a concern; they catch what got missed regardless of which agent wrote the file.
 
 Run this **from inside the project you want SDD Pipeline to guard**, not from the `sdd-pipeline/` clone itself — unless you're installing user-wide (`--agent claude`), in which case it doesn't matter.
 
@@ -59,7 +59,13 @@ Run this **from inside the project you want SDD Pipeline to guard**, not from th
 ./install/install.sh --agent claude --with-templates
 ```
 
-Creates `docs/sdd/` in your project: `config.md`, `glossary.md`, `memory/INDEX.md`, `index.md`, and empty `decisions/`, `plans/`, `reports/`, `specs/`, `design-system/`, `stats/` directories (`specs/` holds one folder per feature — `{NNN}-{slug}/fsd.md`, `sds.md`, `erd.md`, `tickets/`, etc. — created as features are worked on, not pre-scaffolded). Without this, SDD Pipeline still works, but has nowhere to persist plans, decisions, or stats — it'll create these on first use anyway, so this step is just "set it up now vs. let it happen automatically."
+Creates the bounded `docs/sdd/` tree: `config.md`, `glossary.md`,
+`memory/INDEX.md`, `index.md`, and the current `decisions/`, `reports/`,
+`specs/`, `stats/`, and `changes/` directories. Feature-owned docs and tickets
+are created lazily inside `specs/{NNN}-{slug}/`; `design-system/` is also
+created lazily with its required `design.md`. Deprecated
+top-level `tickets/`, `design/`, `erd/`, and `test-plans/` directories are not
+scaffolded.
 
 ### Step 4 — Add enforcement (optional)
 
@@ -91,11 +97,11 @@ If you don't want the full install, use `--only` with a comma-separated list of 
 | `think` | elicitation, context-loader, scope-guard, complexity-analyzer, sdlc-detector, arch-analyzer, grill, threat-model, database-design, ux-design, stack-conventions, analytics-design |
 | `build` | constraints, anti-patterns, change-plan, execution-guard, model-router, doc-generator, ticket-decomposition, test-plan, git-workflow, infra |
 | `prove` | verification, adversarial, diagnose, performance-check, report, coverage-check, browser-qa, judgment |
-| `meta` | decision-log, comprehension, insight, health-check, memory, stats, glossary, traceability, handoff |
+| `meta` | decision-log, comprehension, insight, health-check, artifact-lifecycle, memory, stats, glossary, traceability, handoff |
 | `modes` | prototype, vibe, standard, strict, emergency |
 | `constraints` | universal, web, cli, mobile, library, api |
 | `agents` | orchestration, subagent-patterns, parallel-work |
-| `commands` | the 7 standalone slash commands |
+| `commands` | the 8 standalone slash commands plus their path-loaded runtime dependencies (all internal phases); the public surface remains exactly 8 |
 
 Shortcuts for common combinations:
 
@@ -115,7 +121,7 @@ cd sdd-pipeline   # the cloned repo, not your project
 ./scripts/validate-skills.sh
 ```
 
-Should print `ALL CHECKS PASSED` and a count of skills found (60 in a full install — this counts every skill module, not just the 6 that register as invocable entry points; see `docs/ARCHITECTURE.md` §13 if that distinction matters to you). This checks skill files exist, have valid frontmatter, and that `plugin.json`'s skill registrations resolve — it validates the *source repo*, not what got copied into your project, so run it here if something seems off after installing.
+Should print `ALL CHECKS PASSED` and a count of skills found (currently 64 in a full install — this counts every module, not just the 9 registered entry points: the orchestrator plus 8 commands). This checks skill files exist, have valid frontmatter, and that `plugin.json`'s registrations resolve — it validates the source repo, not what got copied into your project.
 
 ---
 

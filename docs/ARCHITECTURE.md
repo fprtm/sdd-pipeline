@@ -1,10 +1,10 @@
 # SDD Pipeline — Architecture & Skill Reference
 
-How the 59 skill files in `skills/` wire together: what each one does, what it calls, what it reads/writes, and when it runs. Read this after `README.md` (the pitch) and `skills/orchestrator/SKILL.md` (the source of truth) — this doc exists to make the *shape* of the system visible at a glance.
+How the 64 skill files in `skills/` wire together: what each one does, what it calls, what it reads/writes, and when it runs. Read this after `README.md` (the pitch) and `skills/orchestrator/SKILL.md` (the source of truth) — this doc exists to make the *shape* of the system visible at a glance.
 
 ## 1. The Big Picture
 
-SDD Pipeline is not a program — it's a tree of Markdown "skill" files an AI coding agent reads and follows, plus 3 zero-dependency `.mjs` scripts that mechanically check what prose can't guarantee. One file, `skills/orchestrator/SKILL.md`, is the entry point; everything else is either a **phase skill** it dispatches to, a **mode** that dials behavior up/down, a **constraint pack**, or **meta machinery** that runs across every phase.
+SDD Pipeline is not a program — it's a tree of Markdown "skill" files an AI coding agent reads and follows, plus 4 zero-dependency `.mjs` scripts that mechanically check what prose can't guarantee. One file, `skills/orchestrator/SKILL.md`, is the entry point; everything else is either a **phase skill** it dispatches to, a **mode** that dials behavior up/down, a **constraint pack**, or **meta machinery** that runs across every phase.
 
 Everything below is organized around one five-step sequence. It runs in this order every time; only *depth* varies.
 
@@ -47,7 +47,7 @@ flowchart LR
 
 There is no `/brainstorm` command any more: a foggy idea and a forming decision are the same conversation at two moments, so `/discover` handles both and announces when it shifts gears. PLAN is the one step with no command of its own — it belongs to the orchestrator, and what gets approved there is the ticket breakdown (large) or the change file (small/medium).
 
-¹ **SPEC is the one step that straddles two phase directories**, and it's worth knowing before §§3-4 read as contradictory: its *analysis* half (`think/threat-model`, `think/ux-design`, `think/database-design`, `think/arch-analyzer`) is filed under `skills/think/`, while its *doc-writing* half (`build/doc-generator`, `build/test-plan`) is filed under `skills/build/`. The five steps describe the sequence a user experiences; the three phases describe how the ~59 skill files are organized on disk. They are related but not identical, and this footnote is the seam.
+¹ **SPEC is the one step that straddles two phase directories**, and it's worth knowing before §§3-4 read as contradictory: its *analysis* half (`think/threat-model`, `think/ux-design`, `think/database-design`, `think/arch-analyzer`) is filed under `skills/think/`, while its *doc-writing* half (`build/doc-generator`, `build/test-plan`) is filed under `skills/build/`. The five steps describe the sequence a user experiences; the three phases describe how the skill files are organized on disk. They are related but not identical, and this footnote is the seam.
 
 This sequence is **fixed** — same order every time. Only *depth* adapts, driven by four things the orchestrator detects on every task:
 
@@ -89,7 +89,7 @@ flowchart TD
 
 ## 2. Orchestrator (`skills/orchestrator/SKILL.md`)
 
-The only skill registered as a top-level entry point (alongside the 4 commands in §10). It never does the work itself — it detects context, dispatches to phase skills, and owns the plan-approval flow and the meta bookkeeping at the end.
+The only auto-triggered top-level entry point (alongside the 8 manual commands in §10). It never does the work itself — it detects context, dispatches to phase skills, and owns the plan-approval flow and the meta bookkeeping at the end.
 
 | | |
 |---|---|
@@ -235,7 +235,7 @@ flowchart TD
 
 | Skill | What it does | Calls / feeds | Writes to |
 |---|---|---|---|
-| **verification** | **Context independence**: dispatch available → runs as a separate sub-agent (`agents/subagent-patterns` Pattern 1) that never saw the implementation reasoning; single-agent → re-checked cold, constraint announced. 4 layers (parallel if multi-agent): Types (tsc/mypy/…), Tests (LOCAL-only hard stop, then suite + coverage-check at medium+), Lint (auto-fix), Spec Conformance (runs `check-traceability.mjs` first, traces THINK requirements to tests, then **checks the spec's specific decided values** — cascade rule, status code, threshold — against actual code/migrations, not just "a test exists"); self-fixes failing layers up to 2 attempts | `build/test-plan` (env-safety rule), `prove/coverage-check`, `check-traceability.mjs`, `agents/subagent-patterns` | aggregated 4-layer summary → feeds `prove/report` |
+| **verification** | Distinct verifier context when available; otherwise explicitly `degraded independence`. Four layers: types, local-only tests + coverage, lint, and specific-value spec conformance. Verifier reports defects, implementer fixes (max two attempts), verifier re-runs; sensitive work adds a distinct security reviewer | `build/test-plan`, `prove/coverage-check`, `check-traceability.mjs`, `agents/subagent-patterns` | actor-tagged 4-layer summary → feeds `prove/report` |
 | **coverage-check** | Same context-independence rule as verification. Runs the stack's coverage command; gate ≥80% line+branch, measured in **every mode** (mode dials narration and whether FAIL blocks, never whether it runs); denominator scales — changed lines at `small`, whole repo at medium+; **honesty checks**: every FSD error flow tested, **every flow has a positive AND a negative case**, **multi-perspective coverage** (tests from each actor role, condition matrix verified), every High/Critical SEC has executable security test, performance tests exist for REQ-NF targets, no `.only`/skip/always-true fakes, new-code coverage drag flagged, UI Must journeys browser-verified; reports only numbers a command actually produced; never rounds FAIL to PASS | `build/test-plan` (command/threshold), `prove/browser-qa` | verdict + prioritized TICKET/TEST backlog list |
 | **adversarial** | **Context independence**: dispatch available → separate Red Team sub-agent (`agents/subagent-patterns` Pattern 2) with no stake in the implementation; single-agent → explicit self-attacking stance, announced. Generates tests across 9 attack categories (Boundary, Injection, State, Type Confusion, Permission/Authorization, Entity State, Scale/Volume, Concurrency/Timing, Environment), skipping irrelevant ones; 5-8 tests standard, 8-15+ strict; every test names specific expected behavior, not vague "handle gracefully" | `agents/subagent-patterns` | tests as output |
 | **diagnose** | Two layers: domain-aware **checklist** (Web W1-8, CLI C1-5, API A1-8, Library L1-4, Mobile M1-4) AND **executable security test verification** (run test plan's security cases, verify each SEC-xxx control has a passing test that attempts the attack); a SEC control with no executable test is flagged as a gap even if checklist passes | `think/threat-model` (design-phase counterpart), `build/test-plan` (security test cases) | PASS/FAIL/N-A findings + security test results |
@@ -281,11 +281,11 @@ flowchart LR
 | **comprehension** | Fixed-format post-BUILD explanation: What was built / How it works / Key decisions / Start reading here; capped 15 lines standard | consumed by `prove/judgment` | inline (not persisted) |
 | **decision-log** | **Rule of three** gate (hard to reverse + surprising + real trade-off — all 3) before logging; one file per decision, write-once, `SUPERSEDED by #N` to change; file number IS the `ADR-N` id | `build/doc-generator` (if entry grows too big) | `docs/sdd/decisions/{NNN}-{slug}.md` + `index.md` link |
 | **glossary** | Single source of truth for domain terms; created lazily on first term; challenges conflicting usage live, sharpens vague terms, cross-references code | fed by `grill`, `elicitation`, `doc-generator`, `decision-log` | `docs/sdd/glossary.md` |
-| **handoff** | Compacts current state into one self-contained snapshot so a fresh agent/model can resume with zero conversation history; overwritten, not appended; acceptance test = "could a cheaper model continue from just this?" | points at `decisions/`, `index.md`, `traceability.md` | `docs/sdd/HANDOFF.md` (overwrite) |
-| **health-check** | Retroactive, read-only scan of an *existing* codebase for anti-patterns/security/performance/convention drift/missing tests/dependency health; **staleness warnings**: stale done tickets, old completed change files, verification-report accumulation, **`RESOLVED` audit/consistency-review reports older than 14 days** (flagged for `reports/archive/`), **misplaced audit reports** (a loose `.md` file directly in `specs/` instead of `docs/sdd/reports/`); report only, never auto-fixes | `check-file-hygiene.mjs`, `meta/traceability`'s `check-traceability.mjs` | report only (no file) |
+| **handoff** | Provider-neutral produce/validate/consume/resume protocol; reference form points at repo truth, portable form embeds minimum state; checks goal, integrity, capability, authority narrowing, and evidence | `artifact-lifecycle`, canonical work order/specs | replace-only `docs/sdd/HANDOFF.md` or conversational portable package |
+| **health-check** | Read-only scan for code quality plus bounded-state lifecycle: completed transient artifacts, stale active navigation, goal contracts, handoff structure, and actor separation; legacy findings stay separate and migration is preview-only | `check-file-hygiene.mjs`, `meta/traceability` | report only (no file) |
 | **insight** | Every 5 tasks (or on request): "your tendencies" coaching summary from accumulated per-task notes — helpful-coach tone, not a critic; user-disableable | — | `docs/sdd/insights.md` |
 | **memory** | Linked knowledge graph (`INDEX.md` + `<slug>.md` notes, `type: module\|concept\|gotcha\|how-to\|convention\|preference\|override\|pointer`); `INDEX.md` carries a rendered Mermaid `graph LR` of the `[[wikilink]]` structure (mechanically regenerated, capped ~40 nodes), not just a flat list; read index-first; captures durable facts + previously-answered questions so the user is never re-asked | `check-file-hygiene.mjs`; project `CLAUDE.md`/`AGENTS.md` should point here | `docs/sdd/memory/INDEX.md` + notes |
-| **stats** | Per-task metrics (anti-patterns caught, security issues, scope deviations, docs generated…) → vibe-mode 1-line footer + monthly stats file + `index.md` Recent Activity (last 10) | — | `docs/sdd/stats/{YYYY-MM}.md`, `index.md` |
+| **stats** | Per-task metrics (anti-patterns caught, security issues, scope deviations, docs generated…) → vibe-mode 1-line footer + monthly aggregate; never appends a history ledger to `index.md` | — | `docs/sdd/stats/{YYYY-MM}.md` |
 | **traceability** | Owns `docs/sdd/traceability.md`: one row per REQ with 🟢/🟠/🟡/🔴/⚪ status **plus an Evidence column** (the actual command + result + date backing a 🟢 — an empty or stale Evidence cell on a 🟢 row is itself a defect, and evidence older than the code it verifies demotes the row to 🟡); global ID counters; **ship gate** — large/full work can't ship while a Must/Should row is red; gated by task size (large=full matrix, medium=lite inline trail, small/micro=skip) | `check-traceability.mjs` (bundled), `enforcement/ci/sdd-check.yml`, `doc-generator`'s ID spine, `prove/verification` (evidence source) | `docs/sdd/traceability.md` |
 
 **Mechanical enforcement scripts** (the only executable code in the framework — zero dependencies, CI-wireable):
@@ -295,6 +295,7 @@ flowchart LR
 | `check-file-hygiene.mjs` | `skills/meta/health-check/` | `docs/sdd/` tree conventions: allowed root files/subdirs, per-feature-folder filename patterns inside `specs/{NNN}-{slug}/`, frontmatter requirements, orphan-doc detection (every `specs/` feature folder + `changes/` file must be in `index.md`), **duplicate-feature-number detection** (two `specs/` folders sharing a leading number with different slugs — almost always a regenerated-slug bug, not a real second feature), `00-index.md` required once a feature has ticket files |
 | `check-traceability.mjs` | `skills/meta/traceability/` | Spine orphans (REQ/SEC/FSD defined but not in matrix), broken refs, freelance tickets/tests (no upstream ID within 10 lines), duplicate ID definitions, dead relative markdown links |
 | `check-parallel-safety.mjs` | `skills/agents/parallel-work/` | Parses ticket `Files likely touched:`/`Dependencies:`/`Status:`/`Claimed by:`; clusters zero-file-overlap tickets as parallel-safe, flags 1-2-file overlaps for human judgment; `--board` flag prints a live kanban. Read-only — "never spawns anything" |
+| `check-retirement.mjs` | `skills/meta/artifact-lifecycle/` | Read-only retirement preview: canonical outcome exists, no live Markdown reference targets the transient artifact, and committed Git history can recover it; explicit archive policy yields `ARCHIVE REQUIRED` instead of permitting deletion |
 
 ---
 
@@ -365,7 +366,7 @@ sequenceDiagram
 
 | Skill | What it does | Calls | Gating |
 |---|---|---|---|
-| **orchestration** | Cost-benefit gate (parallelize? by task-size × phase table); hard cap **6 parallel agents** (overridable only with explicit user consent + logged); conflict resolution protocol for shared files (patch requests, not direct writes, serialized in dependency order, re-verified after merge) | `agents/parallel-work`, `prove/judgment` (review-capacity backing the cap), `build/ticket-decomposition`, `build/change-plan`, `build/anti-patterns`, `build/constraints`, `think/arch-analyzer` (ADR-conflict analogy) | Runtime-dependent: real spawn on Claude Code, `config.toml` roles on Codex, sequential on OpenCode/Cursor |
+| **orchestration** | Cost-benefit gate; hard cap 6 parallel agents; capability-based readiness; distinct actor IDs; shared-file patch requests serialized and re-verified | `agents/parallel-work`, `prove/judgment`, `build/ticket-decomposition`, `build/change-plan`, `build/anti-patterns`, `build/constraints` | Uses generic fresh-context dispatch when available; otherwise reports `degraded independence` |
 | **parallel-work** | Implementation-phase-only protocol: git worktree isolation, ticket claiming (`**Claimed by:**` line), Kanban ticket-status flow as the coordination surface, merge in dependency-wave order, trial-merge always in its own worktree (never the main checkout) | `check-parallel-safety.mjs`, `agents/orchestration` (complements, doesn't replace), `build/ticket-decomposition` (ticket field format), `prove/judgment`, `build/git-workflow` | Requires locked contracts (FSD/schema/API) + genuinely independent tickets; plan confirmation required every mode, no exception |
 | **subagent-patterns** | Sequential-simulation patterns for runtimes without real concurrent agents (e.g. OpenCode) | referenced by `agents/orchestration` | single-agent runtimes |
 
@@ -373,7 +374,7 @@ sequenceDiagram
 
 ## 10. Commands — `skills/commands/` (manual entry points)
 
-The orchestrator usually triggers invisibly, but 7 commands let you start at a specific step deliberately. Each has `disable-model-invocation: true` — they're never auto-triggered.
+The orchestrator usually triggers invisibly, but 8 commands let you start at a specific step deliberately. Each has `disable-model-invocation: true` — they're never auto-triggered.
 
 ```mermaid
 flowchart LR
@@ -403,6 +404,8 @@ flowchart LR
 | **check** | "Adaptive QA — verifies a fresh change if one exists, audits the whole codebase otherwise, always ends with an impact summary." | **VERIFY** branch (fresh diff exists) → `prove/verification` + adversarial + diagnose + performance-check + judgment; **AUDIT** branch (no diff) → `meta/health-check`, read-only | `docs/sdd/reports/{date}-{slug}.md` (verify only) + always an impact digest from `meta/stats` |
 | **docs** | "Generate retroactive documentation for an existing codebase with little or no docs — scan, propose (with a consolidation pass merging small/coupled modules before the plan is shown), deliberate, write." Output is descriptive, never a spec: **writes to `docs/system/`, never `docs/sdd/specs/`** — no spine ID, no `Status: DRAFT/APPROVED/IMPLEMENTED`, no traceability entry, since nothing here drives a ticket the way a real spec does | `think/context-loader` (full scan), `build/doc-generator` (borrows format shapes only), diagram suite (if multi-role) | `docs/system/{slug}/` (overview/component/erd/UC/flows), `docs/system/roles/`, `docs/system/index.md`, `docs/sdd/config.md` (shared) |
 | **learn** | "Deep-read a module, flow, or the whole project and produce a structured explanation — read-only, no code changes." | code scan + `git log` (optional) | conversational output only; optionally `docs/sdd/memory/` notes if user asks to save |
+| **handoff** | "Produce or consume a provider-neutral state transition." | `meta/handoff`, `meta/artifact-lifecycle` | replace-only `docs/sdd/HANDOFF.md` with repo access; portable response otherwise |
+| **update** | "Show the release diff, then update SDD Pipeline after approval." | release/changelog comparison | installed pipeline files after confirmation |
 
 ---
 
@@ -787,26 +790,33 @@ Read order for a newcomer: **12.1 → 12.2** to see the whole shape in under a m
 
 ---
 
-## 13. Cross-Agent Skill Discovery — Why Only 5 of 59 Are Invocable, Everywhere
+## 13. Cross-Agent Skill Discovery — 9 Registered Entry Points
 
-This repo talks about "59 skills" throughout §§1-12 using SDD Pipeline's own internal vocabulary. In every AI coding tool's actual sense of the word "skill," there are only **5**: `orchestrator` and the 5 files under `skills/commands/`. This isn't a Claude Code-only limitation — it's a convention now shared across **Claude Code, OpenCode, Codex CLI, and Cursor**, all of which have converged on the same **Agent Skills** file format. The gate is structural, not platform-specific:
+This repo has 64 `SKILL.md` modules. Nine are registered entry points:
+`orchestrator` and the eight files under `skills/commands/`. The rest are
+path-loaded reference modules. The gate is structural, not provider-specific:
 
-> A directory only counts as a "skill" if its `SKILL.md` has valid YAML frontmatter with a `name` and a `description`. Across the whole `skills/` tree (59 `SKILL.md` files total), exactly 5 have that frontmatter — `orchestrator/SKILL.md` and the 4 `commands/*/SKILL.md` files. The other 54 are plain markdown with no frontmatter block at all, by design: they're reference modules the 5 real skills read via file path when a specific step needs them, never standalone entries.
+> A directory is registered when its `SKILL.md` has valid `name` and
+> `description` frontmatter and the harness discovers or registers it. The
+> other 55 modules are reference content, not standalone commands.
 
 Verified against each tool's own documentation:
 
-| Tool | Discovery mechanism | Where it scans | What happens to the 54 without frontmatter |
+| Tool | Discovery mechanism | Where it scans | What happens to the 55 without frontmatter |
 |---|---|---|---|
-| **Claude Code** | `plugin.json`'s `skills` array (marketplace) or `.claude/skills/<name>/SKILL.md` (manual) | Only the 6 paths listed in `plugin.json` | Never registered — copied as file content only, read via path reference |
+| **Claude Code** | `plugin.json`'s `skills` array (marketplace) or `.claude/skills/<name>/SKILL.md` (manual) | The 9 paths listed in `plugin.json` | Reference modules are copied as content and read by path |
 | **OpenCode** | Native skill scanner, requires `name` (alphanumeric+hyphens, matches dir name) + `description` (1-1024 chars) in frontmatter; unknown fields ignored | `.opencode/skills/`, `.claude/skills/`, `.agents/skills/` (+ global `~/.config/opencode/`, `~/.claude/`, `~/.agents/` equivalents) | Fail frontmatter validation → not discovered at all, invisible to the `<available_skills>` list injected into agent context at session start |
 | **Codex CLI** | Same frontmatter requirement (`name` + `description` drive whether/when Codex auto-invokes); explicit picker via `/skills`, or `$name` to mention one directly | `.agents/skills/<name>/SKILL.md` (per this repo's own installer target) | Fail frontmatter validation → don't appear in the `/skills` picker or `$` mention list |
-| **Cursor** (since the Jan 2026 Agent Skills release) | Same frontmatter requirement, including recognizing `disable-model-invocation: true` (the exact flag this repo's 4 commands use); manual invoke via `/` in Agent chat or pin as a Custom Mode; auto-invoke otherwise | `.cursor/skills/`, `.agents/skills/` (project) + `~/.cursor/skills/`, `~/.agents/skills/` (global); legacy compat also reads `.claude/skills/`, `.codex/skills/` | Fail frontmatter validation → don't appear in the Customize → Skills → "Agent Decides" list |
+| **Cursor** (since the Jan 2026 Agent Skills release) | Same frontmatter requirement, including `disable-model-invocation: true` on the 8 commands | `.cursor/skills/`, `.agents/skills/` (project) + global equivalents | Invalid frontmatter prevents discovery |
 
 **A cross-compat side effect worth knowing**: both OpenCode's and Cursor's scan lists include `.agents/skills/` — exactly where this repo's installer puts the Codex CLI install (`./install/install.sh --agent codex`). So a project that installed SDD Pipeline for Codex already has it auto-discoverable by OpenCode *and* Cursor too, with zero extra install step, on any tool released after each added `.agents/skills/` compatibility.
 
-**Net effect for the user, on every tool**: nobody is ever shown a menu of 59 items. Whatever skill-listing UI exists — Claude Code's `/` palette, Codex's `/skills` picker, OpenCode's `<available_skills>` context injection, Cursor's Customize → Skills panel — surfaces the same 5 entries. The 54 internal modules stay exactly what they were designed to be: content the orchestrator (or a command) reads by path when its own logic decides a specific step needs it, never a discoverable, invocable, or user-facing item on any platform.
+**Net effect for the user**: skill menus expose the orchestrator and eight
+public commands, not every internal reference module.
 
-**Fixed, not just flagged**: `--agent cursor` now installs the full skill tree into `.cursor/skills/sdd/` (same shape as `codex`/`opencode`), replacing the old behavior of dumping the whole tree as loose `.md` files into `.cursor/rules/` — a format Cursor's *Rules* system (which expects `.mdc` files) never actually loaded, despite the installer's own comments claiming "orchestrator only." Verified end-to-end in a scratch repo: `.cursor/skills/sdd/SKILL.md` and all 5 `commands/*/SKILL.md` now pass Cursor's/OpenCode's/Codex's folder-name-must-match-frontmatter-`name` validation.
+**Fixed, not just flagged**: `--agent cursor` installs the full skill tree into
+`.cursor/skills/sdd/`; the orchestrator alias and all eight command skills pass
+the folder-name/frontmatter validation.
 
 **A second bug this surfaced**: `skills/orchestrator/SKILL.md` sits in a folder named `orchestrator`, but its own frontmatter says `name: sdd`. Claude Code's plugin-marketplace path doesn't care (it registers skills by path via `plugin.json`), but the native Agent Skills discovery on Claude Code's manual install, OpenCode, Codex, and Cursor all require the immediate parent folder to match `name:` exactly — so as installed, the orchestrator itself was failing discovery validation on all four. The installer now adds a small alias copy at each container's root (`install_orchestrator_alias()` in `install/install.sh`), one per target's actual destination — `~/.claude/skills/sdd/SKILL.md` (claude), `.claude/skills/sdd/SKILL.md` (claude-proj), `.agents/skills/sdd/SKILL.md` (codex), `.opencode/skills/sdd/SKILL.md` (opencode), `.cursor/skills/sdd/SKILL.md` (cursor) — so the folder name matches without renaming the canonical `skills/orchestrator/` path this repo's own cross-references and `.claude-plugin/plugin.json` depend on.
 

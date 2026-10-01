@@ -7,7 +7,10 @@ Generate tests that try to BREAK the code. Think like an attacker and an edge-ca
 The agent that just implemented the code has construction bias — it unconsciously avoids attacking the assumptions it just made. Same rule as `prove/verification`:
 
 - **Dispatch available**: run this as a separate sub-agent per `skills/agents/subagent-patterns/`'s Pattern 2 (Red Team) — an attacker with no stake in the implementation being correct.
-- **Single-agent environments**: explicitly adopt an adversarial stance against your own just-written code — "if I were trying to break this specific implementation, not code in general, what would I try first?" Announce: "Single-agent adversarial pass — self-attacking cold."
+- **Single-agent environments**: explicitly adopt an adversarial stance, but
+  label the result `degraded independence`. Security-sensitive work adds a
+  human security-review item; self-attack is never presented as an independent
+  red-team pass.
 
 ## Test Categories
 

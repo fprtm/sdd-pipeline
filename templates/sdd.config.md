@@ -36,6 +36,31 @@ req-prefix: FR
 
 Adds the custom prefix as an alias alongside `REQ` — both are recognized, nothing changes for projects that leave this unset. Without it, existing `FR-xxxx` citations are invisible to the checker and every ticket/test citing one is flagged as a false "freelance" item.
 
+## Artifact Lifecycle
+
+New projects and explicitly reactivated work use the bounded-state contract:
+
+```
+artifact-policy-version: 1
+artifact-retention: git-history
+```
+
+`git-history` retires completed transient artifacts after the canonical outcome,
+reference, and recoverability checks pass. Use `archive` only for a declared
+audit/compliance need or when Git is unavailable. Repositories without
+`artifact-policy-version` are treated as legacy/read-only until migration is
+previewed and approved; merely running a check never rewrites them.
+
+Medium/default work exposes at most three active entry documents. Large work
+may raise that budget only with an explicit reason:
+
+Uncomment and set these only when that exception is real:
+
+```text
+# active-entry-budget: 5
+# active-entry-budget-reason: independent BE, FE, security-review, and verification consumers
+```
+
 ## Domain
 
 Override auto-detection:

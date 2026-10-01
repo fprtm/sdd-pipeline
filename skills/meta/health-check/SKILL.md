@@ -18,11 +18,15 @@ Scan the codebase against the active constraint and anti-pattern sets:
 4. Convention inconsistencies (mixed naming styles, conflicting patterns)
 5. Missing tests for critical paths
 6. Dependency health (outdated, unused, or vulnerable packages)
-7. **Docs-tree hygiene** — run the bundled mechanical checker (in this skill's folder; copy to `tools/` in the project):
+7. **Docs-tree hygiene and lifecycle** — run the bundled mechanical checker (in this skill's folder; copy to `tools/` in the project):
    ```bash
    node tools/check-file-hygiene.mjs docs/sdd
    ```
-   It enforces the docs/sdd tree conventions (naming per directory, changes/ frontmatter, no stray files, no orphan docs missing from index.md). Instructions in markdown are followed probabilistically — this catches what got missed mechanically. Also run it right after writing/renaming anything under docs/sdd, not only during a health check; treat a non-zero exit as a real defect.
+   It enforces tree conventions and, when `artifact-policy-version: 1` is
+   declared, goal contracts, completed-transient retirement, bounded active
+   navigation, handoff structure, and actor separation. Repositories without
+   that marker are legacy/read-only: report migration opportunities separately
+   and never rewrite them during a health check.
 8. **Traceability drift** — if `docs/sdd/traceability.md` exists, run `check-traceability.mjs` (see `skills/meta/traceability/`) as part of the scan.
 
 ## Output Format
@@ -45,13 +49,22 @@ Scan the codebase against the active constraint and anti-pattern sets:
 - Overall: [GOOD / FAIR / NEEDS ATTENTION]
 ```
 
-### Staleness Warnings
+### Lifecycle Warnings
 
-9. **Stale done tickets**: warn if >5 tickets with `done`/`✅` status exist outside an `archive/` directory.
-10. **Old change files**: warn if any `changes/*.md` with `status: done` is older than 14 days (check the `updated:` frontmatter date against today).
-11. **Report accumulation**: warn if >2 verification reports exist for the same feature spec number.
-12. **Stale resolved audit reports**: warn on any `docs/sdd/reports/*.md` carrying `Status: RESOLVED` whose date is older than 14 days — move it to `reports/archive/`. A resolved audit sitting in the live tree indefinitely is exactly the accumulation this tier exists to prevent (see `doc-generator`'s Artifact Lifecycle Tiers). An audit report still `Status: OPEN` is never flagged, no matter its age — open findings are live work, not clutter.
-13. **Misplaced audit reports**: warn on any file in `docs/sdd/specs/` that isn't a `{NNN}-{slug}/` feature folder — a loose `.md` file directly in `specs/` (especially one that reads like a cross-feature audit rather than a single feature's spec) belongs in `docs/sdd/reports/` instead. `check-file-hygiene.mjs` already flags stray files at this level mechanically; this staleness pass is the human-readable summary of the same finding.
+9. **Completed transient artifacts**: under policy v1, any done ticket, closed
+   change, consumed handoff, resolved report, or verified deliberation ledger
+   still in active navigation is a finding immediately—not only after an age or
+   count threshold.
+10. **Guarded retirement**: propose compact/retire only after a canonical
+    outcome exists, live references are clear, and Git recovery is confirmed.
+    Untracked or unrecoverable files are retained and reported.
+11. **Archive policy**: archive is valid only when config declares it or an
+    audit/compliance/no-Git constraint is recorded. Otherwise Git is history.
+12. **Mixed responsibility**: flag documents combining design, progress diary,
+    raw command output, runbook, and final report. Line count alone is not a
+    defect.
+13. **Misplaced audit reports**: warn on loose files in `docs/sdd/specs/`;
+    cross-feature reports belong in `docs/sdd/reports/` while active.
 
 ### Cross-Reference Orphan Check
 

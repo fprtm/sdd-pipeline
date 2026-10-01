@@ -61,8 +61,12 @@ Pass results between sub-agents through the orchestrating agent.
 | Aspect | Multi-Agent | Sequential Sub-Agents |
 |--------|-------------|----------------------|
 | Speed | Parallel = fast | Sequential = slower |
-| Quality | Better (separation) | Same quality gain |
+| Quality | Strongest when contexts and evidence are independent | Useful, but depends on whether contexts are actually distinct |
 | Token cost | Higher (context duplication) | Higher (context passing) |
 | Complexity | Framework handles it | You manage the flow |
 
-**Bottom line**: Sequential sub-agents are SLOWER than parallel multi-agent but deliver the SAME quality improvement. The value is in separation of concerns, not speed. For micro/small tasks, skip sub-agents — single agent is fine.
+**Bottom line**: concurrency affects speed; fresh context and distinct actor IDs
+affect independence. Sequential sub-agents with fresh contexts can still be
+independent. Reusing one context is `degraded independence`, even after a cold
+re-read. Micro non-code work may remain single-context; code changes use a
+separate reviewer/verifier whenever the harness supports it.

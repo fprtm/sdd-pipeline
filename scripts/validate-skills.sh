@@ -52,6 +52,8 @@ EXPECTED_SKILLS=(
   "meta/comprehension/SKILL.md"
   "meta/insight/SKILL.md"
   "meta/health-check/SKILL.md"
+  "meta/artifact-lifecycle/SKILL.md"
+  "meta/handoff/SKILL.md"
   "meta/memory/SKILL.md"
   "meta/stats/SKILL.md"
   "meta/glossary/SKILL.md"
@@ -67,12 +69,15 @@ EXPECTED_SKILLS=(
   "constraints/library/SKILL.md"
   "constraints/api/SKILL.md"
   "agents/orchestration/SKILL.md"
-  "agents/model-strategy/SKILL.md"
   "agents/subagent-patterns/SKILL.md"
   "commands/discover/SKILL.md"
   "commands/spec/SKILL.md"
   "commands/implement/SKILL.md"
   "commands/check/SKILL.md"
+  "commands/docs/SKILL.md"
+  "commands/learn/SKILL.md"
+  "commands/handoff/SKILL.md"
+  "commands/update/SKILL.md"
 )
 
 for skill in "${EXPECTED_SKILLS[@]}"; do
@@ -107,7 +112,9 @@ echo ""
 # --- Check 2b: Command skills have valid frontmatter ---
 echo "## Checking command skill frontmatter..."
 
-for cmd in discover spec implement check; do
+EXPECTED_COMMANDS=(discover spec implement check docs learn handoff update)
+
+for cmd in "${EXPECTED_COMMANDS[@]}"; do
   file="$SKILLS_DIR/commands/$cmd/SKILL.md"
   if [ -f "$file" ]; then
     if ! head -1 "$file" | grep -q "^---$"; then
@@ -121,6 +128,27 @@ for cmd in discover spec implement check; do
     fi
   fi
 done
+
+registered_commands=()
+while IFS= read -r ref; do
+  registered_commands+=("${ref##*/}")
+done < <(grep -oE '"\./skills/commands/[a-z-]+"' "$SCRIPT_DIR/.claude-plugin/plugin.json" | tr -d '"')
+
+if [ "${#registered_commands[@]}" -ne "${#EXPECTED_COMMANDS[@]}" ]; then
+  log_error "plugin.json must register exactly 8 public commands; found ${#registered_commands[@]}"
+else
+  for cmd in "${EXPECTED_COMMANDS[@]}"; do
+    count=$(printf '%s\n' "${registered_commands[@]}" | grep -cx "$cmd" || true)
+    if [ "$count" -ne 1 ]; then
+      log_error "plugin.json must register command '$cmd' exactly once (found $count)"
+    fi
+  done
+  for cmd in "${registered_commands[@]}"; do
+    if [[ ! " ${EXPECTED_COMMANDS[*]} " =~ " $cmd " ]]; then
+      log_error "plugin.json registers unexpected public command '$cmd'"
+    fi
+  done
+fi
 
 echo ""
 
@@ -259,7 +287,7 @@ echo ""
 # --- Check 8: Templates ---
 echo "## Checking templates..."
 
-for file in templates/sdd.config.md templates/memory.md templates/index.md templates/glossary.md; do
+for file in templates/sdd.config.md templates/sdd.legacy.config.md templates/memory.md templates/index.md templates/glossary.md; do
   if [ -f "$SCRIPT_DIR/$file" ]; then
     log_ok "$file exists"
   else

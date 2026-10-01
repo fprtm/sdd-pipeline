@@ -7,7 +7,9 @@ Multi-layer verification orchestrator. Runs after BUILD phase completes.
 The agent that wrote the code should not be the sole verifier of its own work — same principle as `prove/judgment`'s gate, applied one layer earlier.
 
 - **Dispatch available** (Claude Code Agent tool, or equivalent): run verification as a separate sub-agent per `skills/agents/subagent-patterns/`'s Pattern 1 — give it the spec, the diff, and the commands to run; it has not seen the implementation reasoning.
-- **Single-agent environments**: re-run and re-read the results cold, as if verifying someone else's PR — don't lean on "it worked when I wrote it." Announce the constraint: "Single-agent verification — re-checked cold from diff + spec."
+- **Single-agent environments**: re-run and re-read the results cold, but label
+  the result `degraded independence`. Medium+ and security-sensitive work must
+  list explicit human-review items. A cold self-read is not independent.
 - This does not replace `prove/judgment`'s independence requirement — judgment still runs in a fresh context after verification completes. Verification independence catches issues before judgment even starts.
 
 ## Every Result Comes From a Command That Actually Ran
@@ -45,6 +47,15 @@ Run these in parallel when multi-agent is available. Sequential otherwise.
 - If no linter configured: skip, note in report.
 
 ### Layer 4: Spec Conformance
+- **Quality Contract, when opted in:** locate the canonical feature Markdown
+  that contains the sole `quality-contract-json` block and run
+  `node skills/meta/quality-contract/quality-contract.mjs <canonical.md> --json`.
+  Preserve the emitted JSON and process exit code in the report. This is a
+  read-only canonical-envelope check only: it cannot validate a ticket
+  projection, verify external authority/review/evidence events, dispatch a
+  gateway operation, or establish `may_accept`. Verify those claims with their
+  corresponding projection, trusted-event, gateway, and sealed-evidence tests;
+  never turn a facade PASS, unknown, or unavailable result into approval.
 - **If `docs/sdd/traceability.md` exists, run the mechanical check first** — `node tools/check-traceability.mjs docs/sdd` (bundled with `skills/meta/traceability/`) — instead of re-tracing by hand; its findings (orphans, broken refs, freelance tickets/tests) are this layer's findings.
 - Then trace each requirement identified in the THINK phase to at least one test or verifiable check (covers work the matrix doesn't, e.g. small tasks with no matrix).
 - Requirements with no corresponding test = **red flag**. List them explicitly.
@@ -64,12 +75,14 @@ Layer 3 (Lint):  [PASS/FAIL/SKIPPED — reason] [N issues, M auto-fixed]
 Layer 4 (Spec):  [PASS/FAIL/SKIPPED — reason] [N/M requirements traced]
 ```
 
-## Self-Fix on Failure
+## Failure Loop
 
 If any layer fails:
-1. Attempt to fix (max 2 attempts).
-2. If fixed: re-run that layer to confirm.
-3. If still failing after 2 attempts: escalate. Do NOT loop.
+1. The verifier records a defect with evidence; it does not edit the work it
+   will approve.
+2. The implementer fixes it (max 2 attempts).
+3. The same independent verifier re-runs the failed layer.
+4. If it still fails after 2 implementation attempts, escalate. Do not loop.
 
 ## Mode Behavior
 

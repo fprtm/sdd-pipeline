@@ -49,7 +49,8 @@
 // Exits non-zero on any problem.
 
 import { readFileSync, readdirSync, existsSync, statSync } from 'node:fs';
-import { join, relative, basename } from 'node:path';
+import { join, relative, basename, resolve, isAbsolute } from 'node:path';
+import { execFileSync } from 'node:child_process';
 
 const dir = process.argv[2] ?? 'docs/sdd';
 const SLUG = '[a-z0-9][a-z0-9-]*';
@@ -78,7 +79,7 @@ const TICKET_FILE = new RegExp(`^\\d{2}-${SLUG}\\.md$`);
 const TICKET_STATUS = /\*\*Status\*\*:\s*(⬜ ?todo|🔨 ?in progress|🧪 ?testing\/review|✅ ?done|⛔ ?blocked)/;
 const TICKET_TIER = /\*\*Tier\*\*:\s*(T1|T2|T3)/;
 const ALGORITHM_HEADING = /^##\s+Algorithm\s*\/\s*Flow/mi;
-const ALLOWED_SPEC_FILES = new Set(['fsd.md', 'sds.md', 'prd.md', 'threats.md', 'ux.md', 'erd.md', 'tests.md', 'dod.md', 'idea.md']);
+const ALLOWED_SPEC_FILES = new Set(['fsd.md', 'sds.md', 'prd.md', 'threats.md', 'ux.md', 'erd.md', 'tests.md', 'dod.md', 'idea.md', 'deliberation.md']);
 // Docs that must open with a nav-header link (see doc-generator's "Document
 // Formats") — excludes dod.md (a checklist) and idea.md (an informal,
 // optional Gear-1 note), neither of which are the reading-order-guided docs
@@ -92,7 +93,17 @@ if (!existsSync(dir)) {
 }
 
 const problems = [];
-const flag = (msg) => problems.push(msg);
+const legacyFindings = [];
+const notices = [];
+let legacyMode = false;
+let reactivatedPaths = [];
+const isReactivatedFinding = (msg) => reactivatedPaths.some((path) => {
+  const parent = path.includes('/') ? path.slice(0, path.lastIndexOf('/') + 1) : path;
+  return msg.includes(path) || (parent && msg.includes(parent));
+});
+const flag = (msg) => (legacyMode && !isReactivatedFinding(msg) ? legacyFindings : problems).push(msg);
+const strictFlag = (msg) => problems.push(msg);
+const legacy = (msg) => legacyFindings.push(msg);
 const ls = (d) => (existsSync(d) ? readdirSync(d) : []);
 // existsSync follows symlinks and checks the TARGET, so it's already false
 // for a broken symlink — every isDir()/isMarkdownFile() call site below is
@@ -108,13 +119,154 @@ const isMarkdownFile = (p, e) => existsSync(p) && !isDir(p) && /\.md$/i.test(e);
 // check would false-positive "missing frontmatter" on a file that has one.
 // Normalizing on read fixes it at the source for every caller.
 const readText = (p) => readFileSync(p, 'utf8').replace(/\r\n/g, '\n');
+const configPath = join(dir, 'config.md');
+const configText = existsSync(configPath) ? readText(configPath) : '';
+const lifecyclePolicy = /^artifact-policy-version:\s*1\s*$/mi.test(configText);
+const archivePolicy = /^artifact-retention:\s*archive\s*$/mi.test(configText);
+legacyMode = existsSync(configPath) && !lifecyclePolicy;
+if (legacyMode) {
+  try {
+    const repoRoot = resolve(dir, '..', '..');
+    const scope = relative(repoRoot, resolve(dir));
+    reactivatedPaths = execFileSync('git', ['-C', repoRoot, 'status', '--porcelain=v1', '--untracked-files=all', '--', scope], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] })
+      .split('\n')
+      .filter(Boolean)
+      .map((line) => line.slice(3).split(' -> ').at(-1))
+      .map((path) => path.startsWith(`${scope}/`) ? path.slice(scope.length + 1) : path);
+  } catch {
+    reactivatedPaths = [];
+    notices.push('NOTICE: legacy/new artifact classification is unavailable without Git; keep this tree read-only until an approved migration enables artifact-policy-version: 1');
+  }
+}
+const field = (text, name) => new RegExp(`^-?[ \\t]*(?:\\*\\*)?${name}(?:\\*\\*)?:[ \\t]*(.+)$`, 'mi').exec(text)?.[1]?.trim();
+const sectionBody = (text, heading) => {
+  const start = new RegExp(`^##\\s+${heading}\\s*$`, 'mi').exec(text);
+  if (!start) return '';
+  const tail = text.slice(start.index + start[0].length);
+  const next = /^##\s+/m.exec(tail);
+  return (next ? tail.slice(0, next.index) : tail).trim();
+};
+const listField = (text, name) => {
+  const scalar = field(text, name);
+  if (scalar) return [scalar];
+  const start = new RegExp(`^${name}:\\s*$`, 'mi').exec(text);
+  if (!start) return [];
+  const tail = text.slice(start.index + start[0].length);
+  const values = [];
+  for (const line of tail.split('\n')) {
+    if (!line.trim()) continue;
+    const item = /^-\s*(\S.*)$/.exec(line);
+    if (!item) break;
+    values.push(item[1].trim());
+  }
+  return values;
+};
+
+function validateGoalContract(text, label) {
+  if (!/^goal:\s*\S+/mi.test(text) && !sectionBody(text, 'Goal')) {
+    flag(`${label}: missing goal — state the observable outcome, not the work to perform`);
+  }
+  if (!/^supports:\s*\S+/mi.test(text) && !sectionBody(text, 'Supports')) {
+    flag(`${label}: missing supports — cite the existing REQ/FSD/ADR/TICKET spine where applicable, or explicitly state none`);
+  }
+  if (!/^success:\s*\S+/mi.test(text) && !sectionBody(text, 'Success')) {
+    flag(`${label}: missing success — add at least one observable success condition`);
+  }
+}
+
+function validateMixedResponsibilities(text, label) {
+  const groups = [
+    /^##\s+(Design|Architecture)\b/mi,
+    /^##\s+(Progress|Implementation Log|Work Log)\b/mi,
+    /^##\s+(Raw Evidence|Command Output|Raw Command Output)\b/mi,
+    /^##\s+(Runbook|Operations)\b/mi,
+    /^##\s+(Final Report|Verification Report)\b/mi,
+  ];
+  const found = groups.filter((pattern) => pattern.test(text)).length;
+  if (found >= 3) flag(`${label}: mixes ${found} responsibilities (design/progress/raw evidence/runbook/final report) — compact canonical outcomes and split only by consumer or lifecycle`);
+}
+
+function validateHandoff(text) {
+  const label = 'HANDOFF.md';
+  if (!/^protocol:\s*sdd-handoff\/v1\s*$/mi.test(text)) flag(`${label}: unsupported or missing protocol (expected sdd-handoff/v1)`);
+  const form = field(text, 'form');
+  if (!['reference', 'portable'].includes(form)) flag(`${label}: form must be reference or portable`);
+  const state = field(text, 'state');
+  if (!['active', 'consumed'].includes(state)) flag(`${label}: state must be active or consumed`);
+  if (state === 'consumed') flag(`${label}: consumed transient handoff remains in the active working set — confirm recovery and retire it`);
+  for (const heading of ['Resume Goal', 'Transition', 'Integrity', 'Authority', 'Capabilities', 'Evidence', 'Pointers']) {
+    if (!new RegExp(`^##\\s+${heading}\\s*$`, 'mi').test(text)) flag(`${label}: missing "## ${heading}" section`);
+  }
+  if (!/^target_state:\s*\S+/mi.test(text)) flag(`${label}: missing resume goal target_state`);
+  if (!/^success_when:\s*$/mi.test(text) || !/^success_when:\s*\n-\s*\S+/mi.test(text)) flag(`${label}: missing observable success_when item`);
+  const createdAt = field(text, 'created_at');
+  if (!createdAt || Number.isNaN(Date.parse(createdAt)) || !/^\d{4}-\d{2}-\d{2}T/.test(createdAt)) flag(`${label}: created_at must be an ISO-8601 timestamp`);
+  if (!/^producer_actor:\s*\S+/mi.test(text)) flag(`${label}: producer_actor is required`);
+  if (!/^phase:\s*(ASK|SPEC|PLAN|BUILD|CHECK)\s*$/mi.test(text)) flag(`${label}: missing valid transition phase`);
+  if (!/^next_action:\s*\S+/mi.test(text)) flag(`${label}: missing transition next_action`);
+  if (!/^repo_head:\s*\S+/mi.test(text) || !/^dirty:\s*(true|false|unknown)\s*$/mi.test(text)) flag(`${label}: repo_head and dirty state are required`);
+  if (!/^relevant_paths:\s*\n-\s*\S+/mi.test(text)) flag(`${label}: at least one relevant_paths item is required`);
+  const baseline = listField(text, 'baseline');
+  const carried = listField(text, 'carried');
+  if (baseline.length === 0 || carried.length === 0) flag(`${label}: authority baseline and carried values are required`);
+  for (const authority of carried) {
+    if (!baseline.includes(authority)) flag(`${label}: carried authority expands beyond baseline: ${authority}`);
+  }
+  if (!/^required:\s*\S+/mi.test(text)) flag(`${label}: missing required capabilities`);
+  const declaredCapabilities = (process.env.SDD_CAPABILITIES ?? '').split(',').map((item) => item.trim()).filter(Boolean);
+  if (declaredCapabilities.length > 0) {
+    const required = listField(text, 'required').flatMap((item) => item.split(',')).map((item) => item.trim()).filter((item) => item && item !== 'none');
+    for (const capability of required) if (!declaredCapabilities.includes(capability)) flag(`${label}: required capability unavailable: ${capability}`);
+    const optional = listField(text, 'optional').flatMap((item) => item.split(',')).map((item) => item.trim()).filter((item) => item && item !== 'none');
+    for (const capability of optional) if (!declaredCapabilities.includes(capability)) notices.push(`DEGRADED: ${label}: optional capability unavailable: ${capability}`);
+  }
+  if (!/^##\s+Evidence\s*\n-\s*\S+/mi.test(text)) flag(`${label}: at least one evidence item is required`);
+  if (!/^##\s+Pointers\s*\n-\s*\S+/mi.test(text)) flag(`${label}: at least one canonical pointer is required`);
+  if (form === 'portable' && !sectionBody(text, 'Minimum State')) flag(`${label}: portable form requires non-empty "## Minimum State"`);
+  if (form === 'reference') {
+    const pointers = sectionBody(text, 'Pointers').split('\n').filter((line) => /^-\s*\S+/.test(line)).map((line) => line.replace(/^-\s*/, '').replace(/`/g, '').trim());
+    const repoRoot = resolve(dir, '..', '..');
+    for (const pointer of pointers) {
+      const resolved = resolve(repoRoot, pointer);
+      const rel = relative(repoRoot, resolved);
+      if (isAbsolute(pointer) || rel === '..' || rel.startsWith(`..${process.platform === 'win32' ? '\\' : '/'}`)) flag(`${label}: reference pointer escapes repository: ${pointer}`);
+      else if (!existsSync(resolved)) flag(`${label}: reference pointer does not resolve: ${pointer}`);
+    }
+    const handoffHead = field(text, 'repo_head');
+    const relevantPaths = [];
+    for (const rawPath of listField(text, 'relevant_paths')) {
+      const planned = rawPath.startsWith('planned:');
+      const candidate = planned ? rawPath.slice('planned:'.length).trim() : rawPath;
+      const resolved = resolve(repoRoot, candidate);
+      const rel = relative(repoRoot, resolved);
+      if (isAbsolute(candidate) || rel === '..' || rel.startsWith(`..${process.platform === 'win32' ? '\\' : '/'}`)) flag(`${label}: relevant path escapes repository: ${rawPath}`);
+      else if (!planned && !existsSync(resolved)) flag(`${label}: relevant path does not exist (use planned:<path> only for intended new files): ${candidate}`);
+      else relevantPaths.push(candidate);
+    }
+    if (handoffHead && handoffHead !== 'unavailable') {
+      try {
+        const currentHead = execFileSync('git', ['-C', repoRoot, 'rev-parse', 'HEAD'], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+        if (currentHead !== handoffHead) {
+          const changed = execFileSync('git', ['-C', repoRoot, 'diff', '--name-only', `${handoffHead}..HEAD`], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim().split('\n').filter(Boolean);
+          const relevantDrift = changed.filter((changedPath) => relevantPaths.some((relevantPath) => changedPath === relevantPath || changedPath.startsWith(`${relevantPath}/`) || relevantPath.startsWith(`${changedPath}/`)));
+          if (relevantDrift.length > 0) flag(`${label}: relevant repository state changed since repo_head: ${relevantDrift.join(', ')}`);
+        }
+        const dirtyRelevant = execFileSync('git', ['-C', repoRoot, 'status', '--porcelain=v1', '--', ...relevantPaths], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+        if (dirtyRelevant && field(text, 'dirty') === 'false') flag(`${label}: relevant paths are dirty but handoff declares dirty: false`);
+      } catch {
+        flag(`${label}: repo_head could not be verified in the referenced repository`);
+      }
+    }
+  }
+}
 
 // 1+2 — root files and known dirs
 for (const e of ls(dir)) {
   const p = join(dir, e);
   if (isDir(p)) {
     if (!KNOWN_DIRS.has(e)) {
-      if (RETIRED_DIRS[e]) flag(`old naming: ${e}/ is a pre-v5.8.0 layout — suggested fix (manual, not auto-applied): ${RETIRED_DIRS[e]}`);
+      if (RETIRED_DIRS[e] && !lifecyclePolicy) legacy(`old naming: ${e}/ is a pre-v5.8.0 layout — migration opportunity (preview only): ${RETIRED_DIRS[e]}`);
+      else if (RETIRED_DIRS[e]) flag(`old naming: ${e}/ is a pre-v5.8.0 layout in a policy-v1 tree — preview and approve migration: ${RETIRED_DIRS[e]}`);
       else flag(`unknown directory: ${e}/ — not part of the docs/sdd tree`);
     }
   } else if (isMarkdownFile(p, e)) {
@@ -126,11 +278,12 @@ for (const e of ls(dir)) {
     if (e === 'config.md') {
       const text = readText(p);
       if (!/^sdlc:\s*\S+/mi.test(text)) {
-        flag(`config.md: missing "sdlc:" — SDLC model is mandatory (never skipped, never left undeclared), see skills/think/sdlc-detector/SKILL.md`);
+        strictFlag(`config.md: missing "sdlc:" — SDLC model is mandatory (never skipped, never left undeclared), see skills/think/sdlc-detector/SKILL.md`);
       } else if (!/^sdlc-reason:\s*\S+/mi.test(text)) {
-        flag(`config.md: has "sdlc:" but no "sdlc-reason:" — every SDLC value must be set with a one-sentence reason, see skills/think/sdlc-detector/SKILL.md`);
+        strictFlag(`config.md: has "sdlc:" but no "sdlc-reason:" — every SDLC value must be set with a one-sentence reason, see skills/think/sdlc-detector/SKILL.md`);
       }
     }
+    if (e === 'HANDOFF.md' && lifecyclePolicy) validateHandoff(readText(p));
   }
 }
 
@@ -139,7 +292,12 @@ for (const [d, re] of Object.entries(DIR_RULES)) {
   const sub = join(dir, d);
   for (const e of ls(sub)) {
     const p = join(sub, e);
-    if (isDir(p)) { flag(`unexpected subdirectory: ${d}/${e}/`); continue; }
+    if (isDir(p)) {
+      if (e === 'archive' && !lifecyclePolicy) legacy(`${d}/archive/ is retained from a pre-policy layout — preview references and recoverability before migration`);
+      else if (e === 'archive' && archivePolicy) { /* policy-retained history */ }
+      else flag(`unexpected subdirectory: ${d}/${e}/`);
+      continue;
+    }
     if (!isMarkdownFile(p, e)) continue;
     if (!re.test(e)) flag(`bad filename: ${d}/${e} — expected ${re}`);
   }
@@ -169,7 +327,12 @@ for (const e of ls(specsDir)) {
       let hasTicketFile = false;
       for (const te of ticketEntries) {
         const tp = join(fp, te);
-        if (isDir(tp)) { flag(`unexpected subdirectory: specs/${e}/tickets/${te}/`); continue; }
+        if (isDir(tp)) {
+          if (te === 'archive' && !lifecyclePolicy) legacy(`specs/${e}/tickets/archive/ is retained from a pre-policy layout — preview references and recoverability before migration`);
+          else if (te === 'archive' && archivePolicy) { /* policy-retained history */ }
+          else flag(`unexpected subdirectory: specs/${e}/tickets/${te}/`);
+          continue;
+        }
         if (!isMarkdownFile(tp, te)) continue;
         if (te === '00-index.md') continue; // validated for presence below, not against TICKET_FILE
         if (!TICKET_FILE.test(te)) { flag(`bad filename: specs/${e}/tickets/${te} — expected NN-slug.md`); continue; }
@@ -177,6 +340,26 @@ for (const e of ls(specsDir)) {
         const text = readText(tp);
         if (!/TICKET-\d+/.test(text)) flag(`specs/${e}/tickets/${te}: no global TICKET-xxx id found in the file`);
         if (!TICKET_STATUS.test(text)) flag(`specs/${e}/tickets/${te}: no valid **Status**: line found — a ticket without a status is unworkable (expected one of ⬜ todo, 🔨 in progress, 🧪 testing/review, ✅ done, ⛔ blocked)`);
+        if (lifecyclePolicy) {
+          validateGoalContract(text, `specs/${e}/tickets/${te}`);
+          if (/\*\*Status\*\*:\s*🧪 ?testing\/review/i.test(text)) {
+            const actors = Object.fromEntries(['implementer', 'reviewer', 'verifier', 'security_reviewer'].map((name) => [name, field(text, name)]));
+            const independence = field(text, 'independence');
+            if (!actors.implementer) flag(`specs/${e}/tickets/${te}: testing/review requires implementer actor ID`);
+            if (!['independent', 'degraded independence'].includes(independence)) flag(`specs/${e}/tickets/${te}: testing/review requires a valid independence state`);
+            if (independence === 'independent' && (!actors.reviewer || !actors.verifier)) flag(`specs/${e}/tickets/${te}: independent testing/review requires reviewer and verifier actor IDs`);
+            if (independence === 'degraded independence' && !sectionBody(text, 'Human Review')) flag(`specs/${e}/tickets/${te}: degraded independence requires non-empty "## Human Review" items`);
+            const securitySensitive = /^\*\*Security-sensitive\*\*:\s*true\s*$/mi.test(text);
+            if (securitySensitive && !actors.security_reviewer) flag(`specs/${e}/tickets/${te}: security-sensitive review requires security_reviewer actor ID`);
+            const present = Object.entries(actors).filter(([, value]) => value);
+            for (let i = 0; i < present.length; i += 1) for (let j = i + 1; j < present.length; j += 1) {
+              if (present[i][1] === present[j][1]) flag(`specs/${e}/tickets/${te}: ${present[i][0]} and ${present[j][0]} actor IDs must differ`);
+            }
+          }
+          if (/\*\*Status\*\*:\s*✅ ?done/i.test(text)) {
+            flag(`specs/${e}/tickets/${te}: completed transient ticket remains in the active working set — compact its durable outcome, remove live references, confirm Git recovery, then retire it`);
+          }
+        }
         // T2/T3 tickets need the Algorithm/Flow section — a bare file+function
         // manifest leaves the actual logic/branching to be guessed, which is
         // exactly the ambiguity a junior dev or cheap model can't resolve on
@@ -198,6 +381,16 @@ for (const e of ls(specsDir)) {
       }
     } else if (isMarkdownFile(fp, fe)) {
       if (!ALLOWED_SPEC_FILES.has(fe)) flag(`bad filename: specs/${e}/${fe} — expected one of ${[...ALLOWED_SPEC_FILES].join(', ')}`);
+      if (fe === 'deliberation.md' && lifecyclePolicy) {
+        const ledger = readText(fp);
+        for (const required of ['decision_goal', 'exit_when', 'supports']) {
+          if (!new RegExp(`^${required}:\\s*\\S+`, 'mi').test(ledger)) flag(`specs/${e}/deliberation.md: missing "${required}:" discussion goal contract`);
+        }
+        const ledgerStatus = field(ledger, 'status');
+        if (!['active', 'verified'].includes(ledgerStatus)) flag(`specs/${e}/deliberation.md: status must be active or verified`);
+        if (ledgerStatus === 'verified') flag(`specs/${e}/deliberation.md: verified transient ledger remains in the active working set — confirm recovery and retire it`);
+      }
+      if (lifecyclePolicy) validateMixedResponsibilities(readText(fp), `specs/${e}/${fe}`);
       // Nav header — "every generated doc opens with one line back to its
       // feature's entry point" (doc-generator/SKILL.md's "Document Formats").
       // Written-only rule, found silently skipped in real usage (isikelas) —
@@ -283,6 +476,7 @@ for (const e of ls(join(dir, 'changes'))) {
   const p = join(dir, 'changes', e);
   if (!isMarkdownFile(p, e)) continue;
   const text = readText(p);
+  if (lifecyclePolicy) validateMixedResponsibilities(text, `changes/${e}`);
   if (!/^---\n[\s\S]*?\n---/.test(text)) {
     flag(`changes/${e}: missing frontmatter (description/status/updated)`);
   } else {
@@ -293,11 +487,44 @@ for (const e of ls(join(dir, 'changes'))) {
     // updated in place (one topic = one file), so that date alone goes stale
     // the moment the file is revised — updated: is the only honest signal.
     if (!/^updated:\s*\d{4}-\d{2}-\d{2}/m.test(fm)) flag(`changes/${e}: frontmatter missing "updated: YYYY-MM-DD"`);
+    if (lifecyclePolicy) {
+      if (!/^lifecycle:\s*(canonical|active|transient|historical)\s*$/mi.test(fm)) flag(`changes/${e}: frontmatter missing valid "lifecycle:"`);
+      if (!/^goal:\s*\S+/mi.test(fm)) flag(`changes/${e}: frontmatter missing "goal:" observable outcome`);
+      const status = field(fm, 'status');
+      const lifecycle = field(fm, 'lifecycle');
+      if (/^(done|complete|completed|closed)$/i.test(status ?? '') && /^(active|transient)$/i.test(lifecycle ?? '')) {
+        flag(`changes/${e}: completed ${lifecycle} artifact remains in the active working set — compact and retire it after guarded-retirement checks`);
+      }
+      const actors = Object.fromEntries(['implementer', 'reviewer', 'verifier', 'security_reviewer'].map((name) => [name, field(text, name)]));
+      const independence = field(text, 'independence');
+      const securitySensitive = /^security-sensitive:\s*true\s*$/mi.test(text) || /^\*\*Security-sensitive\*\*:\s*true\s*$/mi.test(text);
+      if (!actors.implementer) flag(`changes/${e}: missing implementer actor ID`);
+      if (!independence || !/^(independent|degraded independence)$/i.test(independence)) flag(`changes/${e}: missing valid independence state (independent | degraded independence)`);
+      if (/^independent$/i.test(independence ?? '') && (!actors.reviewer || !actors.verifier)) flag(`changes/${e}: independent review requires reviewer and verifier actor IDs`);
+      if (securitySensitive && !actors.security_reviewer) flag(`changes/${e}: security-sensitive work requires security_reviewer actor ID`);
+      if (/^degraded independence$/i.test(independence ?? '') && (/\*\*Size\*\*:\s*medium/i.test(text) || /^security-sensitive:\s*true\s*$/mi.test(text)) && !sectionBody(text, 'Human Review')) {
+        flag(`changes/${e}: medium/security work with degraded independence requires non-empty "## Human Review" items`);
+      }
+      const present = Object.entries(actors).filter(([, value]) => value);
+      for (let i = 0; i < present.length; i += 1) for (let j = i + 1; j < present.length; j += 1) {
+        if (present[i][1] === present[j][1]) flag(`changes/${e}: ${present[i][0]} and ${present[j][0]} actor IDs must differ`);
+      }
+    }
   }
   const m = e.match(new RegExp(`^\\d{4}-\\d{2}-\\d{2}-(${SLUG})\\.md$`));
   if (m) {
     if (changeSlugs.has(m[1])) flag(`changes/: duplicate topic slug "${m[1]}" (${changeSlugs.get(m[1])} and ${e}) — one topic = one file, update it in place`);
     else changeSlugs.set(m[1], e);
+  }
+}
+
+if (lifecyclePolicy) {
+  for (const e of ls(join(dir, 'reports'))) {
+    const p = join(dir, 'reports', e);
+    if (!isMarkdownFile(p, e)) continue;
+    const text = readText(p);
+    if (/^(?:\*\*)?Status(?:\*\*)?:\s*RESOLVED\s*$/mi.test(text)) flag(`reports/${e}: resolved transient report remains in the active working set — compact findings, confirm recovery, and retire it`);
+    validateMixedResponsibilities(text, `reports/${e}`);
   }
 }
 
@@ -312,6 +539,9 @@ for (const e of ls(join(dir, 'plans'))) {
   } else if (e.endsWith('.md') && e !== 'current.md') {
     flag(`plans/${e}: only current.md lives at plans/ root — finished plans go to plans/archive/`);
   }
+}
+if (lifecyclePolicy && isDir(join(dir, 'plans', 'archive')) && !archivePolicy) {
+  flag(`plans/archive/: archive exists without artifact-retention: archive — Git history is the default; record an audit/compliance/no-Git policy or retire guarded artifacts`);
 }
 
 // memory/ — knowledge graph: INDEX.md + kebab-slug notes with description
@@ -343,6 +573,29 @@ if (!existsSync(indexPath)) {
   flag(`index.md missing — the index is how anyone finds the right doc`);
 } else {
   const index = readText(indexPath);
+  if (lifecyclePolicy && /^##\s+Recent Activity\s*$/mi.test(index)) {
+    flag(`index.md: "Recent Activity" is an append-only history ledger — keep only active work and canonical entry points; use Git for history`);
+  }
+  if (lifecyclePolicy) {
+    const activeHeading = /^##\s+Active(?: Work)?\s*$/mi.exec(index);
+    let active = '';
+    if (activeHeading) {
+      const tail = index.slice(activeHeading.index + activeHeading[0].length);
+      const nextHeading = /^##\s+/m.exec(tail);
+      active = nextHeading ? tail.slice(0, nextHeading.index) : tail;
+    }
+    const activeLinks = [...active.matchAll(/\[[^\]]+\]\([^)]+\)/g)].length;
+    for (const line of active.split('\n')) {
+      if (/\[[^\]]+\]\([^)]+\)/.test(line) && /\b(done|complete|completed|closed|historical)\b/i.test(line)) {
+        flag(`index.md: completed/historical row remains under Active Work: ${line.trim()}`);
+      }
+    }
+    const configuredBudget = Number(field(configText, 'active-entry-budget') ?? 3);
+    const budgetReason = field(configText, 'active-entry-budget-reason');
+    if (!Number.isInteger(configuredBudget) || configuredBudget < 1) flag(`config.md: active-entry-budget must be a positive integer`);
+    if (configuredBudget > 3 && !budgetReason) flag(`config.md: active-entry-budget above 3 requires active-entry-budget-reason (distinct lifecycle, consumer, reviewer, or independent owner)`);
+    if (activeLinks > configuredBudget) flag(`index.md: Active Work has ${activeLinks} entry documents — configured budget is ${configuredBudget}; consolidate or justify a large-scope independent lifecycle/consumer`);
+  }
   for (const e of ls(specsDir)) {
     if (isDir(join(specsDir, e)) && FEATURE_DIR.test(e) && !index.includes(e)) {
       flag(`orphan: specs/${e}/ not referenced in index.md`);
@@ -354,10 +607,18 @@ if (!existsSync(indexPath)) {
 }
 
 if (problems.length === 0) {
-  console.log(`✓ File hygiene OK — ${dir} follows the tree conventions.`);
+  for (const p of [...new Set(legacyFindings)].sort()) console.log('LEGACY: ' + p);
+  for (const p of [...new Set(notices)].sort()) console.log(p);
+  if (legacyFindings.length > 0) {
+    console.log(`✓ Compatibility pass — ${dir} has no new/reactivated violations; ${new Set(legacyFindings).size} legacy migration finding(s) remain.`);
+  } else {
+    console.log(`✓ File hygiene OK — ${dir} follows the tree conventions.`);
+  }
   process.exit(0);
 }
 console.log(`✖ File hygiene: ${problems.length} problem(s) in ${dir}\n`);
 for (const p of [...new Set(problems)].sort()) console.log('  ' + p);
+for (const p of [...new Set(legacyFindings)].sort()) console.log('  LEGACY: ' + p);
+for (const p of [...new Set(notices)].sort()) console.log('  ' + p);
 console.log('\nFix these — a tree that drifts from its own conventions stops being navigable.');
 process.exit(1);

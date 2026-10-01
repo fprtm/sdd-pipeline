@@ -1,0 +1,9 @@
+{
+  "description": "Core parser/evaluator cases. Fixtures are data only; the engine never executes values in them.",
+  "valid": "```quality-contract-json\n{\"schema_version\":\"1\",\"contract_id\":\"QC-CORE\",\"revision\":\"1\",\"goal\":\"Prove core parsing\",\"requirements\":[{\"id\":\"REQ-1\",\"text\":\"parse\",\"priority\":\"must\"}],\"acceptance_criteria\":[{\"id\":\"AC-1\",\"requirement_id\":\"REQ-1\",\"observable\":\"result\"}],\"ac_evidence_map\":[{\"ac_id\":\"AC-1\",\"setup_digest\":\"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"action\":\"assert\",\"expected\":\"pass\",\"negative_assertion\":\"no execution\",\"evidence_class\":\"unit\"}],\"scope\":{\"allowed_paths\":[\"skills/meta/quality-contract\"],\"forbidden_paths\":[]},\"requirements_digest\":\"sha256:a3867eabfa23365572b1e63fd526c9ab6c8a6c855a45e6c2226f449ac5fba303\",\"ac_map_digest\":\"sha256:212c2eb0ab8639464c345fa0b2a4116dbaca2c2f2ffa0b009e3cdad08a6d03ec\",\"scope_digest\":\"sha256:6600e7d0c0cee64f0797f555e98adcfd89339428f48b6faab501d01a61fd438d\",\"risk\":\"low\",\"tier\":\"T1\",\"executor_class\":\"capable\",\"base_subject\":\"sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"policy_digest\":\"sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"landmarks\":[],\"decision_revisions\":[{\"decision_key\":\"parser\",\"revision_id\":\"1\",\"value_digest\":\"sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\",\"status\":\"accepted\",\"predecessor_digest\":null,\"authority_level\":\"1\",\"accepted_at\":\"2026-09-30T00:00:00Z\"}]}\n```\n",
+  "duplicate_key": "```quality-contract-json\n{\"schema_version\":\"1\",\"schema_version\":\"1\"}\n```",
+  "command_like": "```quality-contract-json\n$(touch should-never-run)\n```",
+  "unknown_key": "```quality-contract-json\n{\"unexpected\":\"value\"}\n```",
+  "oversized_bytes": 262145,
+  "revoked_decision_status": "revoked"
+}

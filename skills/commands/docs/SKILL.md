@@ -88,6 +88,12 @@ For each module in the approved (post-consolidation) plan, one doc at a time —
 
 1. **Reuse Gate first** — check if `docs/system/{slug}/` already exists for this module. If yes, update rather than create.
 
+   Create another file only for a distinct consumer or lifecycle. Before
+   writing, show the post-consolidation file estimate. When an existing module
+   doc is superseded or removed, remove it from `docs/system/index.md`; do not
+   leave a permanent activity ledger. This command still never writes
+   retroactive docs into `docs/sdd/specs/`.
+
 2. **Deliberate where ambiguous** — retroactive docs describe what EXISTS, so most decisions are already made by the code. But some things are ambiguous:
    - Business rules that are implicit in code but not documented → ask the user: "The code does X when Y happens — is this intentional behavior or a bug?"
    - Entity relationships where the code has no explicit FK/constraint → ask: "Is this a required relationship or optional?"

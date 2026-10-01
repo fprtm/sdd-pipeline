@@ -10,7 +10,7 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { spawnSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import { mkdtempSync, mkdirSync, writeFileSync, symlinkSync, rmSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -19,8 +19,8 @@ import { tmpdir } from 'node:os';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const SCRIPT = join(__dirname, 'check-file-hygiene.mjs');
 
-function run(dir) {
-  const r = spawnSync('node', [SCRIPT, dir], { encoding: 'utf8' });
+function run(dir, env = {}) {
+  const r = spawnSync('node', [SCRIPT, dir], { encoding: 'utf8', env: { ...process.env, ...env } });
   return { code: r.status, out: (r.stdout ?? '') + (r.stderr ?? '') };
 }
 
@@ -31,6 +31,10 @@ function scratch() {
 
 function withIndex(dir, extra = '') {
   writeFileSync(join(dir, 'index.md'), `# Index\n\n${extra}`);
+}
+
+function withLifecyclePolicy(dir, extra = '') {
+  writeFileSync(join(dir, 'config.md'), `# Config\n\nsdlc: solo\nsdlc-reason: single-maintainer repository\nartifact-policy-version: 1\nartifact-retention: git-history\n${extra}`);
 }
 
 test('no docs/sdd at all -> exit 0 (nothing to check)', () => {
@@ -68,14 +72,35 @@ test('unknown subdirectory is flagged', () => {
   assert.match(out, /unknown directory: scratch\//);
 });
 
-test('retired pre-v5.8.0 dir (e.g. design/) gets a migration suggestion, not a generic unknown-dir flag', () => {
+test('retired pre-v5.8.0 dir is a non-failing LEGACY migration opportunity', () => {
   const dir = scratch();
   mkdirSync(join(dir, 'design'), { recursive: true });
   withIndex(dir);
   const { code, out } = run(dir);
-  assert.equal(code, 1);
-  assert.match(out, /old naming: design\/ is a pre-v5\.8\.0 layout/);
+  assert.equal(code, 0, out);
+  assert.match(out, /LEGACY: old naming: design\/ is a pre-v5\.8\.0 layout/);
   assert.doesNotMatch(out, /unknown directory: design\//);
+  assert.match(out, /Compatibility pass/);
+  assert.doesNotMatch(out, /File hygiene OK/);
+});
+
+test('pre-policy Git repo treats a newly added invalid artifact as a current violation', () => {
+  const root = mkdtempSync(join(tmpdir(), 'sdd-fh-git-'));
+  const dir = join(root, 'docs', 'sdd');
+  mkdirSync(dir, { recursive: true });
+  withIndex(dir);
+  writeFileSync(join(dir, 'config.md'), '# Legacy Config\n\nsdlc: solo\nsdlc-reason: existing project\n');
+  execFileSync('git', ['init', '-q'], { cwd: root });
+  execFileSync('git', ['config', 'user.email', 'test@example.invalid'], { cwd: root });
+  execFileSync('git', ['config', 'user.name', 'Test'], { cwd: root });
+  execFileSync('git', ['add', '.'], { cwd: root });
+  execFileSync('git', ['commit', '-qm', 'legacy baseline'], { cwd: root });
+  mkdirSync(join(dir, 'scratch'), { recursive: true });
+  writeFileSync(join(dir, 'scratch', 'new.md'), '# New invalid artifact\n');
+  const { code, out } = run(dir);
+  assert.equal(code, 1);
+  assert.match(out, /unknown directory: scratch\//);
+  assert.doesNotMatch(out, /LEGACY: unknown directory: scratch\//);
 });
 
 test('a bare file directly in specs/ (not inside a feature folder) is flagged', () => {
@@ -522,4 +547,353 @@ test('no design-system/ at all is fine (API-only/CLI project has no UI)', () => 
   const { code, out } = run(dir);
   assert.equal(code, 0, out);
   assert.doesNotMatch(out, /design\.md/);
+});
+
+test('legacy repository without lifecycle marker keeps old change contract compatible', () => {
+  const dir = scratch();
+  mkdirSync(join(dir, 'changes'), { recursive: true });
+  withIndex(dir, '- [fix](changes/2026-08-20-fix.md)');
+  writeFileSync(join(dir, 'changes', '2026-08-20-fix.md'), '---\ndescription: old format\nstatus: done\nupdated: 2026-08-20\n---\n# Fix');
+  const { code, out } = run(dir);
+  assert.equal(code, 0, out);
+});
+
+test('pre-policy repo treats a newly added artifact as a strict reactivation violation', () => {
+  const root = mkdtempSync(join(tmpdir(), 'sdd-legacy-reactivate-'));
+  const dir = join(root, 'docs', 'sdd');
+  mkdirSync(dir, { recursive: true });
+  withIndex(dir);
+  writeFileSync(join(dir, 'config.md'), '# Config\n\nsdlc: solo\nsdlc-reason: legacy project\n');
+  for (const args of [['init'], ['config', 'user.email', 'test@example.com'], ['config', 'user.name', 'Test'], ['add', '.'], ['commit', '-m', 'legacy baseline']]) {
+    const result = spawnSync('git', args, { cwd: root, encoding: 'utf8' });
+    assert.equal(result.status, 0, result.stdout + result.stderr);
+  }
+  mkdirSync(join(dir, 'scratch'), { recursive: true });
+  writeFileSync(join(dir, 'scratch', 'new.md'), '# New work\n');
+  const { code, out } = run(dir);
+  assert.equal(code, 1);
+  assert.match(out, /unknown directory: scratch\//);
+});
+
+test('policy v1 change requires lifecycle and observable goal', () => {
+  const dir = scratch();
+  mkdirSync(join(dir, 'changes'), { recursive: true });
+  withIndex(dir, '- [fix](changes/2026-08-20-fix.md)');
+  withLifecyclePolicy(dir);
+  writeFileSync(join(dir, 'changes', '2026-08-20-fix.md'), '---\ndescription: new format\nstatus: active\nupdated: 2026-08-20\n---\n# Fix');
+  const { code, out } = run(dir);
+  assert.equal(code, 1);
+  assert.match(out, /missing valid "lifecycle:"/);
+  assert.match(out, /missing "goal:" observable outcome/);
+});
+
+test('policy v1 rejects completed transient change in active tree', () => {
+  const dir = scratch();
+  mkdirSync(join(dir, 'changes'), { recursive: true });
+  withIndex(dir, '- [fix](changes/2026-08-20-fix.md)');
+  withLifecyclePolicy(dir);
+  writeFileSync(join(dir, 'changes', '2026-08-20-fix.md'), '---\ndescription: new format\nstatus: done\nlifecycle: transient\ngoal: login succeeds\nupdated: 2026-08-20\n---\n# Fix');
+  const { code, out } = run(dir);
+  assert.equal(code, 1);
+  assert.match(out, /completed transient artifact remains in the active working set/);
+});
+
+test('policy v1 ticket requires goal supports success and cannot remain done', () => {
+  const dir = scratch();
+  const feat = join(dir, 'specs', '001-my-feature');
+  mkdirSync(join(feat, 'tickets'), { recursive: true });
+  withIndex(dir, '- [x](specs/001-my-feature/)');
+  withLifecyclePolicy(dir);
+  writeFileSync(join(feat, 'fsd.md'), '[← Back](fsd.md)\n\n# FSD');
+  writeFileSync(join(feat, 'tickets', '00-index.md'), '# Work Order\n\nTICKET-001\n');
+  writeFileSync(join(feat, 'tickets', '01-first.md'), '# TICKET-001 — First\n\n**Status**: ✅ done\n');
+  const { code, out } = run(dir);
+  assert.equal(code, 1);
+  assert.match(out, /missing goal/);
+  assert.match(out, /missing supports/);
+  assert.match(out, /missing success/);
+  assert.match(out, /completed transient ticket remains/);
+});
+
+test('policy v1 valid active goal ticket passes', () => {
+  const dir = scratch();
+  const feat = join(dir, 'specs', '001-my-feature');
+  mkdirSync(join(feat, 'tickets'), { recursive: true });
+  withIndex(dir, '- [x](specs/001-my-feature/)');
+  withLifecyclePolicy(dir);
+  writeFileSync(join(feat, 'fsd.md'), '[← Back](fsd.md)\n\n# FSD');
+  writeFileSync(join(feat, 'tickets', '00-index.md'), '# Work Order\n\nTICKET-001\n');
+  writeFileSync(join(feat, 'tickets', '01-first.md'), '# TICKET-001 — First\n\n**Status**: ⬜ todo\n\n## Goal\nUser can sign in.\n\n## Supports\nFSD-001\n\n## Success\n- Valid credentials create a session.\n');
+  const { code, out } = run(dir);
+  assert.equal(code, 0, out);
+});
+
+test('policy v1 security ticket enforces four distinct review actors', () => {
+  const dir = scratch();
+  const feat = join(dir, 'specs', '001-my-feature');
+  mkdirSync(join(feat, 'tickets'), { recursive: true });
+  withIndex(dir, '- [x](specs/001-my-feature/)');
+  withLifecyclePolicy(dir);
+  writeFileSync(join(feat, 'fsd.md'), '[← Back](fsd.md)\n\n# FSD');
+  writeFileSync(join(feat, 'tickets', '00-index.md'), '# Work Order\n\nTICKET-001\n');
+  writeFileSync(join(feat, 'tickets', '01-first.md'), '# TICKET-001 — First\n\n**Status**: 🧪 testing/review\n**Security-sensitive**: true\n**Implementer**: agent-a\n**Reviewer**: agent-b\n**Verifier**: agent-c\n**Security_reviewer**: agent-c\n**Independence**: independent\n\n## Goal\nUser can sign in.\n\n## Supports\nFSD-001\n\n## Success\n- Valid credentials create a session.\n');
+  const { code, out } = run(dir);
+  assert.equal(code, 1);
+  assert.match(out, /verifier and security_reviewer actor IDs must differ/);
+});
+
+test('policy v1 testing ticket from documented bold actor template passes with four distinct actors', () => {
+  const dir = scratch();
+  const feat = join(dir, 'specs', '001-my-feature');
+  mkdirSync(join(feat, 'tickets'), { recursive: true });
+  withIndex(dir, '- [x](specs/001-my-feature/)');
+  withLifecyclePolicy(dir);
+  writeFileSync(join(feat, 'fsd.md'), '[← Back](fsd.md)\n\n# FSD');
+  writeFileSync(join(feat, 'tickets', '00-index.md'), '# Work Order\n\nTICKET-001\n');
+  writeFileSync(join(feat, 'tickets', '01-first.md'), '# TICKET-001 — First\n\n**Status**: 🧪 testing/review\n**Security-sensitive**: true\n**Implementer**: agent-a\n**Reviewer**: agent-b\n**Verifier**: agent-c\n**Security_reviewer**: agent-d\n**Independence**: independent\n\n## Goal\nUser can sign in.\n\n## Supports\nFSD-001\n\n## Success\n- Valid credentials create a session.\n');
+  const { code, out } = run(dir);
+  assert.equal(code, 0, out);
+});
+
+test('policy v1 rejects Recent Activity ledger and actor identity collisions', () => {
+  const dir = scratch();
+  mkdirSync(join(dir, 'changes'), { recursive: true });
+  withIndex(dir, '## Recent Activity\n- old task\n\n- [fix](changes/2026-08-20-fix.md)');
+  withLifecyclePolicy(dir);
+  writeFileSync(join(dir, 'changes', '2026-08-20-fix.md'), '---\ndescription: new format\nstatus: active\nlifecycle: active\ngoal: login succeeds\nupdated: 2026-08-20\n---\n# Fix\n\nimplementer: agent-a\nreviewer: agent-a\nverifier: agent-a\n');
+  const { code, out } = run(dir);
+  assert.equal(code, 1);
+  assert.match(out, /Recent Activity/);
+  assert.match(out, /implementer and reviewer actor IDs must differ/);
+  assert.match(out, /implementer and verifier actor IDs must differ/);
+});
+
+test('policy v1 accepts distinct implementation review and verification actors', () => {
+  const dir = scratch();
+  mkdirSync(join(dir, 'changes'), { recursive: true });
+  withIndex(dir, '- [fix](changes/2026-08-20-fix.md)');
+  withLifecyclePolicy(dir);
+  writeFileSync(join(dir, 'changes', '2026-08-20-fix.md'), '---\ndescription: new format\nstatus: active\nlifecycle: active\ngoal: login succeeds\nupdated: 2026-08-20\n---\n# Fix\n\n- implementer: agent-a\n- reviewer: agent-b\n- verifier: agent-c\n- independence: independent\n');
+  const { code, out } = run(dir);
+  assert.equal(code, 0, out);
+});
+
+test('policy v1 security-sensitive change requires a distinct security reviewer', () => {
+  const dir = scratch();
+  mkdirSync(join(dir, 'changes'), { recursive: true });
+  withIndex(dir, '- [fix](changes/2026-08-20-fix.md)');
+  withLifecyclePolicy(dir);
+  writeFileSync(join(dir, 'changes', '2026-08-20-fix.md'), '---\ndescription: auth change\nstatus: active\nlifecycle: active\ngoal: secure login\nupdated: 2026-08-20\n---\n# Fix\n\n**Size**: medium\nsecurity-sensitive: true\n\n- implementer: agent-a\n- reviewer: agent-b\n- verifier: agent-c\n- independence: independent\n');
+  const { code, out } = run(dir);
+  assert.equal(code, 1);
+  assert.match(out, /security-sensitive work requires security_reviewer actor ID/);
+});
+
+test('policy v1 medium degraded independence requires and accepts explicit human review items', () => {
+  const dir = scratch();
+  mkdirSync(join(dir, 'changes'), { recursive: true });
+  withIndex(dir, '- [fix](changes/2026-08-20-fix.md)');
+  withLifecyclePolicy(dir);
+  const base = '---\ndescription: new format\nstatus: active\nlifecycle: active\ngoal: login succeeds\nupdated: 2026-08-20\n---\n# Fix\n\n**Size**: medium\n\n- implementer: agent-a\n- independence: degraded independence\n';
+  writeFileSync(join(dir, 'changes', '2026-08-20-fix.md'), base);
+  let result = run(dir);
+  assert.equal(result.code, 1);
+  assert.match(result.out, /degraded independence requires non-empty "## Human Review"/);
+  writeFileSync(join(dir, 'changes', '2026-08-20-fix.md'), `${base}\n## Human Review\n- Verify login lockout behavior.\n`);
+  result = run(dir);
+  assert.equal(result.code, 0, result.out);
+});
+
+test('policy v1 retains canonical feature specs after transient work retires', () => {
+  const dir = scratch();
+  const feat = join(dir, 'specs', '001-login');
+  mkdirSync(feat, { recursive: true });
+  withLifecyclePolicy(dir);
+  withIndex(dir, '## Canonical Documents\n- [login](specs/001-login/)\n');
+  writeFileSync(join(feat, 'fsd.md'), '[← Back](fsd.md)\n\n# FSD: Login\n');
+  const { code, out } = run(dir);
+  assert.equal(code, 0, out);
+});
+
+test('policy v1 validates reference and portable handoff structure', () => {
+  const dir = scratch();
+  mkdirSync(dir, { recursive: true });
+  withIndex(dir);
+  withLifecyclePolicy(dir);
+  writeFileSync(join(dir, 'HANDOFF.md'), '# SDD Handoff\n\nprotocol: sdd-handoff/v1\nform: portable\nstate: active\ncreated_at: 2026-09-30T00:00:00Z\nproducer_actor: agent-a\n\n## Resume Goal\ntarget_state: checker passes\nsuccess_when:\n- tests are green\n\n## Transition\nphase: CHECK\nnext_action: run tests\n\n## Integrity\nrepo_head: abc\ndirty: false\nrelevant_paths:\n- tools/check.mjs\n\n## Authority\nbaseline:\n- repository-write\ncarried:\n- repository-write\n\n## Capabilities\nrequired: shell\n\n## Evidence\n- unverified\n\n## Pointers\n- index.md\n');
+  const { code, out } = run(dir);
+  assert.equal(code, 1);
+  assert.match(out, /portable form requires non-empty "## Minimum State"/);
+});
+
+test('policy v1 reference handoff requires pointers that resolve', () => {
+  const dir = scratch();
+  mkdirSync(dir, { recursive: true });
+  withIndex(dir);
+  withLifecyclePolicy(dir);
+  writeFileSync(join(dir, 'HANDOFF.md'), '# SDD Handoff\n\nprotocol: sdd-handoff/v1\nform: reference\nstate: active\ncreated_at: 2026-09-30T00:00:00Z\nproducer_actor: agent-a\n\n## Resume Goal\ntarget_state: checker passes\nsuccess_when:\n- tests are green\n\n## Transition\nphase: CHECK\nnext_action: run tests\n\n## Integrity\nrepo_head: abc\ndirty: false\nrelevant_paths:\n- tools/check.mjs\n\n## Authority\nbaseline:\n- repository-read\ncarried:\n- repository-read\n\n## Capabilities\nrequired: shell\n\n## Evidence\n- tests pending\n\n## Pointers\n- missing.md\n');
+  const { code, out } = run(dir);
+  assert.equal(code, 1);
+  assert.match(out, /reference pointer does not resolve: missing\.md/);
+});
+
+test('policy v1 handoff cannot expand authority and consumed snapshots retire', () => {
+  const dir = scratch();
+  mkdirSync(dir, { recursive: true });
+  withIndex(dir);
+  withLifecyclePolicy(dir);
+  writeFileSync(join(dir, 'HANDOFF.md'), '# SDD Handoff\n\nprotocol: sdd-handoff/v1\nform: portable\nstate: consumed\ncreated_at: 2026-09-30T00:00:00Z\nproducer_actor: agent-a\n\n## Resume Goal\ntarget_state: checker passes\nsuccess_when:\n- tests are green\n\n## Transition\nphase: CHECK\nnext_action: run tests\n\n## Integrity\nrepo_head: unavailable\ndirty: unknown\nrelevant_paths:\n- tools/check.mjs\n\n## Authority\nbaseline:\n- repository-read\ncarried:\n- repository-read\n- deploy-production\n\n## Capabilities\nrequired: shell\n\n## Evidence\n- tests pending\n\n## Pointers\n- index.md\n\n## Minimum State\nReady to run.\n');
+  const { code, out } = run(dir);
+  assert.equal(code, 1);
+  assert.match(out, /carried authority expands beyond baseline: deploy-production/);
+  assert.match(out, /consumed transient handoff remains/);
+});
+
+test('handoff blocks when the current harness lacks a required capability', () => {
+  const dir = scratch();
+  mkdirSync(dir, { recursive: true });
+  withIndex(dir);
+  withLifecyclePolicy(dir);
+  writeFileSync(join(dir, 'HANDOFF.md'), '# SDD Handoff\n\nprotocol: sdd-handoff/v1\nform: portable\nstate: active\ncreated_at: 2026-09-30T00:00:00Z\nproducer_actor: agent-a\n\n## Resume Goal\ntarget_state: checker passes\nsuccess_when:\n- tests are green\n\n## Transition\nphase: CHECK\nnext_action: run tests\n\n## Integrity\nrepo_head: unavailable\ndirty: unknown\nrelevant_paths:\n- tools/check.mjs\n\n## Authority\nbaseline:\n- repository-read\ncarried:\n- repository-read\n\n## Capabilities\nrequired: shell, browser\n\n## Evidence\n- tests pending\n\n## Pointers\n- index.md\n\n## Minimum State\nReady to run.\n');
+  const { code, out } = run(dir, { SDD_CAPABILITIES: 'shell' });
+  assert.equal(code, 1);
+  assert.match(out, /required capability unavailable: browser/);
+});
+
+test('handoff reports DEGRADED when an optional capability is unavailable', () => {
+  const dir = scratch();
+  mkdirSync(dir, { recursive: true });
+  withIndex(dir);
+  withLifecyclePolicy(dir);
+  writeFileSync(join(dir, 'HANDOFF.md'), '# SDD Handoff\n\nprotocol: sdd-handoff/v1\nform: portable\nstate: active\ncreated_at: 2026-09-30T00:00:00Z\nproducer_actor: agent-a\n\n## Resume Goal\ntarget_state: checker passes\nsuccess_when:\n- tests are green\n\n## Transition\nphase: CHECK\nnext_action: run tests\n\n## Integrity\nrepo_head: unavailable\ndirty: unknown\nrelevant_paths:\n- tools/check.mjs\n\n## Authority\nbaseline:\n- repository-read\ncarried:\n- repository-read\n\n## Capabilities\nrequired: shell\noptional: browser\n\n## Evidence\n- tests pending\n\n## Pointers\n- index.md\n\n## Minimum State\nReady.\n');
+  const { code, out } = run(dir, { SDD_CAPABILITIES: 'shell' });
+  assert.equal(code, 0, out);
+  assert.match(out, /DEGRADED: HANDOFF\.md: optional capability unavailable: browser/);
+});
+
+test('handoff rejects malformed created_at timestamp', () => {
+  const dir = scratch();
+  mkdirSync(dir, { recursive: true });
+  withIndex(dir);
+  withLifecyclePolicy(dir);
+  writeFileSync(join(dir, 'HANDOFF.md'), '# SDD Handoff\n\nprotocol: sdd-handoff/v1\nform: portable\nstate: active\ncreated_at: yesterday\nproducer_actor: agent-a\n\n## Resume Goal\ntarget_state: checker passes\nsuccess_when:\n- tests are green\n\n## Transition\nphase: CHECK\nnext_action: run tests\n\n## Integrity\nrepo_head: unavailable\ndirty: unknown\nrelevant_paths:\n- planned:tools/check.mjs\n\n## Authority\nbaseline:\n- repository-read\ncarried:\n- repository-read\n\n## Capabilities\nrequired: shell\n\n## Evidence\n- tests pending\n\n## Pointers\n- index.md\n\n## Minimum State\nReady.\n');
+  const { code, out } = run(dir);
+  assert.equal(code, 1);
+  assert.match(out, /created_at must be an ISO-8601 timestamp/);
+});
+
+test('reference handoff rejects absolute or escaping repository paths', () => {
+  const dir = scratch();
+  mkdirSync(dir, { recursive: true });
+  withIndex(dir);
+  withLifecyclePolicy(dir);
+  writeFileSync(join(dir, 'HANDOFF.md'), '# SDD Handoff\n\nprotocol: sdd-handoff/v1\nform: reference\nstate: active\ncreated_at: 2026-09-30T00:00:00Z\nproducer_actor: agent-a\n\n## Resume Goal\ntarget_state: checker passes\nsuccess_when:\n- tests are green\n\n## Transition\nphase: CHECK\nnext_action: run tests\n\n## Integrity\nrepo_head: unavailable\ndirty: unknown\nrelevant_paths:\n- /etc/passwd\n\n## Authority\nbaseline:\n- repository-read\ncarried:\n- repository-read\n\n## Capabilities\nrequired: shell\n\n## Evidence\n- tests pending\n\n## Pointers\n- ../../../../etc/passwd\n');
+  const { code, out } = run(dir);
+  assert.equal(code, 1);
+  assert.match(out, /relevant path escapes repository/);
+  assert.match(out, /reference pointer escapes repository/);
+});
+
+test('reference handoff blocks when a relevant path changed after repo_head', () => {
+  const root = mkdtempSync(join(tmpdir(), 'sdd-handoff-git-'));
+  const dir = join(root, 'docs', 'sdd');
+  mkdirSync(join(root, 'src'), { recursive: true });
+  mkdirSync(dir, { recursive: true });
+  withIndex(dir);
+  withLifecyclePolicy(dir);
+  writeFileSync(join(root, 'src', 'feature.txt'), 'v1\n');
+  for (const args of [['init'], ['config', 'user.email', 'test@example.com'], ['config', 'user.name', 'Test'], ['add', '.'], ['commit', '-m', 'baseline']]) {
+    const result = spawnSync('git', args, { cwd: root, encoding: 'utf8' });
+    assert.equal(result.status, 0, result.stdout + result.stderr);
+  }
+  const oldHead = spawnSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).stdout.trim();
+  writeFileSync(join(root, 'src', 'feature.txt'), 'v2\n');
+  assert.equal(spawnSync('git', ['add', 'src/feature.txt'], { cwd: root }).status, 0);
+  assert.equal(spawnSync('git', ['commit', '-m', 'relevant change'], { cwd: root }).status, 0);
+  writeFileSync(join(dir, 'HANDOFF.md'), `# SDD Handoff\n\nprotocol: sdd-handoff/v1\nform: reference\nstate: active\ncreated_at: 2026-09-30T00:00:00Z\nproducer_actor: agent-a\n\n## Resume Goal\ntarget_state: checker passes\nsuccess_when:\n- tests are green\n\n## Transition\nphase: CHECK\nnext_action: run tests\n\n## Integrity\nrepo_head: ${oldHead}\ndirty: true\nrelevant_paths:\n- src/feature.txt\n\n## Authority\nbaseline:\n- repository-read\ncarried:\n- repository-read\n\n## Capabilities\nrequired: shell\n\n## Evidence\n- tests pending\n\n## Pointers\n- docs/sdd/index.md\n`);
+  const { code, out } = run(dir);
+  assert.equal(code, 1);
+  assert.match(out, /relevant repository state changed since repo_head: src\/feature\.txt/);
+});
+
+test('policy v1 deliberation ledger requires decision goal, exit condition, and support', () => {
+  const dir = scratch();
+  const feat = join(dir, 'specs', '001-my-feature');
+  mkdirSync(feat, { recursive: true });
+  withIndex(dir, '- [x](specs/001-my-feature/)');
+  withLifecyclePolicy(dir);
+  writeFileSync(join(feat, 'fsd.md'), '[← Back](fsd.md)\n\n# FSD');
+  writeFileSync(join(feat, 'deliberation.md'), 'status: active\n\n| Question | Answer |\n|---|---|');
+  const { code, out } = run(dir);
+  assert.equal(code, 1);
+  assert.match(out, /missing "decision_goal:"/);
+  assert.match(out, /missing "exit_when:"/);
+  assert.match(out, /missing "supports:"/);
+});
+
+test('policy v1 active index enforces a three-entry default budget', () => {
+  const dir = scratch();
+  mkdirSync(dir, { recursive: true });
+  withLifecyclePolicy(dir);
+  withIndex(dir, '## Active Work\n- [a](a)\n- [b](b)\n- [c](c)\n- [d](d)\n');
+  const { code, out } = run(dir);
+  assert.equal(code, 1);
+  assert.match(out, /Active Work has 4 entry documents/);
+});
+
+test('policy v1 rejects completed rows under Active Work', () => {
+  const dir = scratch();
+  mkdirSync(dir, { recursive: true });
+  withLifecyclePolicy(dir);
+  withIndex(dir, '## Active Work\n- [old](changes/old.md) · done\n');
+  const { code, out } = run(dir);
+  assert.equal(code, 1);
+  assert.match(out, /completed\/historical row remains under Active Work/);
+});
+
+test('policy v1 allows an explicitly justified large-scope entry budget', () => {
+  const dir = scratch();
+  mkdirSync(dir, { recursive: true });
+  withLifecyclePolicy(dir, 'active-entry-budget: 4\nactive-entry-budget-reason: independent BE FE review and verification consumers\n');
+  withIndex(dir, '## Active Work\n- [a](a)\n- [b](b)\n- [c](c)\n- [d](d)\n');
+  const { code, out } = run(dir);
+  assert.equal(code, 0, out);
+});
+
+test('policy v1 rejects archive without explicit archive retention policy', () => {
+  const dir = scratch();
+  mkdirSync(join(dir, 'plans', 'archive'), { recursive: true });
+  withLifecyclePolicy(dir);
+  withIndex(dir);
+  const { code, out } = run(dir);
+  assert.equal(code, 1);
+  assert.match(out, /archive exists without artifact-retention: archive/);
+});
+
+test('legacy ticket and report archives are non-failing migration findings', () => {
+  const dir = scratch();
+  mkdirSync(join(dir, 'reports', 'archive'), { recursive: true });
+  mkdirSync(join(dir, 'specs', '001-old', 'tickets', 'archive'), { recursive: true });
+  withIndex(dir, '- [old](specs/001-old/)');
+  const { code, out } = run(dir);
+  assert.equal(code, 0, out);
+  assert.match(out, /LEGACY: reports\/archive\//);
+  assert.match(out, /LEGACY: specs\/001-old\/tickets\/archive\//);
+});
+
+test('policy v1 flags resolved reports, verified ledgers, and mixed-responsibility god files', () => {
+  const dir = scratch();
+  const feat = join(dir, 'specs', '001-my-feature');
+  mkdirSync(feat, { recursive: true });
+  mkdirSync(join(dir, 'reports'), { recursive: true });
+  withIndex(dir, '- [x](specs/001-my-feature/)');
+  withLifecyclePolicy(dir);
+  writeFileSync(join(feat, 'fsd.md'), '[← Back](fsd.md)\n\n# FSD\n\n## Design\nA\n\n## Progress\nB\n\n## Raw Command Output\nC\n');
+  writeFileSync(join(feat, 'deliberation.md'), 'decision_goal: settle behavior\nexit_when: confirmed\nsupports: FSD-001\nstatus: verified\n');
+  writeFileSync(join(dir, 'reports', '2026-09-30-check.md'), '# Check\n\nStatus: RESOLVED\n');
+  const { code, out } = run(dir);
+  assert.equal(code, 1);
+  assert.match(out, /verified transient ledger remains/);
+  assert.match(out, /resolved transient report remains/);
+  assert.match(out, /mixes 3 responsibilities/);
 });

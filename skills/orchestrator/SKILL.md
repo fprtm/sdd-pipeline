@@ -7,7 +7,7 @@ description: SDD Pipeline orchestrator — auto-applies THINK/BUILD/PROVE guardr
 
 You are operating under **SDD Pipeline** — spec in front, judgment behind: a system that gives humans control over and trust in AI-generated code through three phases: **THINK → BUILD → PROVE**.
 
-For direct access to a single phase without full auto-detection, use one of the standalone commands: `/sdd-pipeline:discover` (product discovery — fog to settled decisions, five seats), `/sdd-pipeline:spec` (architecture/spec — auto-decomposes large work into tickets), `/sdd-pipeline:implement` (code with guardrails), `/sdd-pipeline:check` (adaptive QA: verifies a fresh change, audits the codebase otherwise, always ends with the impact summary), `/sdd-pipeline:docs` (generate retroactive documentation for an existing codebase with little or no docs — scan, propose, deliberate, write), `/sdd-pipeline:learn` (deep-read a module, flow, or the whole project and produce a structured explanation — read-only, no code changes).
+For direct access use one of eight standalone commands: `/sdd-pipeline:discover`, `/sdd-pipeline:spec`, `/sdd-pipeline:implement`, `/sdd-pipeline:check`, `/sdd-pipeline:docs`, `/sdd-pipeline:learn`, `/sdd-pipeline:handoff`, or `/sdd-pipeline:update`. Handoff produces or consumes provider-neutral state; it is not a transcript export.
 
 ## The Fixed Sequence — Ask Before Execute, Always
 
@@ -274,16 +274,20 @@ After task completion, append a stats footer per mode — vibe: 1 line (`SDD Pip
 
 ## Multi-Agent Dispatch
 
-When multi-agent is available (Claude Code Agent tool, Codex multi-agent):
+When fresh agent contexts are available:
 
 - THINK skills: spawn in parallel (elicitation + context-loader + scope-guard + complexity + sdlc-detector + arch-analyzer), merge results
 - Ticket decomposition (large tasks): spawn parallel-safe tickets (no shared files, no blocking edge) as separate agents; serialize blocked tickets
 - BUILD: split by file/component if independent, serialize shared files
-- PROVE: spawn each layer as separate agent, merge results
+- PROVE: record distinct implementer/reviewer/verifier actor IDs; reviewers
+  report defects, implementers fix, and reviewers re-check. Add a distinct
+  security reviewer for sensitive work.
 - SDD Grill: fact-finding sub-agents dispatched per frontier round for anything the environment can answer (existing patterns, adapter counts, git history) — never for decisions, those stay with the user
 - JUDGMENT GATE: dispatch to a fresh sub-agent that receives ONLY spec docs + diff + test results — never the build conversation. This is the one check where independence matters most.
 
-When single-agent only (OpenCode, Cursor): run sequentially, use sub-agent patterns from `skills/agents/subagent-patterns/`.
+When fresh contexts are unavailable, run sequentially and report
+`degraded independence`; a cold self-read is not independent. Medium+ and
+security-sensitive work must expose human-review items.
 
 ## Priority Rules
 
@@ -328,7 +332,7 @@ docs/sdd/
 │   └── archive/
 ├── changes/              # Small/medium changes: ONE dated self-contained file per topic
 │   └── YYYY-MM-DD-{slug}.md   # frontmatter (description/status/updated) + brief + decisions + tickets + tests inline — replaces plan+report for lite work
-├── reports/              # Verification reports per task, + ad-hoc audit/consistency-review reports (Status: OPEN|RESOLVED — RESOLVED + stale moves to reports/archive/)
+├── reports/              # Active verification/audit reports; resolved transient reports retire to Git history unless archive policy says otherwise
 ├── specs/                # ONE FOLDER PER FEATURE — everything tied to a spine number lives here. Spec-first work ONLY — never an ad-hoc audit report (those go in reports/, see above), never retroactive documentation of existing code (that goes in docs/system/, see below)
 │   └── {NNN}-{slug}/     # {NNN} IS the spine ID (FSD-003 = specs/003-x/fsd.md); folder found by number, never by regenerating the slug
 │       ├── fsd.md · sds.md · prd.md · threats.md · ux.md · erd.md   # bare filenames — whichever apply
@@ -350,7 +354,11 @@ docs/system/              # Retroactive documentation of an EXISTING codebase (s
 
 Tree conventions are **mechanically enforced**: run `check-file-hygiene.mjs` (bundled with `skills/meta/health-check/`) after writing or renaming anything under `docs/sdd/` — markdown conventions are followed probabilistically; the script catches what got missed.
 
-**Read index-first.** To find prior work, read `index.md`, match the task to an entry by its one-line description, and open **only** the relevant file(s) — never load the whole tree to find one thing. This is why every doc gets an index row and a one-line hook.
+**Read index-first.** `index.md` contains active work and canonical entry points,
+not completed activity. A fresh agent should reach goal, trusted state, and next
+action in at most three entry documents. Load `skills/meta/artifact-lifecycle/`
+when artifacts are created or closed; Git history is the default destination
+for completed transient state, with guarded retirement before removal.
 
 **Language**: specs, plans, and user-facing docs follow the **user's language**; code-level artifacts are **always English** — identifiers, JSDoc/comments, commit messages, branch slugs — so the code stays portable and reviewable regardless of conversation language.
 

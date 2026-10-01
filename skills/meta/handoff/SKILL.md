@@ -1,30 +1,104 @@
-# Handoff — Make the Work Resumable by Anyone (or Any Model)
+# Handoff — Portable State Transition
 
-Compact the current state of the work into a self-contained document so another agent, another session, or a cheaper model picks up exactly where this one left off. Use when a run is getting long, when switching models/tools, when the user says "handoff / summarize progress / continue this later", or at the end of a work session.
+A handoff transfers the minimum trustworthy state needed to perform one named
+transition. It is not a transcript and does not become a second source of
+truth. Provider and model names are optional metadata only.
 
-Write to `docs/sdd/HANDOFF.md` — **overwrite the previous one; it's a snapshot, not a log.**
+## Choose the Form
 
-**The acceptance test**: a fresh agent — possibly a cheaper/smaller model, in a different tool — can read only this document plus the repo and continue correctly, **without your conversation history**. If it can't, the handoff failed.
+- **Reference**: next actor can read the repository. Write and replace
+  `docs/sdd/HANDOFF.md`; point to canonical files instead of copying them.
+- **Portable**: repository access is absent. Emit the minimum required state in
+  the response. Do not create a file unless the user asks.
 
-## What It Must Contain
+`HANDOFF.md` has lifecycle `transient`. Retire it after the transition is
+accepted and `skills/meta/artifact-lifecycle/` retirement checks pass.
 
-1. **Goal** — what we're building, one or two sentences, plain language.
-2. **Mode & size** — the detected mode (standard/strict/…), task size, and any stop-point agreed with the user.
-3. **Where we are** — current phase and gate state: what passed, what's in progress, what's blocked and why. Copy real state from the plan/change file, don't summarize from memory.
-4. **What's done** — the artifacts that exist and are trustworthy (docs, code, tests), one line each.
-5. **What's next** — the immediate next action(s), concretely: which ticket, which gate to clear. Ordered.
-6. **Key decisions & assumptions** — the ADRs and any defaults chosen on the user's behalf, so the next agent doesn't silently reverse them. Point at `docs/sdd/decisions/` and the ID counters.
-7. **Open questions / blockers** — anything needing a human; anything uncertain. Be explicit about what you're unsure of.
-8. **How to run/verify** — exact commands (test, coverage gate, start) so the next agent confirms the baseline before changing anything.
-9. **Pointers** — links to `index.md`, `traceability.md`, and the specific docs relevant to the next step.
+## Required Contract
 
-## Rules
+Use these headings and fields so humans and validators can inspect the package:
 
-- **Self-contained.** No "as we discussed" — the next reader has no history.
-- **Honest.** Carry the real state, including red rows and failing/missing tests. A handoff that oversells the state sabotages the next agent.
-- **Point, don't duplicate.** Reference the SSOT docs rather than restating them; short enough to read in full.
-- **Write for a cheaper model.** Short sentences, explicit steps, no cleverness.
+```markdown
+# SDD Handoff
 
-## Exit
+protocol: sdd-handoff/v1
+form: reference | portable
+state: active | consumed
+created_at: <ISO-8601 timestamp>
+producer_actor: <stable actor/context id>
 
-`docs/sdd/HANDOFF.md` exists and passes the acceptance test: someone with only the repo could take the named next action correctly. Tell the user it's ready and where it is.
+## Resume Goal
+target_state: <observable outcome>
+success_when:
+- <observable condition>
+
+## Transition
+phase: <ASK|SPEC|PLAN|BUILD|CHECK>
+next_action: <one concrete action>
+
+## Integrity
+repo_head: <commit SHA or unavailable>
+dirty: <true|false|unknown>
+relevant_paths:
+- <repo-relative existing path, or planned:path for an intended new file>
+
+## Authority
+baseline:
+- <authority supplied by user/environment>
+carried:
+- <same or narrower authority item>
+
+## Capabilities
+required: <comma-separated capabilities>
+optional: <comma-separated capabilities or none>
+
+## Evidence
+- <command and observed result, or explicit unverified item>
+
+## Pointers
+- <canonical repo path>
+
+## Minimum State
+<required only for portable form: decisions, constraints, current state,
+blockers, and exact verification commands>
+```
+
+Do not introduce global goal/fact/assumption counters. Reuse existing
+`REQ/FSD/ADR/TICKET/TEST` references where they help.
+
+## PRODUCE
+
+1. Read current state from the approved spec/work order, repo diff, and test
+   output; do not reconstruct it from conversation memory.
+2. State a resume goal as outcome + observable success conditions.
+3. Record HEAD, dirty state, and only paths relevant to the transition.
+   Paths are repository-relative; absolute paths and `..` traversal are invalid.
+4. Record required runtime capabilities: repository read/write, shell, Git,
+   browser, fresh contexts, subagent dispatch, or worktrees as applicable.
+5. Copy only existing authority and narrow it where useful. A handoff cannot
+   authorize deployment, spending, deletion, or broader writes.
+6. Replace the prior reference snapshot, or return one portable package.
+
+## VALIDATE → CONSUME → RESUME
+
+1. Accept only `sdd-handoff/v1`; otherwise stop as `BLOCKED`.
+2. Check the resume target and at least one observable success condition.
+3. Compare required capabilities with the current harness. Missing required
+   capability is `BLOCKED`; missing optional capability is `DEGRADED` with the
+   reason named.
+4. Compare carried authority with the known baseline. Expansion is invalid;
+   an absent baseline cannot justify new authority.
+5. With repo access, verify HEAD, dirty relevant paths, pointers, and critical
+   evidence. Relevant drift must be surfaced; unrelated drift does not by
+   itself invalidate the package.
+6. For portable form, require Minimum State. For reference form, require every
+   pointer to resolve.
+7. Resume the named next action. Repeat a completed phase only when evidence
+   conflicts, required information is missing, a blocker remains, or relevant
+   repository state changed.
+
+## Acceptance
+
+A fresh actor can identify the goal, trusted state, and next action from the
+handoff plus at most two canonical entry documents. Any uncertainty is labeled
+`BLOCKED`, `DEGRADED`, or `UNVERIFIED`; it is never silently upgraded to fact.

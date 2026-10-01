@@ -161,6 +161,16 @@ Anything **not** on that list — filenames, numbering, doc formats, diagram sha
 
 ## What Happens When Called
 
+## Quality Contract adapter (when the feature opts in)
+
+When the active canonical feature document contains a `quality-contract-json`
+block, invoke `skills/meta/quality-contract/quality-contract.mjs <document>
+--json` as a thin, report-only adapter before writing its projection. Preserve
+its JSON and exit semantics verbatim: the command may surface parser,
+compatibility, or drift findings but must not reinterpret an unknown/degraded
+result as approval. This does not add a public command and legacy features
+without a canonical block remain on their existing path.
+
 0. **If a `/sdd-pipeline:discover` (or an in-conversation grill) session just settled the architecture/scope question this task needs**, this is exactly the hand-off point — build the spec from that shared understanding instead of re-running architecture analysis or scope questions from scratch. Check `docs/sdd/glossary.md` and `docs/sdd/decisions/` for anything the session just wrote; don't re-ask what's already settled.
 1. Check whether the task involves an architecture decision (new pattern, module boundary, structural change). If yes, run architecture analysis: detect existing patterns, apply the deletion test and 1-adapter-hypothetical/2-adapter-real heuristics, propose or flag inconsistencies.
 2. **Check whether the product has screens.** If yes, run `skills/think/ux-design/SKILL.md` — direction confirmed with a concrete preview *before* anything is written, and the run produces `docs/sdd/design-system/design.md` as the one entry doc for the UI.

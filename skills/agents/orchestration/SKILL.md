@@ -24,13 +24,16 @@ The cap is overridable — if the user explicitly says "spawn them all anyway", 
 
 **Parallel implementation tickets on one repo** (several agents writing code concurrently) have their own protocol on top of this gate — worktree isolation, the `check-parallel-safety.mjs` file-overlap check, ticket claiming, and merge order: `skills/agents/parallel-work/`. Always confirm its plan with the user before spawning, every mode.
 
-## Readiness Check — Before Attempting to Spawn, Not After Failing to
+## Readiness Check — Inspect Capabilities, Not Provider Names
 
-Passing the cost-benefit gate means parallel dispatch is *worth it*; it does not mean the harness is *set up* to do it. Some harnesses (Codex — see "Agent Tool Usage" below) require agent roles pre-configured (e.g. `config.toml`) before a spawn can succeed at all. **Check readiness once, before the first spawn attempt** — don't discover it's missing by trying, failing, trying a different way, failing again, and only then falling back. That failure loop is exactly what produces a confused, over-cautious session (a real one: an agent that couldn't get spawning to work eventually abandoned it silently and over-corrected into treating every ticket as maximally suspect, without ever telling the user *why* it gave up on parallel work).
-
-- **Claude Code**: the Agent/Task tool is always available — no separate setup, readiness is a given.
-- **Codex**: readiness means agent roles exist in `config.toml` (see below). If they don't, **say so in one line and fall back to sequential** — `"Parallel dispatch skipped: no agent roles configured in config.toml — see skills/agents/orchestration/'s Codex section to set this up. Working the frontier sequentially instead."` Don't attempt a spawn to find out, and don't retry a failed spawn hoping a different phrasing works — one honest failure is enough to know the environment isn't ready.
-- **Other/unknown harnesses**: if there's no documented multi-agent dispatch mechanism for this harness in `docs/INSTALL.md`'s compatibility table, assume sequential and don't attempt to spawn at all — a silent failed attempt is worse than an explicit "sequential only here."
+Passing the cost-benefit gate means dispatch is worth considering, not that the
+harness supports it. Inspect the tools/capabilities actually available once per
+session: subagent dispatch, fresh contexts, parallel execution, worktrees,
+repository access, shell, Git, and browser. Built-in generic spawn tools count;
+predeclared role names are not required when the harness can pass scoped
+instructions directly. If dispatch or fresh contexts are absent, announce
+`degraded independence` and work sequentially. Do not repeatedly probe a
+capability that has already failed.
 
 Once a harness's readiness (or lack of it) is established for a session, don't re-probe it on every ticket — one check per session is enough.
 
@@ -83,6 +86,10 @@ Each sub-agent receives ONLY what it needs:
 
 Keep context minimal. Don't pass entire codebase to every agent.
 
+Product-owner/analyst agents may challenge goal and acceptance-criteria
+alignment, but they cannot grant human approval, accept residual risk, expand
+scope, or authorize deployment/spending/destructive actions.
+
 ## Conflict Resolution
 
 "Assign an owner and have the other agent pass along requirements" is not a full mechanism on its own — it doesn't say what the owner does with conflicting requirements, or what happens when they arrive at different times relative to the owner's own edits. Use this protocol instead:
@@ -117,7 +124,10 @@ If two patch requests to the same file genuinely conflict (not just adjacent cha
 
 **Claude Code**: use the `Agent` tool with scoped prompts for each sub-agent.
 
-**Codex**: Codex CLI supports real subagent spawning — define agent roles (model, instructions, sandbox mode, MCP servers per role) in `config.toml`, then either let Codex decide when to spawn automatically or request it explicitly ("spawn one agent for security risks, one for test gaps, one for maintainability"). Codex handles spawn, wait, and result consolidation itself. For batch-style parallel work across many similar items, `spawn_agents_on_csv` fans out one agent per row. Map SDD Pipeline's phase split onto this: define a `think`, `build`, and `prove` agent role in `config.toml` (or reuse per-skill roles — e.g. a `diagnose` role, an `arch-analyzer` role) with instructions pointing at the matching `skills/*/SKILL.md` file, then request the spawn explicitly at each phase boundary rather than relying on Codex to infer SDD Pipeline's specific pipeline structure on its own.
+**Codex**: use the available generic subagent tools with scoped instructions;
+optional configured roles may add model/sandbox specialization but are not a
+readiness prerequisite. Record actor IDs for implementer, reviewer, verifier,
+and security reviewer where applicable.
 
 **OpenCode**: see `subagent-patterns/SKILL.md` for sequential simulation.
 

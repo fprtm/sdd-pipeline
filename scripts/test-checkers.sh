@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Runs the behavioral test suites for the 3 mechanical checker scripts
-# (check-file-hygiene.mjs, check-traceability.mjs, check-parallel-safety.mjs).
+# Runs behavioral suites for the 4 mechanical checkers plus the public command
+# and installer surface.
 # Zero dependencies — uses Node's built-in test runner (node:test), matching
 # the checkers' own zero-dependency design. Requires Node >= 18.
 #
@@ -16,6 +16,8 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 
 node --test \
+  "$SCRIPT_DIR/install/install.test.mjs" \
   "$SCRIPT_DIR/skills/meta/health-check/check-file-hygiene.test.mjs" \
   "$SCRIPT_DIR/skills/meta/traceability/check-traceability.test.mjs" \
-  "$SCRIPT_DIR/skills/agents/parallel-work/check-parallel-safety.test.mjs"
+  "$SCRIPT_DIR/skills/agents/parallel-work/check-parallel-safety.test.mjs" \
+  "$SCRIPT_DIR/skills/meta/artifact-lifecycle/check-retirement.test.mjs"

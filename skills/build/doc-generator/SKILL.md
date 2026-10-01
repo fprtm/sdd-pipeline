@@ -231,13 +231,16 @@ For each document, in order:
 
 **Mode behavior**: see unified mode matrix in `skills/orchestrator/SKILL.md`.
 
-## Artifact Lifecycle Tiers
+## Artifact Lifecycle
 
-| Tier | Artifacts | Rule |
-|------|-----------|------|
-| Evergreen | config.md, glossary.md, index.md, traceability.md, design-system/design.md, stack-guide.md, spec docs (FSD/SDS/ERD) | Update in-place. Live as long as the feature lives. |
-| Transactional | Tickets (done), change files (done + merged), verification reports, ad-hoc audit/consistency-review reports (once `RESOLVED`), deliberation ledgers (after doc verified) | Archive or delete after purpose fulfilled. Tickets → `archive/`. Change files older than 14 days with `status: done` → delete. Verification reports → keep only the latest per feature. Audit/consistency-review reports → move to `reports/archive/` once `Status: RESOLVED` and older than 14 days. Ledgers → move to `archive/` after fidelity check passes. |
-| Accumulating | decisions/, memory/, mockup PNGs | Review periodically — every 5 new features or quarterly, whichever comes first. Prune superseded ADRs, stale memories, outdated mockups. |
+Load `skills/meta/artifact-lifecycle/`. Current specs, accepted ADRs, config,
+glossary, and design-system entry docs are canonical and update in place.
+Tickets, handoffs, change records, verification reports, and deliberation
+ledgers are active/transient: after their durable outcome is captured, remove
+live references, confirm Git recovery, and retire them. Archive only by explicit
+policy or when Git is unavailable. File creation still requires a distinct
+consumer, lifecycle, reviewer, or independent owner; line count alone is not a
+reason to split.
 
 ## Rules
 

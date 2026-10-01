@@ -34,6 +34,18 @@ test('no dir at all -> exit 0 (nothing to check)', () => {
   assert.match(out, /nothing to check/i);
 });
 
+test('pre-policy repository reports traceability drift as non-failing LEGACY migration findings', () => {
+  const dir = scratch();
+  mkdirSync(join(dir, 'specs', '001-login'), { recursive: true });
+  writeFileSync(join(dir, 'config.md'), '# Config\n\nsdlc: solo\nsdlc-reason: legacy project\n');
+  writeFileSync(join(dir, 'specs', '001-login', 'fsd.md'), '# FSD: Login\n\n| REQ-001 | Login | Must |\n');
+  writeFileSync(join(dir, 'traceability.md'), '| REQ | FSD | Status |\n|---|---|---|\n| REQ-999 | FSD-999 | built |\n');
+  const { code, out } = run(dir);
+  assert.equal(code, 0, out);
+  assert.match(out, /LEGACY Broken refs/);
+  assert.match(out, /legacy migration finding/);
+});
+
 test('a REQ defined with no traceability.md at all -> not flagged as orphan (size-tier exemption)', () => {
   const dir = scratch();
   mkdirSync(join(dir, 'specs', '001-login'), { recursive: true });
@@ -293,4 +305,14 @@ test('a file directly inside specs/ (not one level down in a feature folder) doe
   const { code, out } = run(dir);
   assert.equal(code, 0, out);
   assert.match(out, /defined: 0/);
+});
+
+test('deliberation.md cites spine ids but never defines duplicate ids', () => {
+  const dir = scratch();
+  mkdirSync(join(dir, 'specs', '001-a'), { recursive: true });
+  writeFileSync(join(dir, 'specs', '001-a', 'fsd.md'), '# FSD: A\n\n| REQ-001 | thing | Must |\n');
+  writeFileSync(join(dir, 'specs', '001-a', 'deliberation.md'), 'decision_goal: settle behavior\nexit_when: user confirms\nsupports: REQ-001, FSD-001\n');
+  const { code, out } = run(dir);
+  assert.equal(code, 0, out);
+  assert.doesNotMatch(out, /Duplicate ID definitions/);
 });

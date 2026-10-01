@@ -28,7 +28,26 @@ Either way, END WITH the impact summary (skills/meta/stats):
   "SDD Pipeline this month: N anti-patterns caught, N security issues, N scope deviations prevented"
 ```
 
+Before dispatch, inspect capabilities. With fresh contexts, use distinct actor
+IDs for implementer, reviewer, and verifier; add an independent security
+reviewer when sensitive surfaces are in scope. Reviewers only report defects,
+the implementer fixes, and the reviewer re-checks. Without fresh contexts,
+report `degraded independence` and explicit human-review items.
+
+Both branches load `skills/meta/artifact-lifecycle/`. Verify flags completed
+transient artifacts, stale active-index entries, missing goal contracts, and
+mixed-responsibility documents. Audit reports legacy migration opportunities
+separately and never rewrites them.
+
 The user can force a branch explicitly: "check the whole codebase" → audit even if a diff exists; "check my last change" → verify. Ambiguous → state which branch was picked and why, in one line.
+
+## Quality Contract adapter (when evidence exists)
+
+If the feature has a canonical Quality Contract block, invoke its facade as a
+thin adapter and retain the envelope unchanged in the report. It may reveal
+parse/compatibility/drift findings, but this command must not upgrade a status,
+claim a gateway dispatch, or manufacture authority. Existing checker behavior
+is unchanged for legacy work without that block.
 
 ## What Each Branch Produces
 

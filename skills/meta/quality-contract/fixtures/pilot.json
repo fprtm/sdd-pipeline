@@ -1,0 +1,21 @@
+{
+  "description": "Read-only compatibility, lifecycle, and pilot fixtures. No fixture instructs a filesystem mutation.",
+  "compatibility_policy": {
+    "components": {
+      "schema": { "1": { "state": "allowed" }, "0": { "state": "deprecated", "sunset_at": "2026-10-01T00:00:00Z" }, "x": { "state": "revoked" } },
+      "rules": { "1": { "state": "allowed" }, "0": { "state": "deprecated", "sunset_at": "2026-10-01T00:00:00Z" }, "x": { "state": "revoked" } },
+      "evidence": { "1": { "state": "allowed" }, "0": { "state": "deprecated", "sunset_at": "2026-10-01T00:00:00Z" }, "x": { "state": "revoked" } },
+      "adapter": { "1": { "state": "allowed" }, "0": { "state": "deprecated", "sunset_at": "2026-10-01T00:00:00Z" }, "x": { "state": "revoked" } },
+      "policy": { "1": { "state": "allowed" }, "0": { "state": "deprecated", "sunset_at": "2026-10-01T00:00:00Z" }, "x": { "state": "revoked" } }
+    }
+  },
+  "versions": { "schema": "1", "rules": "1", "evidence": "1", "adapter": "1", "policy": "1" },
+  "deprecated_versions": { "schema": "0", "rules": "0", "evidence": "0", "adapter": "0", "policy": "0" },
+  "retirement": { "git_available": true, "target_sealed": true, "target_kind": "projection", "durable_outcome_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "live_dependency_count": 0, "recovery_verified": true, "sole_canonical_truth_or_evidence": false },
+  "frozen": { "sampling": "sha256:1111111111111111111111111111111111111111111111111111111111111111", "assignments": "sha256:2222222222222222222222222222222222222222222222222222222222222222", "fixtures": "sha256:3333333333333333333333333333333333333333333333333333333333333333", "rubric": "sha256:4444444444444444444444444444444444444444444444444444444444444444", "formulas": "sha256:5555555555555555555555555555555555555555555555555555555555555555", "missing_data": "sha256:6666666666666666666666666666666666666666666666666666666666666666", "severity": "sha256:7777777777777777777777777777777777777777777777777777777777777777", "stop_rules": "sha256:8888888888888888888888888888888888888888888888888888888888888888", "segment_rules": "sha256:9999999999999999999999999999999999999999999999999999999999999999" },
+  "baseline": { "persistent_artifacts": 3, "active_work_artifacts": 1, "entry_documents": 3, "duplicated_authority": 0, "contract_projection_tokens": 120, "contract_projection_token_ratio": 1, "repeated_prose": 0, "responsibility_count": 3, "retrieval_time_ms": 100, "authoring_p50_ms": 30, "authoring_p90_ms": 50, "review_p50_ms": 25, "review_p90_ms": 45, "retrieval_p50_ms": 20, "retrieval_p90_ms": 30 },
+  "segments": [
+    { "id": "repo-a:capable:low:T1:security-fixture-a", "repository": "repo-a", "executor_class": "capable", "risk": "low", "tier": "T1", "security_fixture": "security-fixture-a", "eligible_runs": 4, "minimum_runs": 3, "p1_count": 0, "baseline_p2_per_run": 0.25, "candidate_p2_per_run": 0.25 },
+    { "id": "repo-b:low-cost:medium:T2:security-fixture-b", "repository": "repo-b", "executor_class": "low_cost", "risk": "medium", "tier": "T2", "security_fixture": "security-fixture-b", "eligible_runs": 4, "minimum_runs": 3, "p1_count": 0, "baseline_p2_per_run": 0.5, "candidate_p2_per_run": 0.25 }
+  ]
+}

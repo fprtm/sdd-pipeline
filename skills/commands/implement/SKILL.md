@@ -12,6 +12,14 @@ Manual entry point to the BUILD phase. Use when a plan/spec/ticket already exist
 
 ## What Happens When Called
 
+## Quality Contract adapter (when the ticket opts in)
+
+For a digest-pinned ticket projection, call the canonical facade rather than
+re-implementing its policy in this command. Preserve the versioned JSON result
+and its exit status; a result is advisory eligibility only and never replaces
+the trusted gateway, human authority, or independent review. Tickets without a
+Quality Contract projection keep their current BUILD behavior.
+
 **Pre-flight assertions** — before the first edit, restate the ticket's decided values as assertions:
 
 ```
@@ -29,6 +37,14 @@ Then starts coding with all BUILD-phase guardrails active:
 - `skills/build/change-plan/` — tracks actual file changes against what was declared, flags deviations
 - `skills/build/execution-guard/` — detects loops/stuck states and escalates
 - `skills/build/model-router/` — advisory routing of sub-tasks to appropriate model tiers if multi-model is available
+
+Before assigning actors, inspect harness capabilities. When fresh contexts are
+available, the implementer, reviewer, and verifier must have distinct actor
+IDs; sensitive work also gets a distinct security reviewer. Reviewers report
+defects and re-check after the implementer fixes them—they do not fix work they
+will approve. If fresh contexts are unavailable, say `degraded independence`
+and list the human-review items; never describe a cold self-review as
+independent.
 
 ## Output
 

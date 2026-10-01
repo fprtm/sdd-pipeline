@@ -3,6 +3,26 @@
 All notable changes to SDD Pipeline. Versioning is [SemVer](https://semver.org/).
 Plain-language where possible.
 
+## [6.11.0] — 2026-10-01
+
+### Added
+- Public `/sdd-pipeline:handoff` command with reference and portable
+  produce/validate/consume/resume contracts, resume goals, integrity,
+  capabilities, evidence, and authority narrowing.
+- Opt-in `artifact-policy-version: 1` lifecycle enforcement: bounded active
+  navigation, goal contracts, completed-transient retirement, handoff shape,
+  and implementer/reviewer/verifier actor separation.
+- Cross-cutting artifact lifecycle guidance with Git-history retention as the
+  default and preview-only legacy migration.
+
+### Changed
+- Public command surface is now exactly eight commands.
+- Completed tickets and deliberation ledgers compact into canonical outcomes
+  and retire after reference/recoverability checks; archive is policy-only.
+- Multi-agent readiness is capability-based. Cold self-review is explicitly
+  `degraded independence`, not an independent review.
+- Installer version is synchronized with the plugin at 6.11.0.
+
 ## [6.10.0] — 2026-09-15
 
 Triggered by real-world failure reports from a live project (`floppi-company-os`)

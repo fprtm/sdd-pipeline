@@ -5,15 +5,11 @@ Lightweight relationship graph for AI navigation — **read this first**, match 
 **Row format (every entry, every section):** `- [file](path) — one-line description · status`
 The description is the hook a future session matches against — write it for that reader, not as a title repeat.
 
-## Active
+## Active Work
 
 _No active plan._
 
-## Changes
-
-_No change topics yet. One row per `changes/` file._
-
-## Documents
+## Canonical Documents
 
 _No features spec'd yet. One row per `specs/{NNN}-{slug}/` folder — link the folder, not each fsd/sds/erd file inside it; the folder's own contents (or its `tickets/00-index.md` for large scope) is where the per-file breakdown lives._
 
@@ -21,9 +17,9 @@ _No features spec'd yet. One row per `specs/{NNN}-{slug}/` folder — link the f
 
 _No decisions logged yet. One row per `decisions/` file (ADR-NNN — what was decided)._
 
-## Tickets
-
-_No large tasks decomposed yet. One row per feature: link to its `specs/{NNN}-{slug}/tickets/` + status counts (e.g. 3 todo · 1 in progress · 1 testing · 2 done)._
+Completed changes, tickets, handoffs, and deliberation ledgers are removed from
+active navigation after guarded retirement. Do not add a Recent Activity log;
+Git is the default history.
 
 ## Memory
 
@@ -39,4 +35,5 @@ _Not yet analyzed. Will be populated after first architecture-impacting task._
 
 ---
 
-_This file is auto-maintained by SDD Pipeline. Manual edits are preserved but may be overwritten in specific sections._
+_This file is auto-maintained by SDD Pipeline. It is a bounded map of active
+work and canonical truth, not a history ledger._

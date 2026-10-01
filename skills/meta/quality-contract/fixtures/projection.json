@@ -1,0 +1,15 @@
+{
+  "description": "Projection cases use the core canonical contract and never perform repository I/O.",
+  "ticket_id": "TICKET-002",
+  "execution_payload": {
+    "baseline": {
+      "argv_digest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "expected_exit_code": "0"
+    },
+    "stop_conditions": [
+      { "code": "SECOND_OWNER", "remediation": "stop if a second authoritative owner is required" }
+    ]
+  },
+  "ac_ids": ["AC-1"],
+  "landmark_shape_digest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+}

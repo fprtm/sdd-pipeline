@@ -51,7 +51,7 @@ Two rules that make the sequence more than a diagram:
 - **Never jump from a request straight to BUILD** for anything above `micro`. Even a crystal-clear request gets step 2 — something written. A clear request with zero written spec is how scope drift starts.
 - **A question is not an execution signal.** "What if we used X?" is discussion — answer it, grill it if it's consequential, but don't start building. Building starts on an instruction.
 
-The five steps group into the three phases the skill tree is organized by — roughly **THINK** = ASK + SPEC, **BUILD** = PLAN + BUILD, **PROVE** = CHECK. "Roughly" because SPEC straddles the line: the analysis half (threat model, architecture, UX) lives in `think/`, while the doc-*writing* half (`doc-generator`, `test-plan`) lives in `build/`. The five steps are the sequence you experience; the three phases are how the ~59 skill files are filed.
+The five steps group into the three phases the skill tree is organized by — roughly **THINK** = ASK + SPEC, **BUILD** = PLAN + BUILD, **PROVE** = CHECK. "Roughly" because SPEC straddles the line: the analysis half (threat model, architecture, UX) lives in `think/`, while the doc-*writing* half (`doc-generator`, `test-plan`) lives in `build/`. The five steps are the sequence you experience; the three phases are how the skill files are filed.
 
 ```
 THINK                  BUILD                  PROVE
@@ -72,7 +72,7 @@ THINK                  BUILD                  PROVE
 - **Three mechanisms that close the 10x review gap** — AI generates code far faster than a developer can review it. Spec-in-front and judgment-behind reduce what goes *wrong* but don't reduce the *review burden*. Three mechanisms attack the arithmetic directly: (1) **tests before code** — test code generated from the spec BEFORE implementation; the developer reviews 50-100 lines of intent-expressing tests instead of 500 lines of implementation; tests pass = spec mechanically verified. (2) **Reviewable chunks** — implementation broken into semantic units (one behavior, one function), each announced with spec mapping and trust tier; 🔴 chunks (auth/payment/trust-boundary) pause for acknowledgment. (3) **Review guide with trust tiers** — every report includes a map: 🔴 DEEP REVIEW / 🟡 VERIFY INTENT / 🟢 LIGHT SCAN, each item naming its spec, what to verify, and its test coverage. Review debt (unacknowledged 🔴 items from prior tasks) is tracked and stated.
 - **Approved work order before code, DoD always** — nothing gets built until a written record exists and (per mode) is approved: the ticket breakdown for large work, a single dated change file for small/medium. Every task small+ gets a Definition of Done checklist. "Done" is never whatever the agent felt like stopping at.
 - **Traceability spine with a ship gate** — stable IDs (`REQ → FSD → ADR/SEC → TICKET → TEST`) in a matrix that makes gaps visible: an untested requirement is a red row, not a hidden one. Large/full builds may not ship while a Must/Should row is red — and the gate is never quietly downgraded.
-- **Mechanical enforcement, not just prose** — three zero-dependency scripts catch what markdown instructions can't guarantee: `check-traceability.mjs` (drift, broken refs, freelance tickets/tests), `check-file-hygiene.mjs` (docs-tree conventions), `check-parallel-safety.mjs` (file-overlap before parallel agents spawn). All CI-wireable.
+- **Mechanical enforcement, not just prose** — four zero-dependency scripts catch what markdown instructions can't guarantee: `check-traceability.mjs` (drift and broken refs), `check-file-hygiene.mjs` (docs-tree conventions), `check-parallel-safety.mjs` (file overlap), and `check-retirement.mjs` (live-reference and Git-recovery retirement gate). All CI-wireable.
 - **Deliberation held to a depth requirement, not a headline** — "we'll use 3NF" or "cascade on delete" is a label, not a decision the user actually reviewed. Every deliberation topic (database, architecture, UX, app flows) carries a minimum granularity before it counts as settled: every table's columns, every FK's cascade behavior, every endpoint's typed contract, every screen's interaction table, every flow's step-by-step branches. A topic named but not detailed stays in the frontier — the document doesn't get written from it.
 - **A fidelity check between what was agreed and what got written** — writing a document "from shared understanding" after a deliberation is reconstruction, not transcription, and reconstruction drifts: a cascade rule quietly becomes the "usual" one, a threshold gets rounded. Every document that follows a deliberation gets checked value-by-value against what was actually settled before it's reported done. The same check runs again at verification (spec conformance checks the code's *specific* decided values, not just "a test exists for this topic") and at the judgment gate (does this specific value trace to something settled, or did a plausible default get filled in silently).
 - **One folder per feature, found by number — never by regenerating a slug** — every artifact tied to a feature's spine number (FSD, SDS, ERD, threat model, UX, tests, DoD, tickets) lives inside one `specs/{NNN}-{slug}/` folder, not scattered across five directories that merely share a number. Looking up an existing feature's folder is always by its number, never by reconstructing the slug from the feature name — a re-derived slug can drift and silently spawn a duplicate folder for what should be the same feature, and the mechanical checker flags exactly that collision if it happens anyway.
@@ -127,6 +127,10 @@ Most of the time the orchestrator works invisibly — describe the work and it r
 | `/sdd-pipeline:spec` | **SPEC** | Decisions are settled, time to shape the details and write them down | **Deliberates** each domain with the user before writing its document — database design (relationships, cascades, indexes), architecture (patterns, deep stack, contracts), UX (interaction, states, error handling), app flows (journeys, edge cases, business rules). Grill mechanics, every question with a recommendation. Then writes FSD/SDS/PRD/ERD, threat model, UX; splits large work into tickets. Spec-only is a complete deliverable. |
 | `/sdd-pipeline:implement` | **BUILD** | Time to build | Executes an approved ticket or change file with build-time guardrails |
 | `/sdd-pipeline:check` | **CHECK** | Prove it | Adaptive QA: verifies a fresh change, audits the codebase otherwise — ends with the impact summary |
+| `/sdd-pipeline:docs` | Existing system | Brownfield code needs onboarding docs | Describes existing code under `docs/system/`; never creates spec-first artifacts |
+| `/sdd-pipeline:learn` | Understanding | Deep-read an area without changing it | Produces a structured explanation; saves memory only when asked |
+| `/sdd-pipeline:handoff` | State transition | Another agent/session/provider must continue | Produces or consumes a reference/portable state package with goal, integrity, authority, capabilities, and evidence |
+| `/sdd-pipeline:update` | Maintenance | Update the pipeline itself | Shows the release diff before applying an update |
 
 Each command is named after the step it enters. Two consequences worth knowing:
 
@@ -134,6 +138,13 @@ Each command is named after the step it enters. Two consequences worth knowing:
 - **There's no separate `/brainstorm`** — a foggy idea and a forming decision are the same conversation at two different moments, and making the user pick which one they're in was a question they couldn't answer. `/discover` handles both and announces when it shifts gears.
 
 PLAN has no command: it's the orchestrator's own step, and what gets approved there is the ticket breakdown (large work) or the change file (small/medium).
+
+Completed tickets, handoffs, ledgers, and change records are transient working
+state. Their durable outcome is compacted into code/tests/canonical docs, then
+they are retired to Git history after recoverability and reference checks.
+Archive is reserved for explicit audit/compliance policy or no-Git projects.
+When fresh agent contexts exist, implementation, review, and verification use
+different actor IDs; otherwise the result is labeled `degraded independence`.
 
 ## Project File Structure
 
@@ -197,14 +208,14 @@ SDD Pipeline detects when a task needs capabilities beyond engineering guardrail
 
 - **No aesthetic judgment** — compose with a design skill (it will recommend one)
 - **No communication style** — compose with persona skills
-- **No role-based team enforcement** — shared config via committed `docs/sdd/config.md`, nothing more
+- **No guarantee that a harness can supply independent actors** — artifact checks enforce distinct actor IDs when fresh contexts are available and label the fallback `degraded independence`; they cannot create capabilities the host does not expose
 
 ## Limitations
 
 Read this before trusting any of the guarantees above at face value:
 
-- **Most of this is markdown instructions, not code.** Only three things in this repo are actually executed and enforced mechanically: `check-traceability.mjs`, `check-file-hygiene.mjs`, and `check-parallel-safety.mjs`. Everything else — the phases, the gates, the judgment prompts, the "never skip this" rules — is prose an LLM agent reads and (with high but not perfect reliability) follows. A markdown rule is a strong steer, not a guarantee, the same way any instruction to any agent is.
-- **The judgment gate is self-reported.** The same agent that wrote the code writes its own "weakest point" and runs its own coverage/traceability checks. The mechanical checkers catch structural problems (broken references, missing frontmatter, drifted IDs, file-overlap) — they don't independently re-verify that a test the matrix marks 🟢 actually passes, or that a reported "weakest point" is the *real* one.
+- **Most of this is markdown instructions, not code.** Only four things in this repo are actually executed and enforced mechanically: `check-traceability.mjs`, `check-file-hygiene.mjs`, `check-parallel-safety.mjs`, and `check-retirement.mjs`. Everything else — the phases, the gates, the judgment prompts, the "never skip this" rules — is prose an LLM agent reads and (with high but not perfect reliability) follows. A markdown rule is a strong steer, not a guarantee, the same way any instruction to any agent is.
+- **Independent judgment depends on harness capability.** When fresh contexts exist, implementer, reviewer, verifier, and security reviewer use distinct actor IDs; otherwise the run is explicitly `degraded independence` and medium/security-sensitive work records human-review items. These controls improve provenance, but the mechanical checkers cannot prove that a reported "weakest point" is the real one or that a claimed test result is truthful.
 - **The stats footer is self-measured, not audited.** "N anti-patterns caught" is the agent's own count of its own session, not something externally validated.
 - **No benchmark shows this pipeline reduces the vulnerability rate cited above.** The research table motivates *why* a judgment layer matters; it isn't evidence that this specific implementation moves that number. Treat it as a structured way to apply scrutiny, not a proven fix.
 - **The hard floor is small and worth knowing by name**: local-only test/browser targets, human confirmation before spend/prod/parallel-agent-spawn, and the non-negotiable "no hardcoded secrets" constraint (see AGENTS.md's Hard Stops). Everything else is a strong default that a sufficiently insistent user, or a sufficiently confused agent, can end up working around.

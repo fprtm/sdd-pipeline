@@ -8,7 +8,9 @@ The judgment gate MUST run in a fresh context that has never seen the BUILD conv
 
 - **Input to the judgment context**: spec documents (FSD/SDS/ERD/threats) + the code diff + test results + coverage numbers. Nothing else.
 - **Excluded from the judgment context**: the grill transcript, the build-time reasoning, the implementation conversation, and any prior PROVE-layer output.
-- **Single-agent environments** (dispatch unavailable): re-read the spec and diff cold, as if reviewing someone else's PR. Announce this constraint: "Single-agent judgment — reviewing cold from spec + diff."
+- **Single-agent environments** (dispatch unavailable): re-read the spec and
+  diff cold, but announce `degraded independence` and list the human-review
+  items. A cold self-read is not an independent judgment.
 
 ## The Judgment Gate
 

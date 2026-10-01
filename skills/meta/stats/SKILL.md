@@ -97,16 +97,11 @@ Defer to orchestrator matrix (`skills/orchestrator/SKILL.md`) on conflict. Skill
 | **strict** | Track everything with maximum detail. Show full stats in report. |
 | **emergency** | Track what was fixed. Brief entry. |
 
-## Index Update
+## Navigation
 
-After appending stats, update `docs/sdd/index.md` with:
-
-```markdown
-## Recent Activity
-- [2026-08-17] Task: user-auth — 2 anti-patterns, 1 security issue → [stats](stats/2026-08.md)
-```
-
-Keep only last 10 entries in index. Full history lives in monthly files.
+Do not append task activity to `docs/sdd/index.md`. The index is reserved for
+active work and canonical entry points. Monthly aggregate files hold metrics;
+Git holds their revision history.
 
 ## Rules
 

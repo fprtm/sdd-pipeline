@@ -9,6 +9,10 @@ Generate a concise, actionable verification report. NOT a verbose document — a
 
 **Verdict: [PASS / FAIL / PASS WITH WARNINGS]** — Confidence: [HIGH / MEDIUM / LOW]
 
+**Actors**: implementer=[id] · reviewer=[different id] · verifier=[different id]
+· security_reviewer=[different fourth id when sensitive] ·
+independence=[independent | degraded independence]
+
 ### Checks run
 - Types: [PASS/FAIL/SKIPPED]
 - Tests: [PASS/FAIL/SKIPPED] — [N/M passed]

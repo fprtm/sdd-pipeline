@@ -1,6 +1,8 @@
 ---
 description: [one-line summary of the change]
-status: done
+status: active
+lifecycle: active
+goal: [observable capability or state after this change]
 updated: [auto — YYYY-MM-DD, bumped every time this file is revised in place]
 ---
 
@@ -9,6 +11,21 @@ updated: [auto — YYYY-MM-DD, bumped every time this file is revised in place]
 **Date**: [auto — when this topic was first opened]
 **Mode**: [detected mode]
 **Size**: [small | medium]
+security-sensitive: [true | false]
+
+## Success
+- [observable condition]
+
+## Actors
+- implementer: [actor/context id]
+- reviewer: [different actor/context id, or degraded independence]
+- verifier: [different actor/context id, or degraded independence]
+- security_reviewer: [different fourth actor/context id when sensitive]
+- independence: [independent | degraded independence]
+
+## Human Review
+[Required when medium/security work has degraded independence; list the exact
+spec, security, and behavior items a human must verify. Otherwise `none`.]
 
 ## What Changed
 [Files touched + a one-line description of the change itself]

@@ -85,6 +85,34 @@ Wait for confirmation before writing ticket files. This is a judgment call (how 
 
 **Location**: `docs/sdd/specs/{NNN}-{slug}/tickets/{NN}-{ticket-slug}.md` — inside the same feature folder as its FSD/SDS/ERD, found by the feature's number (per doc-generator's "Number-First Lookup" rule — never a freshly re-derived slug).
 
+### Quality Contract projections (opt-in only)
+
+If the canonical feature document contains exactly one
+`quality-contract-json` block, first run the single facade against the
+**canonical Markdown owner**:
+
+```sh
+node skills/meta/quality-contract/quality-contract.mjs \
+  docs/sdd/specs/{NNN}-{slug}/fsd.md --json
+```
+
+Keep the returned versioned JSON and exit status as observed. The facade
+checks the canonical document's strict parse and read-only eligibility
+envelope; it does **not** materialize or validate a ticket projection, verify
+external events, consume a gateway lease, run tests, or authorize execution
+or acceptance. A facade result must therefore never be copied into a ticket
+as an approval. A malformed/degraded result blocks projection materialization
+until its canonical input is repaired; a legacy feature without the block
+continues through the normal ticket path.
+
+Materialize the ticket projection only through
+`skills/meta/quality-contract/rules/projection.mjs`, with the canonical
+document, an externally verified execution-authority event, and the ticket's
+baseline/stop-condition payload. Record the resulting digest and exact
+canonical owner in the ticket. The projection stays non-authoritative: any
+canonical, scope, landmark, AC-map, or authority drift requires a fresh
+projection and review.
+
 **IDs**: the `{NN}` in the filename orders tickets within the feature, but every ticket ALSO gets a **globally unique `TICKET-xxx`** in its heading (counter in `docs/sdd/traceability.md`) — the matrix, commits (`Refs:`), and tests point at that global ID, which must never collide across features.
 
 **Durability exemption**: tickets are exempt from the no-file-paths rule that governs FSD/SDS/PRD — like test plans and DoD checklists, a ticket is inherently tied to the current state of the code and dies at merge. Concrete paths are *required* here: `Files likely touched:` feeds `check-parallel-safety.mjs` (see `skills/agents/parallel-work/`), and naming exact files/functions is what makes a T1 ticket executable by a junior dev or cheap model without inventing anything. Describe *behavior* end-to-end, but *point* at real files.
@@ -96,9 +124,28 @@ Wait for confirmation before writing ticket files. This is a judgment call (how 
 **Refs**: FSD-003 [, SEC-004 if this implements a security control]
 **Tier**: T1 | T2 | T3
 **Status**: ⬜ todo | 🔨 in progress | 🧪 testing/review | ✅ done | ⛔ blocked
+**Security-sensitive**: true | false
 **Dependencies**: TICKET-011 [global IDs that must land first, or "none"]
 **Files likely touched:** `src/routes/order.ts`, `src/services/order.ts`
 **Claimed by:** _(empty until an agent claims it — `<agent-id>, <worktree path>`; delete when merged)_
+**Implementer**: _(actor/context id when claimed)_
+**Reviewer**: _(distinct actor/context id before 🧪)_
+**Verifier**: _(distinct actor/context id before 🧪)_
+**Security_reviewer**: _(distinct fourth actor when security-sensitive)_
+**Independence**: independent | degraded independence
+
+## Goal
+[Observable capability after this vertical slice lands.]
+
+## Supports
+[REQ/FSD/ADR IDs, or `none — infrastructure-only` with a reason.]
+
+## Success
+- [Observable, testable condition]
+
+## Human Review
+[Required when independence is degraded; list exact risk/spec items. Otherwise
+`none`.]
 
 ## What to Build
 [End-to-end behavior this ticket delivers. Not layer-by-layer — describe the
@@ -218,7 +265,7 @@ Before writing ticket files, ask — per `skills/think/elicitation/`'s "How to A
 
 Tier by the ticket's **intrinsic difficulty and blast radius**, not its size in lines:
 
-- **T1 — trivial/mechanical.** Well-bounded, one obvious way to do it, low blast radius: CRUD glue, a migration, a pure function with clear I/O, wiring an existing pattern. Safe for a junior dev or a **cheap/small model** (pairs with `skills/build/model-router/`'s CHEAP tier). A T1 ticket should read almost paint-by-numbers. Single agent, straight to implementation — no role-split, the overhead isn't worth it.
+- **T1 — trivial/mechanical.** Well-bounded, one obvious way to do it, low blast radius: CRUD glue, a migration, a pure function with clear I/O, wiring an existing pattern. Safe for a junior dev or a **cheap/small model** (pairs with `skills/build/model-router/`'s CHEAP tier). A T1 ticket should read almost paint-by-numbers. Implementation stays single-owner, but code still receives an independent reviewer/verifier when fresh contexts are supported.
 - **T2 — standard.** Some judgment, touches 2–3 components, a couple of edge cases. Most tickets land here. **Role-split before implementing**: a research/check-existing pass first (what's already here, what pattern does the codebase already use for this) *then* implement — sequentially if single-agent (Pattern 1 in `skills/agents/subagent-patterns/`), as separate sub-agents if dispatch is available. Skipping straight to code on a T2 is how "existing pattern reinvented slightly differently" bugs happen.
 - **T3 — complex/risky.** Cross-cutting, concurrency, security-sensitive, ambiguous, or hard to reverse. Senior dev or strong model, usually test-first with extra design attention. **Never hand a T3 to a cheap model unattended.** Security-control tickets (SEC-xxx) are usually T2/T3 — tier them honestly. Same role-split as T2, plus the Red Team pattern (`skills/agents/subagent-patterns/`) before it's considered done.
 
@@ -246,7 +293,7 @@ This is a **default, not a lock** — the user can override it explicitly at any
 1. Claim the next frontier ticket (all blockers resolved) → set 🔨.
 2. Run it through the normal SDD pipeline (THINK/BUILD/PROVE) as its own task.
 3. When the code + tests are written and the branch/PR is open → set 🧪. **This is the handoff state**: a review agent (or the human) picks up 🧪 tickets — the PROVE pass and review happen here, concurrent with other agents' 🔨 work.
-4. **The 🧪 review is a contract check, not a vibe check — mandatory, never skipped**: read the ticket's own `Acceptance Criteria` and `Deliverables` line by line against what was actually built. Flag any mismatch before it moves further — a ticket that "looks done" but doesn't hit its own Given/When/Then doesn't get to ✅. Single agent: re-read the ticket cold, as if reviewing someone else's PR, not from memory of writing it (Pattern 1, `skills/agents/subagent-patterns/`). Dispatch available: a separate sub-agent does this pass — the implementer never marks its own homework.
+4. **The 🧪 review is a contract check, not a vibe check — mandatory, never skipped**: read the ticket's own `Goal`, `Success`, `Acceptance Criteria`, and `Deliverables` line by line against what was actually built. With fresh contexts, record distinct implementer, reviewer, and verifier actor IDs. The reviewer reports defects; the implementer fixes; the same independent reviewer re-checks. Without fresh contexts, label the result `degraded independence` and expose the human-review items — a cold self-read is useful but not independent.
 5. **Contract check fails → back to 🔨 with a Defect Report, never a silent redo.** Set status back to 🔨 and attach a Defect Report (see below) directly under the ticket's status line — the next work pass reads it before touching code. Looping straight back into implementation with only a verbal "fix this" loses the specifics; the next pass (possibly a different agent, possibly the same one days later) needs the finding on the record.
 6. Review + gates pass and the branch merges → set ✅, recompute the frontier — newly-unblocked tickets become available. Hit a real blocker → set ⛔ with a one-line reason next to it, don't sit on 🔨 silently.
 
@@ -285,8 +332,13 @@ Defer to orchestrator matrix on conflict. Skill-specific additions:
 
 ## Ticket Lifecycle
 
-- After verification passes and the ticket is marked `✅ done`, move it to `tickets/archive/` (or `specs/{NNN}-{slug}/tickets/archive/` for the one-folder-per-feature layout). The ticket remains in git history; archiving keeps the working directory clean and prevents done tickets from loading into agent context.
-- `check-file-hygiene.mjs` warns when >5 tickets with `done` status exist outside `archive/`.
+- After verification passes, compact the durable outcome into canonical specs,
+  code, tests, and traceability. Remove live references, confirm Git recovery,
+  then retire the completed ticket from the active tree. Do not create a
+  `tickets/archive/` directory by default.
+- Archive only when `artifact-retention: archive`, an explicit audit/compliance
+  policy, or a no-Git environment requires it. See
+  `skills/meta/artifact-lifecycle/`.
 
 ## Rules
 

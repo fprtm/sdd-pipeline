@@ -43,6 +43,9 @@ import { join, dirname, resolve, relative, basename } from 'node:path';
 
 const dir = process.argv[2] ?? 'docs/sdd';
 const MATRIX = 'traceability.md';
+const CONFIG = join(dir, 'config.md');
+const CONFIG_TEXT = existsSync(CONFIG) ? readFileSync(CONFIG, 'utf8') : '';
+const LEGACY_MODE = existsSync(CONFIG) && !/^artifact-policy-version:\s*1\s*$/mi.test(CONFIG_TEXT);
 
 function readReqPrefix(d) {
   const cfgPath = join(d, 'config.md');
@@ -81,7 +84,7 @@ const NON_DEFINING_DIRS = new Set(['plans', 'reports', 'stats', 'memory']);
 // in their own ticket files — without this, the table row reads as a
 // second definition (false "duplicate") and the summary row itself reads
 // as a ticket with no upstream ref (false "freelance").
-const NON_DEFINING_BASENAMES = new Set(['dod.md', '00-index.md']);
+const NON_DEFINING_BASENAMES = new Set(['dod.md', '00-index.md', 'deliberation.md']);
 // specs/{NNN}-{slug}/{bare-filename} -> file-level ID type. The {NNN} comes
 // from the FOLDER name (extracted below), not the filename — filenames
 // inside a feature folder are bare (fsd.md), not prefixed (003-x-fsd.md).
@@ -225,7 +228,7 @@ for (const [id, occs] of definedAt) {
 const total = Object.values(problems).reduce((n, a) => n + a.length, 0);
 const show = (title, arr) => {
   if (!arr.length) return;
-  console.log(`\n✖ ${title}: ${arr.length}`);
+  console.log(`\n${LEGACY_MODE ? 'LEGACY' : '✖'} ${title}: ${arr.length}`);
   [...new Set(arr)].sort().forEach((x) => console.log('  ' + x));
 };
 console.log(`Traceability check — ${files.length} docs in ${dir}`);
@@ -238,6 +241,10 @@ show('Dead links', problems.deadLink);
 
 if (total === 0) {
   console.log('\n✓ Traceability is consistent — spine tracked, no broken refs, no duplicate ids, no dead links or freelance items.');
+  process.exit(0);
+}
+if (LEGACY_MODE) {
+  console.log(`\n${total} legacy migration finding(s). Preview migration before reactivating; no policy-v1 failure was raised.`);
   process.exit(0);
 }
 console.log(`\n${total} problem(s). The matrix isn't honest until these are resolved.`);

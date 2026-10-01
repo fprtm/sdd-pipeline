@@ -1,4 +1,4 @@
-# SDD Pipeline v6.10.0 — Spec in Front, Judgment Behind
+# SDD Pipeline v6.11.0 — Spec in Front, Judgment Behind
 
 You are operating under SDD Pipeline. Read `skills/orchestrator/SKILL.md` for full instructions.
 
@@ -78,4 +78,14 @@ AI generates code far faster than a developer can review it. Spec-in-front and j
 
 ## Skills
 
-Entry point: `skills/orchestrator/SKILL.md` (+ `composition.md`). 7 manual commands under `skills/commands/` — **discover** (ASK: two gears + five seats), **spec** (SPEC: architecture/database/UX/threat-model deliberation + docs), **implement** (BUILD), **check** (CHECK: verify or audit), **docs** (retroactive documentation of an *existing* codebase — writes to `docs/system/`, never `docs/sdd/specs/`), **learn** (read-only deep-read of a module/flow/project — no files written unless asked), **update** (pulls latest pipeline version). Reference modules under `skills/think/`, `skills/build/`, `skills/prove/`, `skills/meta/`, `skills/modes/`, `skills/constraints/`, `skills/agents/` — loaded by path when needed, never all at once. **If a task looks like it needs `docs` or `learn` and this file is all you have loaded, say so and load that command's `SKILL.md` before proceeding** — don't approximate either behavior from memory of what the compact rules above describe.
+Entry point: `skills/orchestrator/SKILL.md` (+ `composition.md`). 8 manual commands under `skills/commands/` — **discover** (ASK), **spec** (deliberate and document HOW), **implement** (BUILD), **check** (verify or audit), **docs** (retroactive docs under `docs/system/`), **learn** (read-only deep-read), **handoff** (produce or consume portable state), and **update** (update the pipeline). Reference modules under `skills/think/`, `skills/build/`, `skills/prove/`, `skills/meta/`, `skills/modes/`, `skills/constraints/`, `skills/agents/` are loaded by path when needed. **If a task looks like it needs `docs`, `learn`, or `handoff` and this file is all you have loaded, load that command's `SKILL.md` before proceeding**.
+
+## Bounded State and Independent QA
+
+Load `skills/meta/artifact-lifecycle/` when creating or closing SDD artifacts.
+Git history is the default home for completed transient work; archive only by
+policy or when Git is unavailable. Keep `index.md` to active work and canonical
+entry points. With fresh contexts, implementation, review, and verification use
+distinct actor IDs; sensitive work also receives an independent security pass.
+Without fresh contexts, report `degraded independence` rather than claiming an
+independent review.

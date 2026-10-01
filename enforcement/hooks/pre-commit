@@ -82,10 +82,12 @@ check_secrets() {
 # --- Gate 2: Scope Declaration ---
 check_scope() {
   if [ "$STAGED_COUNT" -gt 5 ]; then
-    if [ ! -f "docs/sdd/plans/current.md" ]; then
-      log_warn "Changing $STAGED_COUNT files without an SDD Pipeline plan. Consider running SDD Pipeline first."
+    if ! find docs/sdd/changes -maxdepth 1 -name '*.md' -print -quit 2>/dev/null | grep -q . \
+      && ! find docs/sdd/specs -path '*/tickets/00-index.md' -print -quit 2>/dev/null | grep -q . \
+      && ! find docs/sdd/decisions -maxdepth 1 -name '*.md' -print -quit 2>/dev/null | grep -q .; then
+      log_warn "Changing $STAGED_COUNT files without an SDD change record, approved ticket work order, or decision record. Consider running SDD Pipeline first."
     else
-      log_ok "Plan exists for $STAGED_COUNT file changes"
+      log_ok "SDD record exists for $STAGED_COUNT file changes"
     fi
   fi
 }
@@ -192,12 +194,12 @@ check_change_record() {
   local has_record=false
   for file in "${STAGED_FILES[@]}"; do
     case "$file" in
-      docs/sdd/changes/*|docs/sdd/plans/*|docs/sdd/decisions/*|docs/sdd/specs/*)
+      docs/sdd/changes/*|docs/sdd/decisions/*|docs/sdd/specs/*)
         has_record=true ;;
     esac
   done
   if [ "$has_record" = false ]; then
-    log_warn "$added_lines source line(s) changed with no docs/sdd/{changes,plans,decisions,design,tickets} file in this commit — even a small change should leave some trace. A one-line docs/sdd/changes/ entry is enough; this applies whether an agent or a human made the commit."
+    log_warn "$added_lines source line(s) changed with no docs/sdd/{changes,decisions,specs} record in this commit — even a small change should leave some trace. A one-line docs/sdd/changes/ entry is enough; this applies whether an agent or a human made the commit."
   fi
 }
 

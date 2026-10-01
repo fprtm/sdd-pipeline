@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-VERSION="3.0.2"
+VERSION="6.11.0"
 SCRIPT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 SKILLS_DIR="$SCRIPT_DIR/skills"
 
@@ -48,8 +48,68 @@ EOF
 copy_all_skills() {
   local dest="$1"
   mkdir -p "$dest"
-  cp -r "$SKILLS_DIR"/* "$dest/"
+  local phase
+  for phase in orchestrator think build prove meta modes constraints agents commands; do
+    copy_phase "$dest" "$phase"
+  done
   echo "All skills copied to $dest"
+}
+
+# The Quality Contract facade is a single runtime: its relative imports must
+# never land as a partial module tree. Releases are immutable directories and
+# `quality-contract` is a relative symlink switched with one rename. Existing
+# readers keep their old release while new readers get the complete new one.
+# Old releases are deliberately retained so an in-flight reader is never
+# invalidated by an installer cleanup.
+install_quality_contract_runtime() {
+  local meta="$1"
+  local source="$SKILLS_DIR/meta/quality-contract"
+  local target="$meta/quality-contract"
+  local releases="$meta/.quality-contract-releases"
+  local marker="$releases/.sdd-pipeline-quality-contract-runtime"
+  local staged="$releases/.stage.$$.${RANDOM}"
+  local release="$releases/release.$$.${RANDOM}"
+  local next="$meta/.quality-contract.next.$$.${RANDOM}"
+
+  [ -d "$source" ] || { echo "Missing Quality Contract runtime: $source" >&2; return 1; }
+  mkdir -p "$releases"
+  printf '%s\n' 'SDD Pipeline Quality Contract Runtime v1' > "$marker"
+  rm -rf "$staged"
+  cp -R "$source" "$staged"
+
+  local source_file relative
+  while IFS= read -r -d '' source_file; do
+    relative="${source_file#$source/}"
+    cmp -s "$source_file" "$staged/$relative" || {
+      rm -rf "$staged"
+      echo "Quality Contract runtime staging verification failed: $relative" >&2
+      return 1
+    }
+  done < <(find "$source" -type f -print0)
+
+  # Test-only fault injection exercises the failure boundary before a live
+  # pointer changes; it cannot create a partially live runtime.
+  if [ "${SDD_PIPELINE_TEST_FAIL_QUALITY_CONTRACT_STAGE:-}" = "1" ]; then
+    rm -rf "$staged"
+    echo "Quality Contract runtime staging fault injected" >&2
+    return 1
+  fi
+
+  # A legacy directory cannot be atomically replaced with a symlink on the
+  # supported POSIX surface. Refuse rather than creating a reader-visible gap.
+  if { [ -e "$target" ] || [ -L "$target" ]; } && [ ! -L "$target" ]; then
+    rm -rf "$staged"
+    echo "Quality Contract runtime is a legacy directory; reinstall before atomic release upgrades" >&2
+    return 1
+  fi
+  mv "$staged" "$release"
+  ln -s ".quality-contract-releases/$(basename "$release")" "$next"
+  if ! mv -f "$next" "$target"; then
+    rm -f "$next"
+    echo "Quality Contract runtime release switch failed; previous runtime remains live" >&2
+    return 1
+  fi
+  echo "  ✓ quality-contract runtime release switched atomically"
 }
 
 copy_phase() {
@@ -57,7 +117,19 @@ copy_phase() {
   local phase="$2"
 
   case "$phase" in
-    think|build|prove|meta|modes|constraints|agents|commands)
+    meta)
+      if [ -d "$SKILLS_DIR/meta" ]; then
+        mkdir -p "$dest/meta"
+        local entry
+        for entry in "$SKILLS_DIR/meta"/*; do
+          [ "$(basename "$entry")" = "quality-contract" ] && continue
+          cp -r "$entry" "$dest/meta/"
+        done
+        install_quality_contract_runtime "$dest/meta"
+        echo "  ✓ meta"
+      fi
+      ;;
+    think|build|prove|modes|constraints|agents|commands)
       if [ -d "$SKILLS_DIR/$phase" ]; then
         mkdir -p "$dest/$phase"
         cp -r "$SKILLS_DIR/$phase"/* "$dest/$phase/"
@@ -104,7 +176,15 @@ resolve_phases() {
     case "$p" in
       security) for x in constraints prove; do case " $out " in *" $x "*) ;; *) out="$out $x" ;; esac; done ;;
       quality)  for x in build prove; do case " $out " in *" $x "*) ;; *) out="$out $x" ;; esac; done ;;
-      think|build|prove|meta|modes|constraints|agents|commands)
+      commands)
+        # Public commands are thin routers into every phase. Installing only
+        # their eight wrappers would make every rewritten dependency path
+        # dangling, so "commands" includes the runtime reference modules while
+        # still exposing exactly eight command entry points.
+        for x in think build prove meta modes constraints agents commands; do
+          case " $out " in *" $x "*) ;; *) out="$out $x" ;; esac
+        done ;;
+      think|build|prove|meta|modes|constraints|agents)
         case " $out " in *" $p "*) ;; *) out="$out $p" ;; esac ;;
       *) echo "Unknown phase: $p" >&2; return 1 ;;
     esac
@@ -258,20 +338,35 @@ install_hooks() {
 install_ci() {
   mkdir -p .github/workflows
   cp "$SCRIPT_DIR/enforcement/ci/sdd-check.yml" .github/workflows/sdd-check.yml
-  echo "GitHub Actions workflow copied to .github/workflows/sdd-check.yml"
+  cp "$SCRIPT_DIR/.github/workflows/quality-contract.yml" .github/workflows/quality-contract.yml
+  echo "GitHub Actions workflows copied to .github/workflows/"
   install_tools
+  install_quality_contract_runtime "tools"
+  echo "Quality Contract CI runtime installed at tools/quality-contract"
 }
 
 install_templates() {
-  mkdir -p docs/sdd/{decisions,tickets,reports,design,design-system,test-plans,dod,stats,erd,changes,ux-screens,memory}
-  cp "$SCRIPT_DIR/templates/sdd.config.md" docs/sdd/config.md 2>/dev/null || true
+  local existing_sdd=false
+  if [ -d docs/sdd ] && find docs/sdd -mindepth 1 -print -quit 2>/dev/null | grep -q .; then
+    existing_sdd=true
+  fi
+  # Scaffold only the current bounded tree. Feature-owned docs/tickets are
+  # created inside specs/{NNN}-{slug}/ when work actually needs them.
+  mkdir -p docs/sdd/{decisions,reports,specs,stats,changes,memory}
+  if [ ! -e docs/sdd/config.md ]; then
+    if [ "$existing_sdd" = true ]; then
+      cp "$SCRIPT_DIR/templates/sdd.legacy.config.md" docs/sdd/config.md
+    else
+      cp "$SCRIPT_DIR/templates/sdd.config.md" docs/sdd/config.md
+    fi
+  fi
   # decisions/ holds one file per decision (see skills/meta/decision-log/) —
   # there's no single "decisions doc" to template. This is a plain git-tracking
   # placeholder for the empty directory, nothing more.
   touch docs/sdd/decisions/.gitkeep
-  cp "$SCRIPT_DIR/templates/memory.md" docs/sdd/memory/INDEX.md 2>/dev/null || true
-  cp "$SCRIPT_DIR/templates/index.md" docs/sdd/index.md 2>/dev/null || true
-  cp "$SCRIPT_DIR/templates/glossary.md" docs/sdd/glossary.md 2>/dev/null || true
+  if [ ! -e docs/sdd/memory/INDEX.md ]; then cp "$SCRIPT_DIR/templates/memory.md" docs/sdd/memory/INDEX.md; fi
+  if [ ! -e docs/sdd/index.md ]; then cp "$SCRIPT_DIR/templates/index.md" docs/sdd/index.md; fi
+  if [ ! -e docs/sdd/glossary.md ]; then cp "$SCRIPT_DIR/templates/glossary.md" docs/sdd/glossary.md; fi
   install_tools
   echo "Templates copied to docs/sdd/"
 }
@@ -284,10 +379,11 @@ install_tools() {
   cp "$SCRIPT_DIR/skills/meta/traceability/check-traceability.mjs" tools/ 2>/dev/null || true
   cp "$SCRIPT_DIR/skills/meta/health-check/check-file-hygiene.mjs" tools/ 2>/dev/null || true
   cp "$SCRIPT_DIR/skills/agents/parallel-work/check-parallel-safety.mjs" tools/ 2>/dev/null || true
+  cp "$SCRIPT_DIR/skills/meta/artifact-lifecycle/check-retirement.mjs" tools/ 2>/dev/null || true
   # install_ci and install_templates both call this — only announce once
   # when both flags are given together, instead of printing it twice.
   if [ "$TOOLS_INSTALLED" = false ]; then
-    echo "Mechanical checkers copied to tools/ (traceability, file-hygiene, parallel-safety)"
+    echo "Mechanical checkers copied to tools/ (traceability, file-hygiene, parallel-safety, retirement)"
     TOOLS_INSTALLED=true
   fi
 }
@@ -383,6 +479,23 @@ if [ "$DO_UNINSTALL" = true ]; then
     else
       echo "Note: .github/workflows/sdd-check.yml exists but doesn't look like SDD Pipeline's — left in place"
     fi
+  fi
+
+  if [ -f ".github/workflows/quality-contract.yml" ]; then
+    if grep -q "Quality Contract Adapter" .github/workflows/quality-contract.yml 2>/dev/null; then
+      rm .github/workflows/quality-contract.yml
+      echo "Quality Contract workflow removed"
+    else
+      echo "Note: .github/workflows/quality-contract.yml exists but doesn't look like SDD Pipeline's — left in place"
+    fi
+  fi
+
+  if [ -L "tools/quality-contract" ] \
+    && [ -f "tools/.quality-contract-releases/.sdd-pipeline-quality-contract-runtime" ] \
+    && grep -q "SDD Pipeline Quality Contract Runtime v1" "tools/.quality-contract-releases/.sdd-pipeline-quality-contract-runtime"; then
+    rm "tools/quality-contract"
+    rm -rf "tools/.quality-contract-releases"
+    echo "Quality Contract CI runtime removed"
   fi
 
   # Clean up AGENTS.md if we created it
