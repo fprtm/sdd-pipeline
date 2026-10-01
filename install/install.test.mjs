@@ -40,7 +40,7 @@ test('selective command install exposes all eight commands and synchronized vers
   const dest = join(work, 'skills', 'sdd');
   const result = spawnSync(INSTALL, ['--agent', 'generic', '--dest', dest, '--only', 'commands'], { cwd: work, encoding: 'utf8' });
   assert.equal(result.status, 0, result.stdout + result.stderr);
-  assert.match(result.stdout, /v6\.11\.0/);
+  assert.match(result.stdout, /v6\.11\.1/);
   assert.deepEqual(readdirSync(join(dest, 'commands')).sort(), COMMANDS);
   assert.match(readFileSync(join(dest, 'commands', 'handoff', 'SKILL.md'), 'utf8'), /^name: handoff$/m);
   assert.equal(existsSync(join(dest, 'meta', 'handoff', 'SKILL.md')), true);

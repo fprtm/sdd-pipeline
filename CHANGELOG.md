@@ -5,6 +5,21 @@ Plain-language where possible.
 
 For compatibility promises, deprecation, and release operation, see [the release policy](docs/RELEASE-POLICY.md).
 
+## [6.11.1] — 2026-10-01
+
+### Added
+- Contextual end-of-command navigation shared by all eight public commands:
+  outcome, material skips, one recommended next action, and at most two
+  user-controlled alternatives.
+
+### Changed
+- Discovery, specification, verification, documentation, and handoff now
+  expose their actual prerequisite and terminal states instead of silently
+  advancing work. Handoff consumption offers resume and requires an explicit
+  user selection or request before continuing.
+- Skill validation now checks the navigation contract and critical route
+  invariants, including blocked versus degraded evidence.
+
 ## [6.11.0] — 2026-10-01
 
 ### Added
