@@ -77,7 +77,7 @@ flowchart TD
     THINK_P --> COMP["Skill composition check\n(external skills needed?)"]
     COMP --> GRILL{"Consequential decision\nstated casually?"}
     GRILL -- yes, offered --> GRILLSKILL["SDD Grill"]
-    GRILL -- no / declined --> PLANFILE["Write tickets/ (large/full)\nor changes/{date}-{slug}.md (small/medium)"]
+    GRILL -- no / declined --> PLANFILE["Write specs/{NNN}-{slug}/tickets/ (large/full)\nor changes/{date}-{slug}.md (small/medium)"]
     GRILLSKILL --> PLANFILE
     PLANFILE --> BUILD_P["BUILD phase"]
     BUILD_P --> PROVE_P["PROVE phase"]
@@ -388,6 +388,13 @@ sequenceDiagram
 ## 10. Commands — `skills/commands/` (manual entry points)
 
 The orchestrator usually triggers invisibly, but 8 commands let you start at a specific step deliberately. Each has `disable-model-invocation: true` — they're never auto-triggered.
+
+Every command closes through `meta/workflow-navigation`: outcome first, then
+only material skipped work with its reason, one context-backed next action, and
+at most two alternatives. This is a state transition contract, not a command
+menu: a missing decision or prerequisite blocks downstream routing; a
+recommendation never auto-dispatches another command. `learn`, `docs`,
+`handoff`, and `update` remain utility overlays rather than compulsory stages.
 
 ```mermaid
 flowchart LR

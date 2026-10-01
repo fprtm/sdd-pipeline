@@ -247,6 +247,15 @@ The user controls depth:
 5. **Don't invent intent.** If the code does something and you don't know why, say "this does X — unclear why" rather than fabricating a rationale. Git history or the user may have the answer.
 6. **Adapt to the user.** If memory says the user is senior, skip basics. If they're new to the stack, explain framework conventions alongside the project-specific patterns.
 
+## Workflow Navigation
+
+Before closing, load `skills/meta/workflow-navigation/SKILL.md`. Keep the
+read-only result distinct from a work order. Offer `/docs` only when durable
+shared onboarding documentation is wanted; `/check` only for a concrete
+observed risk; `/discover` or `/spec` only when the user has matching product
+or design intent. Never recommend implementation merely because an area was
+studied.
+
 ## Mode Behavior
 
 Mode has minimal effect — this is a read-only exploration skill. The only dimension that changes is depth:

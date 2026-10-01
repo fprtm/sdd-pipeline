@@ -211,6 +211,16 @@ Skip any row whose document wasn't generated for this task — a bug fix that on
 
 Specs, architecture, threat model, and tickets **without code** is a legitimate stop point (spec'ing for someone else, buy-in before committing engineering time) — not an unfinished run. When the user wants specs only (or invoked this command without an execution signal), **actually stop** after the artifacts: state plainly "spec complete — implementation not started (by request)", and never sneak forward into BUILD. Implementation later starts from these artifacts via `/sdd-pipeline:implement`.
 
+## Workflow Navigation
+
+Before closing, load `skills/meta/workflow-navigation/SKILL.md`. State which
+domains/artifacts were completed, omitted as not applicable, declined, or left
+unresolved. Recommend `/sdd-pipeline:implement` only when the required
+artifacts passed fidelity/hygiene checks, the work order is approved, and the
+user gives an execution signal. A contradiction, material assumption, missing
+approval, failed checker, or spec-only request routes to revise/discuss/stop;
+it never silently advances to BUILD.
+
 ## Full Behavior
 
 See `skills/think/arch-analyzer/SKILL.md`, `skills/think/ux-design/SKILL.md`, `skills/build/doc-generator/SKILL.md`, and `skills/build/ticket-decomposition/SKILL.md` for detection signals, heuristics, formats, and slicing rules.

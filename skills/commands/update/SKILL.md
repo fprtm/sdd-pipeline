@@ -23,3 +23,11 @@ Manual entry point only — this never runs on its own, unlike a project's own d
 - Does not auto-check for updates on a schedule or at session start — that's a separate, not-yet-built concern, and would itself need the same confirm-before-apply treatment if it existed.
 - Does not touch project-level `docs/sdd/` content — this updates the framework's own skill files, never a project's generated docs.
 - Does not apply a migration automatically even if one is documented — migrations for existing projects stay manual, per the framework's own standing rule (no migration tooling, established at v5.8.0).
+
+## Workflow Navigation
+
+Before closing, load `skills/meta/workflow-navigation/SKILL.md`. Already-current
+and preview-only outcomes may end after status with only non-mutating options
+(view changelog or stop). After an approved update, recommend only the
+applicable reload/new-task or manual migration action. Never auto-apply an
+update or use an update result to suggest unrelated workflow commands.

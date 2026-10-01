@@ -50,6 +50,15 @@ independent.
 
 Working code, plus a change summary at the end: planned files vs. deviations, categorized as requested/incidental/refactoring.
 
+## Workflow Navigation
+
+Before closing, load `skills/meta/workflow-navigation/SKILL.md`. If a changed
+work unit is ready for evidence, recommend `/sdd-pipeline:check`; it is an
+offer, not an automatic dispatch. Carry any preflight failure, material scope
+deviation, unresolved decision, or `degraded independence` into `Outcome` and
+route to ticket/spec revision or human review before downstream verification.
+Offer `/handoff` only for an explicit transfer or pause.
+
 ## Full Behavior
 
 See `skills/orchestrator/SKILL.md` (BUILD phase section) and the individual `skills/build/*/SKILL.md` files for mode-specific behavior.

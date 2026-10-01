@@ -79,7 +79,7 @@ Do not introduce global goal/fact/assumption counters. Reuse existing
    authorize deployment, spending, deletion, or broader writes.
 6. Replace the prior reference snapshot, or return one portable package.
 
-## VALIDATE → CONSUME → RESUME
+## VALIDATE → CONSUME → OFFER RESUME
 
 1. Accept only `sdd-handoff/v1`; otherwise stop as `BLOCKED`.
 2. Check the resume target and at least one observable success condition.
@@ -93,9 +93,10 @@ Do not introduce global goal/fact/assumption counters. Reuse existing
    itself invalidate the package.
 6. For portable form, require Minimum State. For reference form, require every
    pointer to resolve.
-7. Resume the named next action. Repeat a completed phase only when evidence
-   conflicts, required information is missing, a blocker remains, or relevant
-   repository state changed.
+7. Offer the named next action. Resume it only when this invocation explicitly
+   requests resumption or the user selects the offered action. Repeat a
+   completed phase only when evidence conflicts, required information is
+   missing, a blocker remains, or relevant repository state changed.
 
 ## Acceptance
 

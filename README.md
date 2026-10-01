@@ -145,6 +145,21 @@ Most of the time the orchestrator works invisibly — describe the work and it r
 | `/sdd-pipeline:handoff` | State transition | Another agent/session/provider must continue | Produces or consumes a reference/portable state package with goal, integrity, authority, capabilities, and evidence |
 | `/sdd-pipeline:update` | Maintenance | Update the pipeline itself | Shows the release diff before applying an update |
 
+## Every Command Leaves a Clear Next Step
+
+Commands do not silently advance the workflow or dump an eight-command menu at
+the end. Each closes with its actual outcome, any material stage or domain that
+did not run and why, one context-backed recommendation, and at most two
+alternatives. A missing user decision, unapproved work order, failed evidence,
+or unavailable required capability blocks the downstream step instead of being
+guessed away.
+
+The delivery spine remains **discover → spec → implement → check**. `learn`,
+`docs`, `handoff`, and `update` are utilities offered only when their context
+fits. A spec-only run may stop cleanly; a completed discover may recommend
+specification, never implementation; and a failed check routes to correction
+or a decision revision rather than claiming completion.
+
 Each command is named after the step it enters. Two consequences worth knowing:
 
 - **The SPEC-step command is `/spec`, not `/design`** — "design" reads as *visual* design, which is a different artifact entirely (`docs/sdd/design-system/design.md`, produced *inside* the SPEC step when the product has screens).

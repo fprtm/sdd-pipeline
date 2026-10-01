@@ -18,6 +18,18 @@ log_error() { echo -e "${RED}[ERROR]${NC} $1"; ERRORS=$((ERRORS + 1)); }
 log_warn()  { echo -e "${YELLOW}[WARN]${NC} $1"; WARNINGS=$((WARNINGS + 1)); }
 log_ok()    { echo -e "${GREEN}[OK]${NC} $1"; }
 
+# Does a literal occur within the named level-two Markdown section? This keeps
+# a command from satisfying a navigation check with unrelated prose elsewhere.
+section_has_literal() {
+  local file="$1" section="$2" literal="$3"
+  awk -v section="$section" -v literal="$literal" '
+    $0 == "## " section { in_section=1; next }
+    in_section && /^## / { exit }
+    in_section && index($0, literal) { found=1; exit }
+    END { exit(found ? 0 : 1) }
+  ' "$file"
+}
+
 echo "SDD Pipeline Skill Validation"
 echo "===================="
 echo ""
@@ -54,6 +66,7 @@ EXPECTED_SKILLS=(
   "meta/health-check/SKILL.md"
   "meta/artifact-lifecycle/SKILL.md"
   "meta/handoff/SKILL.md"
+  "meta/workflow-navigation/SKILL.md"
   "meta/memory/SKILL.md"
   "meta/stats/SKILL.md"
   "meta/glossary/SKILL.md"
@@ -149,6 +162,95 @@ else
     fi
   done
 fi
+
+echo ""
+
+# --- Check 2d: Public commands use the shared workflow-navigation contract ---
+echo "## Checking command workflow navigation..."
+
+for cmd in "${EXPECTED_COMMANDS[@]}"; do
+  file="$SKILLS_DIR/commands/$cmd/SKILL.md"
+  if ! grep -q '^## Workflow Navigation$' "$file"; then
+    log_error "commands/$cmd: missing Workflow Navigation section"
+  elif ! section_has_literal "$file" "Workflow Navigation" "skills/meta/workflow-navigation/"; then
+    log_error "commands/$cmd: navigation section does not load shared workflow-navigation contract"
+  else
+    log_ok "commands/$cmd: workflow navigation contract present"
+  fi
+done
+
+echo ""
+
+# --- Check 2e: Shared navigation keeps its non-negotiable routing rules ---
+echo "## Checking workflow-navigation guardrails..."
+
+NAVIGATION_FILE="$SKILLS_DIR/meta/workflow-navigation/SKILL.md"
+for phrase in \
+  "## Closing Contract" \
+  "**Outcome:**" \
+  "**Recommended next:**" \
+  "**Alternatives:**" \
+  "spec-only" \
+  "Ask before assuming" \
+  "Do not route past an unmet prerequisite" \
+  "at most two" \
+  "all relevant seats" \
+  "no-op" \
+  "Never imply"; do
+  if grep -Fq "$phrase" "$NAVIGATION_FILE"; then
+    log_ok "workflow-navigation: retains '$phrase'"
+  else
+    log_error "workflow-navigation: missing routing guardrail '$phrase'"
+  fi
+done
+
+echo ""
+
+# --- Check 2f: Shared routes retain prerequisite and terminal-state invariants ---
+echo "## Checking workflow-navigation route invariants..."
+
+for invariant in \
+  '| `discover`, all relevant seats + council settled' \
+  '| `discover`, a material seat unresolved' \
+  '| `spec`, artifacts valid but no execution signal' \
+  '| `spec`, artifacts valid and user gives an execution signal' \
+  '| `check`, verify fail' \
+  '| `check`, verification blocked' \
+  '| `check`, verification degraded/partial' \
+  '| `check`, clean audit' \
+  '| `handoff`, blocked' \
+  '| `handoff`, degraded' \
+  '| `update`'; do
+  if grep -Fq "$invariant" "$NAVIGATION_FILE"; then
+    log_ok "workflow-navigation: retains route '$invariant'"
+  else
+    log_error "workflow-navigation: missing route invariant '$invariant'"
+  fi
+done
+
+echo ""
+
+# --- Check 2g: Each command retains its state-specific safe route ---
+echo "## Checking command-specific navigation routes..."
+
+for cmd in "${EXPECTED_COMMANDS[@]}"; do
+  file="$SKILLS_DIR/commands/$cmd/SKILL.md"
+  case "$cmd" in
+    discover) marker="unanswered" ;;
+    spec) marker="execution signal" ;;
+    implement) marker="offer, not an automatic dispatch" ;;
+    check) marker="A clean AUDIT may stop" ;;
+    docs) marker="approve or revise that plan" ;;
+    learn) marker="Never recommend implementation" ;;
+    handoff) marker="only after the user selects it" ;;
+    update) marker="Never auto-apply" ;;
+  esac
+  if grep -Fq "$marker" "$file"; then
+    log_ok "commands/$cmd: retains safe route"
+  else
+    log_error "commands/$cmd: missing state-specific navigation guardrail '$marker'"
+  fi
+done
 
 echo ""
 

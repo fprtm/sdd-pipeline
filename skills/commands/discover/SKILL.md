@@ -66,6 +66,16 @@ When the user signals they want to build ("oke gua mau seriusin ini", "let's do 
 
 **Everything settled here is not re-asked.** `spec` and `elicitation` read `docs/sdd/glossary.md` and `docs/sdd/decisions/` and build from what's already agreed. A user answering the same question twice is a bug.
 
+## Workflow Navigation
+
+Before closing, load `skills/meta/workflow-navigation/SKILL.md`. Report each
+relevant seat as settled, unresolved, or not applicable; an unanswered
+material seat means discovery is **paused**, not complete. Recommend
+`/sdd-pipeline:spec` only after all relevant seats and the whole-picture
+council are settled **and** the user wants detailed design. Otherwise offer
+continue/revise discovery, discuss the unresolved decision, or stop. Never
+offer `/sdd-pipeline:implement` from discovery.
+
 ## Mode Interaction
 
 Defer to orchestrator matrix (`skills/orchestrator/SKILL.md`, Elicitation row) on conflict. Skill-specific additions below — mode dials **how deep each seat goes**, never **which seats exist**:

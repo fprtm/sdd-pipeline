@@ -137,6 +137,17 @@ For large codebases, documenting everything in one session is impractical. The u
 - **Run the full THINK→BUILD→PROVE pipeline** — no tickets, no implementation, no verification. This is a documentation pass only.
 - **Invent behavior** — if the code doesn't do something, the doc doesn't claim it does. Gaps are noted as gaps.
 
+## Workflow Navigation
+
+Before closing, load `skills/meta/workflow-navigation/SKILL.md`. Report which
+modules/doc types were generated, updated, reused, or skipped and why. Offer
+the next approved batch, `/learn` for focused understanding, or stop. After a
+documentation plan is proposed but before its first batch is approved, close
+`paused` and recommend that the user approve or revise that plan. For new
+product work, route through `/discover` then `/spec`; descriptive docs alone
+never make `/implement` ready. Offer `/check` only for an explicitly requested
+documentation/code consistency audit.
+
 ## Output
 
 | Artifact | Location |

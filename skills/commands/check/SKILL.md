@@ -57,6 +57,21 @@ is unchanged for legacy work without that block.
 
 **Impact summary (always appended)** — a 1-3 line digest from `docs/sdd/stats/`, so every check ends with visibility into what SDD Pipeline has been catching over time. No separate command needed to see it.
 
+## Workflow Navigation
+
+Before closing, load `skills/meta/workflow-navigation/SKILL.md`. State whether
+VERIFY or AUDIT ran and why. A failed verify recommends
+`/sdd-pipeline:implement` with its finding; a wrong or unresolved decision
+routes to `/sdd-pipeline:spec` revision instead. An audit never claims a fix:
+recommend `/learn` or discussion first, and only offer discovery/spec after the
+user chooses a change. A passing verify may stop for human review or an
+explicit transfer; it never authorizes release or deployment. If required
+evidence or a harness capability is unavailable, close `BLOCKED` with the exact
+missing prerequisite rather than offering implementation. If evidence is
+partial or an optional verifier is unavailable, close `DEGRADED`, name the
+limitation, and offer remediation or human review. A clean AUDIT may stop; it
+does not invent a finding.
+
 ## Full Behavior
 
 See `skills/prove/verification/`, `skills/prove/judgment/`, `skills/meta/health-check/`, and `skills/meta/stats/` for the underlying mechanics.

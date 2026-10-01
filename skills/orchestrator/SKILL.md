@@ -44,6 +44,22 @@ You are the orchestrator. On every task, you:
 9. Run the pipeline at appropriate depth, generating **documents** adaptive to task type
 10. Track decisions (gated by rule-of-three), glossary, stats, and generate outputs
 
+## Terminal Navigation — Never Leave the User Guessing
+
+At the end of a governed task or direct command, load
+`skills/meta/workflow-navigation/SKILL.md`. State the actual outcome, any
+material stage/domain/gate that did not run and why, then offer one valid next
+action and at most two contextual alternatives. A suggestion is never an
+automatic dispatch. Missing user decisions, unapproved work orders, failed
+evidence, or unavailable required capabilities block downstream routing rather
+than being filled in by the agent.
+
+Discovery is complete only when every relevant seat is settled by the user,
+existing canonical evidence, or an explicit not-applicable finding. Spec-only
+is a valid stop. `learn`, `docs`, `handoff`, and `update` are utility overlays,
+not mandatory delivery stages; offer them only when their own preconditions
+match the observed state.
+
 ## Mode Detection
 
 Detect mode from context. User can override explicitly.
