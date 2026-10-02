@@ -89,4 +89,4 @@ A pattern is only an anti-pattern IN CONTEXT. Factory pattern with 12 product ty
 
 ## Mode Behavior
 
-**Mode behavior**: see unified mode matrix in `skills/orchestrator/SKILL.md`.
+**Mode behavior**: see unified mode matrix in `skills/orchestrator/references/behavior.md`.

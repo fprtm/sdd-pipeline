@@ -41,4 +41,4 @@ Every 5 tasks (or when user asks), generate:
 
 ## Mode Behavior
 
-**Mode behavior**: see unified mode matrix in `skills/orchestrator/SKILL.md`.
+**Mode behavior**: see unified mode matrix in `skills/orchestrator/references/behavior.md`.

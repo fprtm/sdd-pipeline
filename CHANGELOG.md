@@ -5,6 +5,19 @@ Plain-language where possible.
 
 For compatibility promises, deprecation, and release operation, see [the release policy](docs/RELEASE-POLICY.md).
 
+## [6.11.2] — 2026-10-02
+
+### Changed
+- The auto-discovered orchestrator and installed project router are now
+  context-bounded entrypoints. Detailed behavior, delivery, and project-state
+  policy loads progressively only when its decision point is reached.
+- OpenCode and Codex root aliases rewrite progressive-reference links during
+  installation so the thinner entrypoint remains portable.
+
+### Fixed
+- Plugin, marketplace, installer, and project-router versions are synchronized
+  and mechanically checked to prevent stale marketplace metadata.
+
 ## [6.11.1] — 2026-10-01
 
 ### Added

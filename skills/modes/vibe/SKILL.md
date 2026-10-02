@@ -4,7 +4,7 @@ Invisible guardrails. The user shouldn't feel the framework working. For casual 
 
 **Entered only on request** (or via `config.md`), never inferred from a casual-sounding prompt — tone is not a quality requirement.
 
-**Phase behavior**: see the unified mode matrix in `skills/orchestrator/SKILL.md`. This file adds process rules unique to vibe mode.
+**Phase behavior**: see the unified mode matrix in `skills/orchestrator/references/behavior.md`. This file adds process rules unique to vibe mode.
 
 ## The Invisible Principle
 

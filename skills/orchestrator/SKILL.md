@@ -1,422 +1,91 @@
 ---
 name: sdd
-description: SDD Pipeline orchestrator — auto-applies THINK/BUILD/PROVE guardrails to software engineering tasks (coding, debugging, architecture, refactors). Detects mode, task size, domain, SDLC methodology, and architecture automatically. Does not trigger on non-coding tasks (writing, research, pure discussion).
+description: Route coding, debugging, architecture, and refactor requests through adaptive THINK, BUILD, and PROVE guardrails. Do not use for writing, research, or discussion without execution intent.
 ---
 
 # SDD Pipeline Orchestrator
 
-You are operating under **SDD Pipeline** — spec in front, judgment behind: a system that gives humans control over and trust in AI-generated code through three phases: **THINK → BUILD → PROVE**.
+SDD Pipeline keeps a specification in front of implementation and evidence
+behind it. This entrypoint is intentionally small: select the current path,
+then load only the policy reference needed for that path.
 
-For direct access use one of eight standalone commands: `/sdd-pipeline:discover`, `/sdd-pipeline:spec`, `/sdd-pipeline:implement`, `/sdd-pipeline:check`, `/sdd-pipeline:docs`, `/sdd-pipeline:learn`, `/sdd-pipeline:handoff`, or `/sdd-pipeline:update`. Handoff produces or consumes provider-neutral state; it is not a transcript export.
+## Fast boundary
 
-## The Fixed Sequence — Ask Before Execute, Always
+- **Non-software work or discussion without execution intent:** answer normally.
+  Do not load SDD policy references, create artifacts, or start BUILD.
+- **Micro coding edit:** load the behavior reference; apply the applicable
+  constraint and evidence floor without manufacturing extra ceremony.
+- **Small or larger coding work:** load the behavior and delivery references
+  before editing. Load project-state policy only when repository adoption,
+  artifact placement, persistence, or lifecycle handling is relevant.
+- **Direct command:** use the named command skill. Follow its routing and load
+  the references below only when that command reaches the corresponding stage.
 
-The single most common trust-breaking failure: sometimes asking questions first, sometimes jumping straight to execution, with no visible logic. The sequence below is **fixed** — same order every time, only the *depth* adapts to task size:
-
-```
-1. ASK      — micro: 0 questions · small: 0-1 · medium: 2-3 · large/new product: the five
-              discovery seats (why · constraints · what · data · technical) + council
-2. SPEC     — deliberate HOW, then write it down (micro: none, small: minimal spec + DoD, medium: FSD + DoD, large: full doc suite)
-3. PLAN     — the written record, approved per mode: tickets (large) or changes/ file (small/medium)
-4. BUILD    — code with guardrails
-5. CHECK    — PROVE pipeline + judgment gate
-```
-
-Hard rules:
-- **Never skip from a request straight to BUILD** for small+ tasks — even when the request seems crystal clear, step 2 (something written) still happens. A "clear" request with zero written spec is how scope drift starts.
-- **A question is not an execution signal.** If the user asks "gimana kalau kita pake X?" or "bisa ga sih Y?", that's discussion — answer it, grill it if consequential, but do NOT start building. Building starts only on an actual instruction ("bikin", "fix", "tambahin", "go").
-- **DoD is the floor.** Small task: the spec can be three lines, but a DoD checklist always exists for small+ tasks. If there's no DoD, the task has no definition of done, and "done" becomes whatever the agent felt like stopping at.
-- Skipping any step must be announced with the reason ("micro task — no spec needed").
-
-## Your Role
-
-You are the orchestrator. On every task, you:
-
-0. If `docs/sdd/config.md` exists, read `skills/orchestrator/config-reference.md` — the `disable:` list (skills turned off project-wide) and the `team:` block (whether saved decisions/memory count as settled consensus) — before dispatching to anything
-1. Detect the **mode** (prototype / vibe / standard / strict / emergency)
-2. Detect the four independent control axes: **task complexity** (micro / small / medium / large), **risk** (low / moderate / high / critical), **assurance** (A0 / A1 / A2 / A3), and **ceremony mode**. Never derive risk/assurance from size or tone; `skills/meta/quality-contract/rules/axes.mjs` is the deterministic shadow evaluator when installed.
-3. Detect the **domain** (web / cli / mobile / library / api)
-4. Detect the **SDLC** methodology (scrum / kanban / waterfall / solo)
-5. Analyze **architecture** (existing patterns / new project proposal)
-6. Check **skill composition** (recommend missing skills if needed)
-7. Offer **SDD Grill** for casual architecture/scope decisions before they lock in
-8. Produce the **written record** and get it approved — for `large`, that means decomposing into tickets first; for small/medium, the `changes/` file
-9. Run the pipeline at appropriate depth, generating **documents** adaptive to task type
-10. Track decisions (gated by rule-of-three), glossary, stats, and generate outputs
-
-## Terminal Navigation — Never Leave the User Guessing
-
-At the end of a governed task or direct command, load
-`skills/meta/workflow-navigation/SKILL.md`. State the actual outcome, any
-material stage/domain/gate that did not run and why, then offer one valid next
-action and at most two contextual alternatives. A suggestion is never an
-automatic dispatch. Missing user decisions, unapproved work orders, failed
-evidence, or unavailable required capabilities block downstream routing rather
-than being filled in by the agent.
-
-Discovery is complete only when every relevant seat is settled by the user,
-existing canonical evidence, or an explicit not-applicable finding. Spec-only
-is a valid stop. `learn`, `docs`, `handoff`, and `update` are utility overlays,
-not mandatory delivery stages; offer them only when their own preconditions
-match the observed state.
-
-## Mode Detection
-
-Detect mode from context. User can override explicitly.
-
-| Signal | Mode |
-|--------|------|
-| User says "prototype", "MVP", "hackathon", "quick and dirty" | prototype |
-| User says "vibe", "just wing it", "no ceremony", or otherwise asks for invisible guardrails | vibe |
-| Default for all tasks | standard |
-| User says "production", "critical", "fintech", "healthcare", mentions compliance | strict |
-| User says "down", "broken", "crash", "emergency", "urgent", "fix now", "ASAP" | emergency |
-| `docs/sdd/config.md` specifies a default mode | that mode |
-
-**Tone is not a signal.** A casual prompt does not mean vibe mode, and a terse one does not mean the user waived rigor — someone typing "bikin checkout dong" about a payment system is still building a payment system. `vibe` and `prototype` are entered only when the user *asks* for them or `config.md` sets them as default. Guessing a lower ceremony level from how a message is written is how guardrails come off without anyone deciding they should.
-
-Load the corresponding mode file from `skills/modes/[mode]/SKILL.md` for mode-specific process steps (trigger detection, checkpoint pattern, emergency process). The **behavior matrix** below is the single source of truth for what each phase does per mode — individual mode files and per-skill mode tables defer to this matrix on any conflict.
-
-### Unified Mode Matrix — Single Source of Truth
-
-Every phase × mode cell lives here. No other file may contradict this table. Mode files add *process* (how emergency triggers, how strict checkpoints work); this matrix owns *what runs and at what depth*.
-
-#### THINK Layer
-
-| Phase | prototype | vibe | standard | strict | emergency |
-|-------|-----------|------|----------|--------|-----------|
-| Elicitation | 5 seats, 1 fast round each (skip on routine) | 5 seats, 1 round, auto-accept recs (0-1 Qs on routine) | Adaptive: 0–5 Qs by size | 5+ thorough Qs, confirm understanding | Skip — focus on error |
-| Context | Minimal: stack detect | Auto-scan silently | Full scan, report | Deep scan, verify with user | Error-focused only |
-| Scope guard | No limits | Soft limits, warn internally | Hard limits, pause if exceeded | Strict limits, justify + approve | No limits |
-| Complexity | Detect, don't block | Detect silently, auto-escalate | Report, user decides | Detailed breakdown, address each | Skip |
-| SDLC detector | Detect + announce; skip slow adaptations | Detect silently, adapt silently | Full adaptation, context in plan | Full + formal compliance | Detect from config/current context; defer adaptations |
-| Arch analyzer | Skip | Run silently, flag CRITICAL only | Full analysis, show recs | Full, require approval | Skip |
-| Threat model | Skip | Zone-triggered silently | Zone-triggered | Mandatory | Skip (post-fix) |
-
-#### BUILD Layer
-
-| Phase | prototype | vibe | standard | strict | emergency |
-|-------|-----------|------|----------|--------|-----------|
-| Constraints | OVERRIDE:none rules only (#7 secrets) | Run silently, auto-correct | Visible, flag, explain, correct | All visible, pause + approve each | Skip overridable; OVERRIDE:none stays |
-| Anti-patterns | Hallucinated APIs + secrets only | Auto-fix silently | Fix and note | Report each, fix after ack | Skip |
-| Written record | Shown, auto-approved | Written + auto-approved silently | Shown, wait for approval/"go" | MUST be explicitly approved | Skip (post-fix retrospective) |
-| Change plan | Skip | Auto-declare, no approval | Declare + confirm, pause on deviation | Declare + approve EACH file | Skip |
-| Doc generator | Minimum: DoD only | Generate silently | Generate, show summary | Full suite, require review before BUILD | Skip (post-fix report) |
-| Execution guard | Loop after 5 tries, no progress signals | Loop after 3 tries, no progress | Loop after 3 tries, progress at milestones | Loop after 2 tries, progress at every decision | Loop after 2 tries, escalate FAST |
-
-#### PROVE Layer
-
-| Phase | prototype | vibe | standard | strict | emergency |
-|-------|-----------|------|----------|--------|-----------|
-| Verification | Quick smoke test + applicable small+ coverage gate | Types + tests + lint + applicable coverage silently; surface failures only | All 4 layers | All 4 layers + manual review checkpoint | Quick smoke now; mandatory applicable coverage in post-fix follow-up |
-| Adversarial | Skip | Skip | 3–5 targeted tests | 5–10+ comprehensive | Skip |
-| Security | Secrets check only | Auto-check, alert CRITICAL only | Full domain checklist | Full + recommend manual review | Critical items only (secrets, injection) |
-| Performance | Skip | Skip | Detect and flag | Detect, flag, require resolution | Skip |
-
-#### META Layer
-
-| Phase | prototype | vibe | standard | strict | emergency |
-|-------|-----------|------|----------|--------|-----------|
-| Report | 1-line: "Works." / "Broken: [error]" | 1-line verdict + top 1 thing to check | Full actionable (~15–20 lines) | Detailed + blind spots + all decisions | 1-line: "Fix applied. [result]" |
-| Decision log | Skip | Auto-log silently | Log and reference in report | Log EVERYTHING, full audit trail | Post-facto emergency entry |
-| Comprehension | Skip | 2–3 sentences in completion | Full output (~15 lines) | Detailed walkthrough + data flow | Skip |
-| Insight | Skip | Brief 1–2 line note | Per-task notes + periodic summary | Continuous per-decision | Skip |
-| Memory | Don't save | Save automatically | Save automatically | Save with detailed context | Don't save |
-| Stats | Minimal (files + security). No footer | Track everything. 1-line footer | Track everything. 2-line footer | Track everything. Full stats in report | Track fix. Brief. No footer |
-
-### What Mode May and May Not Dial
-
-Mode controls **depth and visibility** — how many rounds, how much is shown, how much ceremony. Mode does **not** control **coverage** — whether a subject was consulted or a gate was measured at all. Concretely: no mode may skip a discovery seat (`skills/commands/discover/`'s Why · Constraints · What · Data · Technical), skip the DoD floor above `micro`, skip running the coverage gate, or skip an `OVERRIDE: none` rule. A seat is skipped only when the product has no such surface (no screens → no UI questions), announced with its reason. What prototype/vibe legitimately buy is *one round instead of four, recommendations accepted by default, and nothing narrated* — not an unasked question about the data model, and not an unmeasured test suite.
-
-## Task Size Detection
-
-| Signal | Size | Pipeline Depth |
-|--------|------|----------------|
-| Typo, rename, 1-line change, formatting | micro | constraints only |
-| Bug fix, simple change, < 3 files expected | small | light THINK + constraints + basic PROVE |
-| New feature, API endpoint, UI component | medium | full THINK + full BUILD + full PROVE |
-| New system, architecture change, multi-component | large | deep THINK + full BUILD + comprehensive PROVE |
-
-## Independent Risk and Assurance Selection
-
-Task size controls decomposition only. Separately assess user harm, money,
-privacy, authorization, availability, data reversibility, and compliance, then
-derive the minimum assurance profile. `A0` is limited to disposable micro work;
-moderate risk requires at least A1, high risk A2, and critical risk A3. Unknown
-risk never defaults low. A user/project may raise assurance but cannot lower it
-below policy. Mode controls ceremony only and may not alter the computed floor.
-
-During vNext shadow/report-only rollout, run the deterministic axis evaluator
-when available and surface any mismatch with the prose assessment. Shadow output
-never grants dispatch or acceptance authority. The governing precedence is:
+## Fixed delivery spine
 
 ```text
-hard stop > assurance profile > risk controls > task complexity > ceremony
+ASK → SPEC → PLAN → BUILD → CHECK
 ```
 
-## Role Authority and Lifecycle State
+- A question is not an execution signal.
+- Small+ work always has a written record and Definition of Done before edits.
+- Large work uses approved vertical-slice tickets; small/medium work uses one
+  `docs/sdd/changes/{date}-{slug}.md` record.
+- Applicable coverage is always measured. Mode changes depth and narration,
+  never the evidence floor or an `OVERRIDE: None` rule.
+- User approval never creates production, release, review, or human authority
+  that the environment cannot attest.
+- Tests and browser QA target local or disposable environments only. Production,
+  provisioning, deployment, and spending require explicit human authorization.
 
-Roles are accountability contracts, not personas. Product owner, architect,
-implementer, verifier, security reviewer, SRE, release authority, and outcome
-owner each have bounded ownership and prohibited self-approval. At A2 the
-implementer must differ from the verifier and applicable specialist; at A3,
-qualified human authority is externally attested. Distinct actor strings or a
-fresh prompt do not create human authority. The deterministic report-only rule
-is `skills/meta/quality-contract/rules/roles.mjs`.
+## Progressive-disclosure routes
 
-For vNext work, record lifecycle as append-only exact-subject events from intake
-through outcome review, including reject, revise, rework, rollback, and retire
-routes. Invalid, stale, expired, replayed, forked, or unauthorized events leave
-the prior state unchanged. Legacy input remains report-only until explicit
-migration. `skills/meta/quality-contract/rules/lifecycle.mjs` owns the machine
-transition table; command names do not define lifecycle state.
+Read each file only when its condition is true:
 
-## Domain Detection
+1. [Behavior policy](references/behavior.md) — any governed coding task. Owns
+   mode selection, the unified mode matrix, complexity/risk/assurance,
+   domain/SDLC detection, role boundaries, and brownfield behavior.
+2. [Delivery policy](references/delivery.md) — an execution signal reaches
+   SPEC, PLAN, BUILD, or CHECK. Owns approval, pipeline execution, evidence
+   gates, review tiers, agent separation, and completion bookkeeping.
+3. [Project-state policy](references/project-state.md) — SDD activation,
+   artifact creation/retirement, repository layout, or session persistence is
+   relevant.
+4. [Config reference](config-reference.md) — `docs/sdd/config.md` exists. Read
+   once per session to apply `disable:` and team-sharing settings.
+5. [Composition policy](composition.md) — the task genuinely needs an external
+   capability such as aesthetics, browser automation, or deep specialist audit.
 
-Read project context to determine domain:
+Do not preload all references. A pure discussion stops at the fast boundary;
+a micro edit normally needs only behavior policy and its concrete constraint.
 
-| Signal | Domain |
-|--------|--------|
-| `package.json` with react/vue/next/express, HTML files | web |
-| `__main__.py`, `argparse`, `click`, CLI entry points, no web server | cli |
-| React Native, Flutter, Swift, Kotlin mobile targets | mobile |
-| Published package, `exports` in package.json, public API surface | library |
-| REST/GraphQL endpoints, API routes, no frontend | api |
-| Mixed signals | load multiple constraint sets |
+## Core precedence
 
-Load constraints from `skills/constraints/[domain]/SKILL.md`.
-
-## SDLC Detection — Always Detected, Always Announced
-
-Run `skills/think/sdlc-detector/SKILL.md` to detect methodology — **every mode, including prototype**. A prototype can be speed-first without being methodology-blind; knowing "this is kanban" or "this is solo" costs one detection pass and shapes how tickets, scope, and progress updates work for the rest of the session.
-
-1. Check `docs/sdd/config.md` for declared SDLC
-2. Auto-detect from project signals (`.jira/`, `.linear/`, sprint labels, etc.)
-3. If undetected, ask once and save as a note in `docs/sdd/memory/`
-
-**Mandatory, never skippable — mode and SDLC are reported as one combined decision line, not two disconnected outputs.** Announce them together in the THINK output: `Mode: standard · SDLC: agile/kanban (detected from .github/project.yml) — why: WIP-limited board found, single-piece flow assumed for scope guard`. SDLC itself is two layers — the *model* (Waterfall, Iterative, V-Model, Spiral, Agile, DevOps, RAD, Incremental, Solo) and, only when the model is Agile, the *framework* (Scrum, Kanban, Scrumban, XP) — Scrum and Kanban are never reported as if they were the model itself; see `skills/think/sdlc-detector/` for why that distinction matters and gets it wrong when collapsed. Mode controls depth/visibility; SDLC controls methodology-shaped behavior (iteration awareness, WIP limits, phase gates) — they're two answers to "how do we work", always surfaced side by side so the developer sees the full operating context in one line, not scattered across the run. Silent detection that's "passed to downstream skills" but never shown to the user is invisible work — invisible work doesn't build trust.
-
-## Architecture Analysis
-
-Run `skills/think/arch-analyzer/SKILL.md`:
-
-- **Existing project**: Detect patterns, flag inconsistencies, advise on architecture-impacting changes
-- **New project**: Propose architecture based on domain + scale + requirements
-- **Architecture-impacting task**: Flag when changes cross architectural boundaries
-
-## Brownfield Adoption — Existing Project, First Time Using SDD
-
-When detected (coding task + no `docs/sdd/` content): don't treat it as greenfield — respect existing conventions/patterns. Bootstrap `docs/sdd/` incrementally: create `config.md` (detected mode, domain, SDLC) + `index.md` on first task, seed `memory/` from context-loading. Other artifacts appear when tasks naturally produce them, not pre-emptively. Don't retroactively document the codebase — prior work stays in git history. Announce: "First SDD run — created `docs/sdd/config.md` + `index.md`. Patterns: [summary]. SDLC: [detected]."
-
-## Skill Composition Engine
-
-Before dispatching the pipeline, check if the task needs capabilities SDD Pipeline doesn't have (aesthetics, TDD workflow, deep security audit, live docs, browser automation) — detect the gap, recommend an install with justification, and respect the conflict-resolution table when external skills are active. Full gap-detection table, recommendation flow, and who-wins rules: `skills/orchestrator/composition.md`. The one-line rule: **SDD Pipeline yields on aesthetics and workflow preferences, wins on safety and engineering correctness.**
-
-## SDD Grill — Before Lock-In
-
-Run `skills/think/grill/SKILL.md` when either:
-- User explicitly asks to brainstorm/grill/think through something, OR
-- Orchestrator detects a consequential architecture/scope decision being stated casually, before an execution signal ("let's build it", "go") — auto-suggest a grill session first (standard/strict modes only; see grill's mode table)
-
-**Critical distinction**: pure discussion/brainstorming (no execution intent) skips the SDD pipeline entirely per Priority Rule 4 below. Grill is different — it's the THINK-phase tool for when a decision is about to be *made*, run explicitly or by suggestion, never silently.
-
-If a grill session concludes with the user saying "build it" / "let's do it", its shared understanding feeds directly into the plan file — elicitation does not re-ask what the grill session already settled.
-
-## Plan Approval Flow
-
-Before BUILD, there is always a **written record of what's about to happen, approved before code**. Which artifact plays that role depends on size — and there is never more than one:
-
-| Size | The written record | Why this one |
-|------|--------------------|--------------|
-| **small / medium** | `docs/sdd/changes/{date}-{slug}.md` | No PRD/SDS/ADR exists at this size, so this file is the *only* record of scope, decisions, and risk. It folds plan + report into one artifact. |
-| **large / full** | **the ticket list** (`docs/sdd/specs/{NNN}-{slug}/tickets/`) | Scope already lives in the PRD, approach and decisions in the SDS + ADRs, risks in the SDS + threat model. A separate plan file would be a summary of five files that already exist — no new information, and one more thing to go stale. |
-
-**`plans/current.md` is retired.** It was written before ticket decomposition existed, and for large work it duplicated documents that now carry the same content with more precision. Existing projects with a `plans/` directory keep it (nothing breaks, `check-file-hygiene.mjs` still accepts the shape); nothing new is written there.
-
-### What Gets Approved
-
-The approval gate does not disappear with the plan file — it moves to the artifact that's actually useful to approve:
-
-- **small/medium** → the `changes/` file's scope + approach section
-- **large/full** → **the ticket breakdown**, shown as a numbered list with blocking edges *before* any ticket file is written (`skills/build/ticket-decomposition/`). This is a better thing to approve than five abstract bullets: the user can merge, split, reorder, or defer individual slices, and what they approve is the actual work order.
-
-| Mode | Approval Behavior |
-|------|-------------------|
-| **prototype** | Shown, auto-approved, proceed immediately. |
-| **vibe** | Written and auto-approved. Proceed immediately, no wait. |
-| **standard** | Shown to user. Wait for approval or "go". User can modify scope/order. |
-| **strict** | Shown. **MUST** be explicitly approved. No proceeding without "approved" / "go" / "yes". |
-| **emergency** | None. Fix first, retrospective after. |
-
-### Plan Transparency — Say What Happened, Before Code, Every Time
-
-**Step 0 of BUILD, not a trailing courtesy** — before the first code edit, not an afterthought once code-writing momentum has taken over. The response for any coding task must contain exactly one of these lines before any file is created/modified:
-
-- `Change file written to docs/sdd/changes/{date}-{slug}.md` (small/medium)
-- `Tickets written to docs/sdd/specs/{NNN}-{slug}/tickets/ — N tickets, starting with TICKET-xxx` (large/full)
-- `No written record — reason: <micro task (1-line change) | emergency mode | ...>`
-
-Inconsistent behavior ("sometimes it makes a plan, sometimes not, and I don't know why") destroys trust. Fixed rule: **small+ task in vibe/standard/strict → a written record, always**, exactly one of the two forms — never both, never neither. Micro/emergency → no written record, but say so, and record the reason in stats regardless (`skills/meta/stats/`'s `gates_skipped` field): an inline announcement can scroll out of view, a stats entry doesn't.
-
-## Pipeline Execution
-
-```
-THINK (parallel)               BUILD (sequential)            PROVE (parallel)
-├─ elicitation ──┐             ├─ doc-generator (adaptive)   ├─ verification ──┐
-│  + diagram suite (large)    │
-├─ context-loader ├─ merge ──→ ├─ test-plan (medium+)        ├─ adversarial    ├─ merge → REPORT
-├─ scope-guard   ─┤            ├─ TESTS FIRST (medium+) ←─┐ ├─ diagnose ┤      + REVIEW GUIDE
-├─ complexity    ─┤            ├─ constraints check      │ ├─ coverage-check ┤      + JUDGMENT
-├─ sdlc-detector ─┤            ├─ change-plan            │ ├─ performance   ─┘
-├─ arch-analyzer ─┤            ├─ anti-pattern check     │
-└─ threat-model ──┘            ├─ execution (CHUNKS) ────┘
-   (gated, see below)          ├─ git-workflow (commits)
-                               └─ model-router (advisory)
+```text
+project rules > hard stop > assurance profile > risk controls
+              > task complexity > ceremony
 ```
 
-**Three mechanisms close the 10x review gap** — AI generates code far faster than a developer can review it. Spec-in-front and judgment-behind don't change this arithmetic. These three do:
+- Project `AGENTS.md`, `CLAUDE.md`, and explicit config override SDD defaults.
+- Unknown risk never defaults low. Users may raise assurance but may not lower
+  it below policy.
+- A valid shadow or mechanical result is evidence, not dispatch, acceptance,
+  release, or promotion authority.
+- If fresh independent contexts are unavailable, report `degraded
+  independence`; never relabel a self-review as independent.
 
-1. **Tests before code** (`build/test-plan`'s tests-first protocol): test code is generated from the spec BEFORE implementation, developer reviews the tests (50-100 lines of intent) instead of the implementation (500 lines of logic). When tests pass, the spec is mechanically verified. The developer's implementation review drops to trust-tiered verification (§3 below).
-2. **Reviewable chunks** (`build/execution-guard`'s chunk protocol): implementation is broken into semantic chunks (one behavior, one function, one spec item), each announced with its spec mapping and trust tier. 🔴 chunks pause for acknowledgment; 🟡/🟢 proceed with announcement. A 500-line diff is unreviewable; five focused chunks are not.
-3. **Review guide with trust tiers** (`prove/judgment` §5): every report includes a trust-tiered review map — 🔴 DEEP REVIEW (auth, payment, trust boundary) / 🟡 VERIFY INTENT (business logic, validation) / 🟢 LIGHT SCAN (boilerplate, config, types). Each item maps to its spec, names what to verify, and states its test coverage. The developer spends 80% of review time on the 20% of code that carries risk.
+## Direct commands
 
-**The SPEC step deliberates before it documents.** Whether reached via `/sdd-pipeline:spec` or run inline here, every step that produces a document first **deliberates** the domain with the user — using grill's frontier/round mechanics, the deliberation agenda from the relevant think/ skill, every question carrying a recommendation — and only then writes the artifact from what was settled. Discover settled WHICH (entities, stack, approach); spec's deliberation settles HOW (relationships, patterns, interaction states). A document written without deliberation is the agent making design decisions alone.
+`/sdd-pipeline:discover`, `/sdd-pipeline:spec`,
+`/sdd-pipeline:implement`, `/sdd-pipeline:check`, `/sdd-pipeline:docs`,
+`/sdd-pipeline:learn`, `/sdd-pipeline:handoff`, and
+`/sdd-pipeline:update` are the only public commands. Utility commands do not
+replace missing delivery prerequisites.
 
-Each think/ skill owns its domain's deliberation agenda: `think/arch-analyzer` (code patterns, module boundaries, deep stack, FE↔BE contract), `think/database-design` (entity relationships, normalization, cascades, indexes), `think/ux-design` (interaction design, states, error UX, navigation). Full protocol and the fork table: `skills/commands/spec/SKILL.md`; per-document loop: `skills/build/doc-generator/`. Forks go to the user; filenames, numbering, and formats are decided internally.
+## Closing
 
-**Mandatory documentation rule**: every change request that reaches BUILD gets *something* written down — at minimum the plan file, plus whatever docs the task type triggers (see `skills/build/doc-generator/`). Elicitation questions that were asked and answered MUST result in a written spec/DoD before code — asking the user five questions and then writing nothing is a broken contract. If a doc is skipped, name the reason (task size, mode) in the output **and** record it in `skills/meta/stats/`'s `gates_skipped` field — this applies at every size, including micro, since a skip reason is cheap to record and is exactly the trail that makes "why didn't this task get docs" answerable later instead of just trusted on faith.
-
-**For `large` tasks**: run `skills/build/ticket-decomposition/SKILL.md` before BUILD — split into vertical-slice tickets with blocking edges, then run THINK→BUILD→PROVE per ticket, working the frontier (unblocked tickets first).
-
-## Evidence Gates by Size — Adaptive, Never Silent
-
-The evidence spine (traceability matrix, threat model, test plan, coverage gate) scales with the work, same as pipeline depth. This table is the contract:
-
-| Gate | micro | small | medium | large / full product |
-|------|-------|-------|--------|----------------------|
-| DoD (doc-generator floor) | — | ✅ always | ✅ | ✅ |
-| Test plan (`build/test-plan`) | — | tests named in DoD | ✅ plan file | ✅ plan file |
-| Threat model (`think/threat-model`) | — | only if security-sensitive zone touched | zone-triggered | ✅ mandatory |
-| Coverage gate (`prove/coverage-check`) | — | ✅ ≥80% on **changed lines** + suite green | ✅ ≥80% overall + honesty checks | ✅ |
-| Committed e2e harness (UI products) | — | ask before adding to an existing repo | ✅ | ✅ |
-| Traceability (`meta/traceability`) | — | — | lite (inline `Refs:` trail) | ✅ full matrix + ship gate |
-
-**strict** promotes each gate one size-level down (medium behaves like large, small like medium); **prototype/vibe** demote *narration*, not measurement; **emergency** defers gates to the post-fix follow-up. **The coverage gate is the exception no mode may switch off** — what scales with size is the denominator (changed lines at `small`, whole repo at medium+), never the 80% bar, and a result is only ever reported from a command that actually ran. Whatever applies: announce what ran and what was skipped, with the reason — a silently missing gate is a trust failure, a silently added one is ceremony.
-
-The **ship gate** (large/full): work doesn't ship while a Must/Should traceability row is 🔴/🟡 — never quietly downgrade it; the user can override (inform-then-comply), logged.
-
-After pipeline:
-- Update traceability (`skills/meta/traceability/`) where it applies per the gates table — run its checker, report the coverage summary
-- Generate verification report (`skills/prove/report/`)
-- Run the judgment gate (`skills/prove/judgment/`) — weakest point, hallucination-risk zones, security escalation, comprehension check. **Must be dispatched to a fresh context** per the dispatch rules below (§ Multi-Agent Dispatch) — the judgment gate is the one check where context independence matters most.
-- Generate comprehension aid (`skills/meta/comprehension/`)
-- Log decisions gated by rule-of-three (`skills/meta/decision-log/`)
-- Update glossary if new domain terms surfaced (`skills/meta/glossary/`)
-- Record stats (`skills/meta/stats/`)
-- Save to project memory if applicable (`skills/meta/memory/`)
-- Generate insight if periodic threshold met (`skills/meta/insight/`)
-- Update index (`docs/sdd/index.md`)
-- Show vibe footer if applicable
-
-## Stats Footer
-
-After task completion, append a stats footer per mode — vibe: 1 line (`SDD Pipeline: 2 anti-patterns fixed | 1 security issue caught | confidence: HIGH`), standard: 2 lines (adds files changed, docs generated, scope deviations), strict: full stats in the report, prototype/emergency: none. Formats in `skills/meta/stats/SKILL.md`.
-
-## Multi-Agent Dispatch
-
-When fresh agent contexts are available:
-
-- THINK skills: spawn in parallel (elicitation + context-loader + scope-guard + complexity + sdlc-detector + arch-analyzer), merge results
-- Ticket decomposition (large tasks): spawn parallel-safe tickets (no shared files, no blocking edge) as separate agents; serialize blocked tickets
-- BUILD: split by file/component if independent, serialize shared files
-- PROVE: record distinct implementer/reviewer/verifier actor IDs; reviewers
-  report defects, implementers fix, and reviewers re-check. Add a distinct
-  security reviewer for sensitive work.
-- SDD Grill: fact-finding sub-agents dispatched per frontier round for anything the environment can answer (existing patterns, adapter counts, git history) — never for decisions, those stay with the user
-- JUDGMENT GATE: dispatch to a fresh sub-agent that receives ONLY spec docs + diff + test results — never the build conversation. This is the one check where independence matters most.
-
-When fresh contexts are unavailable, run sequentially and report
-`degraded independence`; a cold self-read is not independent. Medium+ and
-security-sensitive work must expose human-review items.
-
-## Priority Rules
-
-1. **Project rules override SDD Pipeline defaults.** CLAUDE.md, AGENTS.md, project config always win.
-2. **Never refuse a user override — inform, then comply — except the non-negotiable floor.** A small set of rules are marked `OVERRIDE: none` (constraints/universal's "No Hardcoded Secrets" is the sharpest one) precisely because they're not meant to be arguable — for those, there is no inform-then-comply dance: refuse, full stop, no matter how insistent the ask or which mode is active. For every *other* override, the response is always the same three steps: (a) state the specific risk plainly and concretely (not vague "this might cause issues" — what breaks, when, how badly), (b) if the user accepts the risk, proceed without further pushback or repeated warnings, (c) log the override (decision log if it passes rule-of-three). Refusing outright, silently complying without stating risk, and nagging after acceptance are all wrong — for the overridable rules. Confusing an `OVERRIDE: none` rule for an overridable one is the one failure mode this whole priority list exists to prevent.
-3. **Emergency overrides everything — except that same non-negotiable floor.** In emergency mode, fix first, process later: skip elicitation, scope limits, docs, style constraints, deep security review. Never skip the `OVERRIDE: none` rules — emergency mode buys speed on process and ceremony, not on the one or two things marked non-negotiable for a reason. `skills/prove/diagnose/`'s emergency row ("critical items only: secrets, injection") is the correct floor; a mode file that says "security: skip entirely" is wrong and should be brought back in line with this rule.
-4. **Non-coding tasks: step back.** If task is not software (writing, research, analysis), skip SDD pipeline entirely. Pure brainstorming/discussion with no execution intent also skips SDD Pipeline — that's normal conversation, not a grill session. Grill only activates on explicit request or when a consequential decision is about to lock in via an execution signal.
-
-## Session Persistence — Anchored to Repo State, Not Just Memory
-
-Once SDD Pipeline activates (via the orchestrator, any `/sdd-pipeline:*` command, or auto-detection of a coding task), **it stays active for every subsequent coding task in that session** — the user must never have to re-invoke it. Conversational memory of "I already activated this" isn't reliable alone: long sessions get auto-summarized, and this instruction can drop out of retained context with no visible symptom until guardrails silently stop applying.
-
-- **Don't rely on memory alone. Before treating a task as ungoverned, check for `docs/sdd/` content** (`config.md`, `index.md`, `plans/`, `changes/`). If any exists, SDD is active — full stop — regardless of this session's own memory. A file-existence check is cheap and immune to compaction; conversational memory is the fast path on top of it, not the sole mechanism. This happens naturally in `think/context-loader`'s step 3.
-- Detected context (mode/domain/SDLC/architecture) and answers already given (elicitation, grill, `docs/sdd/memory/`) carry forward — re-detect/re-ask only on an explicit signal change.
-- Only off-switch: the user says "stop using sdd" / "sdd off." Context length, topic drift, or a compaction event is not.
-
-## Adaptive Behavior
-
-- **Rapid iteration detected** (3+ prompts in 2 minutes): reduce narration and reuse settled answers from the last context. Do not close an unresolved discovery seat or skip an applicable evidence gate; shorten rounds and batch routine updates instead.
-- **Repeated task type detected**: check `docs/sdd/memory/INDEX.md` for saved decisions. Skip answered questions.
-- **Agent stuck**: execution-guard handles loop detection and escalation.
-- **SDLC-aware adaptation**: see sdlc-detector for per-methodology behavior changes.
-
-## Project Files
-
-SDD Pipeline uses these project-level files (created on first run if not present):
-
-```
-docs/sdd/
-├── index.md              # Lightweight relationship graph — AI navigation
-├── config.md             # Project settings, mode, constraints, SDLC override
-├── memory/               # Knowledge graph: INDEX.md (map) + one linked note per durable fact
-├── glossary.md           # Domain terms — canonical meaning + rejected synonyms
-├── traceability.md       # REQ→FSD→SEC→TICKET→TEST matrix + global ID counters (large/full only)
-├── HANDOFF.md            # Resumable session snapshot (skills/meta/handoff/), overwritten not appended
-├── stack-guide.md        # Version-pinned stack conventions (skills/think/stack-conventions/)
-├── analytics.md          # Metrics tree + event taxonomy (skills/think/analytics-design/)
-├── insights.md           # Periodic self-coaching summary (skills/meta/insight/)
-├── decisions/            # 1 file per decision, gated by rule-of-three — 005-auth-strategy.md IS ADR-005
-├── plans/                # Retired — kept only for existing projects, nothing new written here
-│   ├── current.md
-│   └── archive/
-├── changes/              # Small/medium changes: ONE dated self-contained file per topic
-│   └── YYYY-MM-DD-{slug}.md   # frontmatter (description/status/updated) + brief + decisions + tickets + tests inline — replaces plan+report for lite work
-├── reports/              # Active verification/audit reports; resolved transient reports retire to Git history unless archive policy says otherwise
-├── specs/                # ONE FOLDER PER FEATURE — everything tied to a spine number lives here. Spec-first work ONLY — never an ad-hoc audit report (those go in reports/, see above), never retroactive documentation of existing code (that goes in docs/system/, see below)
-│   └── {NNN}-{slug}/     # {NNN} IS the spine ID (FSD-003 = specs/003-x/fsd.md); folder found by number, never by regenerating the slug
-│       ├── fsd.md · sds.md · prd.md · threats.md · ux.md · erd.md   # bare filenames — whichever apply
-│       ├── tests.md · dod.md
-│       └── tickets/      # large scope only — vertical-slice ticket breakdown
-│           ├── 00-index.md               # required entry point: spec refs + How-to-Review + status + frontier
-│           └── {NN}-{ticket-slug}.md     # each carries a global TICKET-xxx id
-├── design-system/        # Everything visual, project-wide (not owned by one feature number)
-│   ├── design.md         # direction + tokens SSOT + screen inventory (skills/think/ux-design/) — required entry doc whenever there's a UI
-│   └── ux-screens/       # One priority-tagged flow file per user journey — a flow can be revisited across features, so it lives here, not in a specs/ folder
-└── stats/                # Monthly stats (2026-08.md)
-
-docs/system/              # Retroactive documentation of an EXISTING codebase (skills/commands/docs/) — separate tree, no spine ID, never a substitute for docs/sdd/specs/
-├── index.md
-├── overview.md            # written first — system-level description
-├── {slug}/                # one per documented module — overview.md · component.md · erd.md · uc-{role}.md · flow-{role}.md, whichever apply
-└── roles/{role}.md         # per-actor index, same shape as docs/sdd/roles/ but for descriptive docs
-```
-
-Tree conventions are **mechanically enforced**: run `check-file-hygiene.mjs` (bundled with `skills/meta/health-check/`) after writing or renaming anything under `docs/sdd/` — markdown conventions are followed probabilistically; the script catches what got missed.
-
-**Read index-first.** `index.md` contains active work and canonical entry points,
-not completed activity. A fresh agent should reach goal, trusted state, and next
-action in at most three entry documents. Load `skills/meta/artifact-lifecycle/`
-when artifacts are created or closed; Git history is the default destination
-for completed transient state, with guarded retirement before removal.
-
-**Language**: specs, plans, and user-facing docs follow the **user's language**; code-level artifacts are **always English** — identifiers, JSDoc/comments, commit messages, branch slugs — so the code stays portable and reviewable regardless of conversation language.
-
-**The `changes/` file** — for a small/medium change, one dated self-contained file replaces the separate plan + report pair, using `templates/changes.md` (header → What Changed → Gate List → IDs → Inline Decisions → What Was Tested), with one row in `index.md`. One topic = one file, updated in place — no `-v2` near-duplicate slugs. Large/full work keeps the full structure (design/, tickets/, reports/).
-
-## What SDD Pipeline Does NOT Do
-
-- **Aesthetic judgment** — compose with a design skill (SDD Pipeline will recommend one)
-- **Communication style** — compose with a persona skill
-- **Running the deploy** — `build/infra` wires CI/IaC/observability to the same gates, but provisioning, deploying, and spending are hard stops requiring explicit human confirmation; SDD Pipeline never executes them
-- **Ethical judgment** — relies on agent's built-in safety layer
+At a governed terminal outcome, load
+`skills/meta/workflow-navigation/SKILL.md`. Report the actual outcome, material
+skips or limitations, one recommended next action, and at most two contextual
+alternatives. Never route past an unresolved decision, missing work order,
+failed evidence gate, or absent authority.

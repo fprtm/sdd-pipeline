@@ -20,7 +20,7 @@ B) Skip this part and flag it for you to investigate
 C) You investigate and tell me what to do
 ```
 
-**Loop thresholds by mode**: see unified mode matrix in `skills/orchestrator/SKILL.md` ("Execution guard" row).
+**Loop thresholds by mode**: see unified mode matrix in `skills/orchestrator/references/behavior.md` ("Execution guard" row).
 
 ## Stuck Escalation
 
@@ -36,13 +36,13 @@ Do NOT silently spin. Transparency beats stubbornness.
 
 Periodic status updates during execution so the user knows what's happening.
 
-**Signal frequency by mode**: see unified mode matrix in `skills/orchestrator/SKILL.md` ("Execution guard" row).
+**Signal frequency by mode**: see unified mode matrix in `skills/orchestrator/references/behavior.md` ("Execution guard" row).
 
 ## Reviewable Chunks — Never Generate More Than Can Be Reviewed
 
 Generate in reviewable units, not one large diff. A 500-line diff is not reviewable in one pass; five 100-line chunks, each with context, are.
 
-Defer to orchestrator matrix on conflict. Skill-specific additions below.
+Defer to the unified mode matrix in `skills/orchestrator/references/behavior.md` on conflict. Skill-specific additions below.
 
 ### Chunk Protocol
 
@@ -59,7 +59,7 @@ For medium+ tasks in standard/strict mode, implementation is broken into chunks.
 
 ### Mode Behavior for Chunks
 
-Defer to orchestrator matrix on conflict. Skill-specific additions:
+Defer to the unified mode matrix in `skills/orchestrator/references/behavior.md` on conflict. Skill-specific additions:
 
 | Mode | Chunking behavior |
 |------|-------------------|

@@ -2,7 +2,7 @@
 
 Balanced. Default mode for daily development. Guardrails are visible but not oppressive.
 
-**Phase behavior**: see the unified mode matrix in `skills/orchestrator/SKILL.md`. This file adds process rules unique to standard mode.
+**Phase behavior**: see the unified mode matrix in `skills/orchestrator/references/behavior.md`. This file adds process rules unique to standard mode.
 
 ## Plan Handling
 

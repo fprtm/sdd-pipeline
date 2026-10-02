@@ -78,7 +78,7 @@ graph LR
 
 ## Mode Behavior
 
-Defer to orchestrator matrix (`skills/orchestrator/SKILL.md`) on conflict. Skill-specific addition below: emergency mode's post-fix follow-up capture.
+Defer to orchestrator matrix (`skills/orchestrator/references/behavior.md`) on conflict. Skill-specific addition below: emergency mode's post-fix follow-up capture.
 
 | Mode | Behavior |
 |------|----------|

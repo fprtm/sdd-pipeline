@@ -59,7 +59,7 @@ and their oracles must pass separately.
 
 ## Mode Behavior
 
-Defer to orchestrator matrix on conflict. Skill-specific additions:
+Defer to the unified mode matrix in `skills/orchestrator/references/behavior.md` on conflict. Skill-specific additions:
 
 **The gate always runs.** Mode dials *narration* and *whether a FAIL blocks* — never whether coverage is measured. (Same rule as everywhere else in this framework: mode controls depth and visibility, not coverage.)
 

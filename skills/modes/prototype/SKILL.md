@@ -2,7 +2,7 @@
 
 Speed-first. For MVPs, hackathons, proof-of-concepts. Minimum viable guardrails.
 
-**Phase behavior**: see the unified mode matrix in `skills/orchestrator/SKILL.md`. This file adds process rules unique to prototype mode.
+**Phase behavior**: see the unified mode matrix in `skills/orchestrator/references/behavior.md`. This file adds process rules unique to prototype mode.
 
 ## Minimum Sinks
 

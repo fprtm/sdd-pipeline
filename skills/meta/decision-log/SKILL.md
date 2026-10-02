@@ -70,7 +70,7 @@ Most entries should be 3-5 lines total. If it's growing past half a page, it's p
 
 ## Mode Behavior
 
-Defer to orchestrator matrix (`skills/orchestrator/SKILL.md`) on conflict. Skill-specific additions below: rule-of-three application per mode, strict sign-off on borderline (2 of 3) decisions, emergency post-facto format.
+Defer to orchestrator matrix (`skills/orchestrator/references/behavior.md`) on conflict. Skill-specific additions below: rule-of-three application per mode, strict sign-off on borderline (2 of 3) decisions, emergency post-facto format.
 
 | Mode | Behavior |
 |------|----------|

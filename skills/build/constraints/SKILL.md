@@ -30,7 +30,7 @@ stop; neither mode nor user insistence converts it into a guideline.
 
 ## Constraint Violation Behavior
 
-**Mode behavior**: see unified mode matrix in `skills/orchestrator/SKILL.md`.
+**Mode behavior**: see unified mode matrix in `skills/orchestrator/references/behavior.md`.
 
 ## User Override Protocol
 

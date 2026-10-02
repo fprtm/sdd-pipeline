@@ -147,7 +147,7 @@ Iterative's adaptation, plus: **a risk-analysis note is required before each cyc
 
 ## Mode Interaction
 
-Defer to orchestrator matrix on conflict. Skill-specific additions below.
+Defer to the unified mode matrix in `skills/orchestrator/references/behavior.md` on conflict. Skill-specific additions below.
 
 | Mode | SDLC Impact |
 |------|-------------|

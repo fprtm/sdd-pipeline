@@ -61,4 +61,4 @@ When user can't answer:
 
 ## Mode Behavior
 
-**Mode behavior**: see unified mode matrix in `skills/orchestrator/SKILL.md`.
+**Mode behavior**: see unified mode matrix in `skills/orchestrator/references/behavior.md`.

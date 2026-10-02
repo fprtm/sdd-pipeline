@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-VERSION="6.11.1"
+VERSION="6.11.2"
 SCRIPT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 SKILLS_DIR="$SCRIPT_DIR/skills"
 
@@ -325,6 +325,15 @@ copy_agents_md() {
 install_orchestrator_alias() {
   local dest="$1"
   cp "$dest/orchestrator/SKILL.md" "$dest/SKILL.md"
+  # The canonical entrypoint lives inside orchestrator/, so its Markdown links
+  # are relative to that directory. The native-discovery alias lives one level
+  # higher; rewrite only those relative links so progressive references remain
+  # resolvable without duplicating their contents into the alias directory.
+  sed -i.bak \
+    -e 's|(references/|(orchestrator/references/|g' \
+    -e 's|(config-reference.md)|(orchestrator/config-reference.md)|g' \
+    -e 's|(composition.md)|(orchestrator/composition.md)|g' \
+    "$dest/SKILL.md" && rm -f "$dest/SKILL.md.bak"
   echo "  ✓ orchestrator aliased to $dest/SKILL.md (folder name matches its own 'name: sdd' frontmatter)"
 }
 

@@ -97,7 +97,7 @@ offer `/sdd-pipeline:implement` from discovery.
 
 ## Mode Interaction
 
-Defer to orchestrator matrix (`skills/orchestrator/SKILL.md`, Elicitation row) on conflict. Skill-specific additions below — mode dials **how deep each seat goes**, never **which seats exist**:
+Defer to orchestrator matrix (`skills/orchestrator/references/behavior.md`, Elicitation row) on conflict. Skill-specific additions below — mode dials **how deep each seat goes**, never **which seats exist**:
 
 | Mode | Behavior |
 |------|----------|

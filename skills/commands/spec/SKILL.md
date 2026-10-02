@@ -76,7 +76,7 @@ The deliberation is grill's **third subject type** — not a single decision (mi
 
 **Topics are domain-gated, not mode-gated.** If the product has a database, DB deliberation happens regardless of mode.
 
-Defer to orchestrator matrix (`skills/orchestrator/SKILL.md`, Elicitation row) on conflict. Skill-specific additions below — mode controls deliberation depth per topic:
+Defer to orchestrator matrix (`skills/orchestrator/references/behavior.md`, Elicitation row) on conflict. Skill-specific additions below — mode controls deliberation depth per topic:
 
 | Mode | Deliberation behavior |
 |------|----------------------|

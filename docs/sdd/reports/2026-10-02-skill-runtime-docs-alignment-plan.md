@@ -452,7 +452,7 @@ it does not imply that prose policy is mechanically enforced.
 
 | Source | Semantic responsibility | Output / enforcement boundary |
 |---|---|---|
-| `skills/orchestrator/SKILL.md` | fixed ASK→SPEC→PLAN→BUILD→CHECK spine; mode/size/domain/SDLC dispatch; approval and evidence gates | policy SSOT; calls mechanical checkers but is host-dependent prose |
+| `skills/orchestrator/SKILL.md` + `skills/orchestrator/references/*.md` | context-bounded fixed spine and progressive routing; conditional mode/axis, delivery, and project-state policy | routed policy SSOT; calls mechanical checkers but is host-dependent prose |
 | `skills/commands/check/SKILL.md` | route fresh changes to VERIFY and unchanged repositories to AUDIT | report plus actual command evidence; no release authority |
 | `skills/commands/discover/SKILL.md` | settle WHICH through five seats and council | glossary/decision/idea artifacts; cannot authorize BUILD |
 | `skills/commands/docs/SKILL.md` | describe existing brownfield code | `docs/system/`; never creates spec-first authority |
@@ -605,7 +605,9 @@ boundaries, and all eight command navigation contracts:
 
 | Concern | Canonical owner |
 |---|---|
-| fixed sequence, unified mode behavior, sizing, approval, global hard stops | `skills/orchestrator/SKILL.md` |
+| fixed sequence and global routing | `skills/orchestrator/SKILL.md` |
+| unified mode behavior and sizing | `skills/orchestrator/references/behavior.md` |
+| approval and evidence gates | `skills/orchestrator/references/delivery.md` |
 | command prerequisite, branch routing, and terminal state | each `skills/commands/*/SKILL.md` plus shared workflow navigation |
 | mode-specific process mechanics only | `skills/modes/*/SKILL.md` |
 | constraint precedence and override mechanics | `skills/build/constraints/SKILL.md` |

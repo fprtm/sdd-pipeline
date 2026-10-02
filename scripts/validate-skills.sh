@@ -286,15 +286,57 @@ if [ -f "$PLUGIN_JSON" ]; then
   fi
 fi
 
-# --- Check 3: Unified mode matrix is canonical and complete ---
-echo "## Checking unified mode matrix..."
+# --- Check 3: Orchestrator entrypoint is context-bounded and routes progressively ---
+echo "## Checking orchestrator context footprint..."
 
 ORCHESTRATOR="$SKILLS_DIR/orchestrator/SKILL.md"
-matrix_headers=$(grep -Fc '| Phase | prototype | vibe | standard | strict | emergency |' "$ORCHESTRATOR" || true)
-if [ "$matrix_headers" -eq 4 ]; then
-  log_ok "orchestrator: unified matrix has THINK, BUILD, PROVE, and META tables"
+BEHAVIOR_POLICY="$SKILLS_DIR/orchestrator/references/behavior.md"
+DELIVERY_POLICY="$SKILLS_DIR/orchestrator/references/delivery.md"
+PROJECT_STATE_POLICY="$SKILLS_DIR/orchestrator/references/project-state.md"
+
+orchestrator_lines=$(wc -l < "$ORCHESTRATOR")
+orchestrator_bytes=$(wc -c < "$ORCHESTRATOR")
+if [ "$orchestrator_lines" -le 150 ] && [ "$orchestrator_bytes" -le 12000 ]; then
+  log_ok "orchestrator: context-bounded entrypoint (${orchestrator_lines} lines, ${orchestrator_bytes} bytes)"
 else
-  log_error "orchestrator: unified matrix must have exactly 4 phase tables (found $matrix_headers)"
+  log_error "orchestrator: entrypoint exceeds 150 lines or 12000 bytes (${orchestrator_lines} lines, ${orchestrator_bytes} bytes)"
+fi
+
+for route in \
+  'references/behavior.md' \
+  'references/delivery.md' \
+  'references/project-state.md'; do
+  if grep -Fq "$route" "$ORCHESTRATOR" && [ -f "$SKILLS_DIR/orchestrator/$route" ]; then
+    log_ok "orchestrator: progressive route '$route' resolves"
+  else
+    log_error "orchestrator: progressive route '$route' is missing or unresolved"
+  fi
+done
+
+if grep -Fq 'Non-software work or discussion without execution intent' "$ORCHESTRATOR"; then
+  log_ok "orchestrator: non-coding fast boundary is explicit"
+else
+  log_error "orchestrator: missing non-coding fast boundary"
+fi
+
+agents_lines=$(wc -l < "$SCRIPT_DIR/AGENTS.md")
+agents_bytes=$(wc -c < "$SCRIPT_DIR/AGENTS.md")
+if [ "$agents_lines" -le 80 ] && [ "$agents_bytes" -le 8000 ]; then
+  log_ok "AGENTS.md: context-bounded project router (${agents_lines} lines, ${agents_bytes} bytes)"
+else
+  log_error "AGENTS.md: exceeds 80 lines or 8000 bytes (${agents_lines} lines, ${agents_bytes} bytes)"
+fi
+
+echo ""
+
+# --- Check 3b: Unified mode matrix is canonical and complete ---
+echo "## Checking unified mode matrix..."
+
+matrix_headers=$(grep -Fc '| Phase | prototype | vibe | standard | strict | emergency |' "$BEHAVIOR_POLICY" || true)
+if [ "$matrix_headers" -eq 4 ]; then
+  log_ok "orchestrator behavior: unified matrix has THINK, BUILD, PROVE, and META tables"
+else
+  log_error "orchestrator behavior: unified matrix must have exactly 4 phase tables (found $matrix_headers)"
 fi
 
 REQUIRED_MATRIX_ROWS=(
@@ -305,7 +347,7 @@ REQUIRED_MATRIX_ROWS=(
 )
 
 for phase in "${REQUIRED_MATRIX_ROWS[@]}"; do
-  if grep -Fqi "| $phase |" "$ORCHESTRATOR"; then
+  if grep -Fqi "| $phase |" "$BEHAVIOR_POLICY"; then
     log_ok "orchestrator matrix: $phase"
   else
     log_error "orchestrator matrix: missing phase row '$phase'"
@@ -319,7 +361,7 @@ echo "## Checking mode delegation..."
 
 for mode in prototype vibe standard strict emergency; do
   file="$SKILLS_DIR/modes/$mode/SKILL.md"
-  if grep -Fq '**Phase behavior**: see the unified mode matrix in `skills/orchestrator/SKILL.md`.' "$file"; then
+  if grep -Fq '**Phase behavior**: see the unified mode matrix in `skills/orchestrator/references/behavior.md`.' "$file"; then
     log_ok "modes/$mode: delegates phase behavior to orchestrator"
   else
     log_error "modes/$mode: missing canonical unified-matrix delegation marker"

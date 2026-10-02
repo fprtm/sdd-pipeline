@@ -1,6 +1,6 @@
 # SDD Pipeline — Architecture & Skill Reference
 
-How the 65 skill files in `skills/` wire together: what each one does, what it calls, what it reads/writes, and when it runs. Read this after `README.md` (the pitch) and `skills/orchestrator/SKILL.md` (the source of truth) — this doc exists to make the *shape* of the system visible at a glance.
+How the 65 skill files in `skills/` wire together: what each one does, what it calls, what it reads/writes, and when it runs. Read this after `README.md` (the pitch) and `skills/orchestrator/SKILL.md` (the context-bounded router) — this doc exists to make the *shape* of the system visible at a glance.
 
 The opt-in vNext contracts live under `skills/meta/quality-contract/`: control
 axes → role authority → lifecycle → product/delivery/QA/readiness →
@@ -10,7 +10,11 @@ the [adoption map](guides/vnext-adoption.md) is the non-normative entry point.
 
 ## 1. The Big Picture
 
-SDD Pipeline is primarily a tree of Markdown "skill" files an AI coding agent reads and follows. Four classic zero-dependency checker entry points, the executable Quality Contract runtime, and installer/validation tests mechanically enforce the parts prose cannot guarantee. One file, `skills/orchestrator/SKILL.md`, is the entry point; everything else is either a **phase skill** it dispatches to, a **mode** that dials behavior up/down, a **constraint pack**, or **meta machinery** that runs across every phase.
+SDD Pipeline is primarily a tree of Markdown "skill" files an AI coding agent reads and follows. Four classic zero-dependency checker entry points, the executable Quality Contract runtime, and installer/validation tests mechanically enforce the parts prose cannot guarantee. `skills/orchestrator/SKILL.md` is a thin entrypoint that routes to conditional policy references; everything else is either a **phase skill** it dispatches to, a **mode** that dials behavior up/down, a **constraint pack**, or **meta machinery** that runs across every phase.
+
+Installed `AGENTS.md` is also a bounded router rather than a duplicate manual.
+This keeps always-on project context small; detail is disclosed only after the
+request crosses a concrete coding or delivery decision boundary.
 
 Everything below is organized around one five-step sequence. It runs in this order every time; only *depth* varies.
 
@@ -108,12 +112,12 @@ flowchart TD
 
 ## 2. Orchestrator (`skills/orchestrator/SKILL.md`)
 
-The only auto-triggered top-level entry point (alongside the 8 manual commands in §10). It never does the work itself — it detects context, dispatches to phase skills, and owns the plan-approval flow and the meta bookkeeping at the end.
+The only auto-triggered top-level entry point (alongside the 8 manual commands in §10). It is capped at 150 lines and exits immediately for non-coding discussion. Governed work progressively loads `references/behavior.md`, `references/delivery.md`, or `references/project-state.md` only when the corresponding decision point is reached.
 
 | | |
 |---|---|
-| **Detects** | mode, task size, domain, SDLC, architecture (delegates each detection to a THINK skill) |
-| **Owns** | the fixed ASK→SPEC→PLAN→BUILD→CHECK sequence, the written record (tickets for large, `changes/{date}-{slug}.md` for small/medium) and its approval flow, the stats footer, session persistence (stays active all session once triggered) |
+| **Detects** | coding/execution boundary first; behavior policy then detects mode, complexity, risk, assurance, domain, SDLC, and architecture |
+| **Owns** | the fixed ASK→SPEC→PLAN→BUILD→CHECK sequence and progressive-disclosure routes; conditional references own matrix, delivery, and project-state detail |
 | **Dispatches to** | every skill under `think/`, `build/`, `prove/`, `meta/`; loads the matching file from `modes/[mode]/SKILL.md` and `constraints/[domain]/SKILL.md` |
 | **Multi-agent rule** | THINK skills spawn in parallel and merge; BUILD splits by independent file/component; PROVE spawns one agent per layer — see §10 |
 
@@ -320,7 +324,7 @@ flowchart LR
 
 ## 7. Modes — `skills/modes/` (the ceremony dial)
 
-One file per mode declares its activation signal, working posture, and explicit delegation to the unified matrix in `skills/orchestrator/SKILL.md`. The orchestrator-owned matrix is the single source of truth for THINK, BUILD, PROVE, and META behavior; mode files must not restate local per-skill policy tables. This keeps the ceremony dial usable for both prototypes and production changes without allowing duplicate policy copies to drift.
+One file per mode declares its activation signal, working posture, and explicit delegation to the unified matrix in `skills/orchestrator/references/behavior.md`. That matrix is the single source of truth for THINK, BUILD, PROVE, and META behavior; mode files must not restate local per-skill policy tables. This keeps the ceremony dial usable for both prototypes and production changes without forcing the full matrix into every non-coding or routing turn.
 
 **What the dial may not reach.** Mode controls *depth and visibility*, never *coverage*. No mode may skip a discovery seat (`commands/discover`'s Why · Constraints · What · Data · Technical), the DoD floor above `micro`, or an `OVERRIDE: none` rule. A seat is skipped only when the product has no such surface, announced with its reason. And ceremony is never inferred from how a message is written — a casual prompt about a payment system is still a payment system, so `vibe`/`prototype` are entered only on request or via `config.md`.
 

@@ -2,7 +2,7 @@
 
 Fix-first. For production outages, critical bugs, and urgent issues. Minimum overhead, maximum speed.
 
-**Phase behavior**: see the unified mode matrix in `skills/orchestrator/SKILL.md`. This file adds process rules unique to emergency mode.
+**Phase behavior**: see the unified mode matrix in `skills/orchestrator/references/behavior.md`. This file adds process rules unique to emergency mode.
 
 ## Trigger Detection
 

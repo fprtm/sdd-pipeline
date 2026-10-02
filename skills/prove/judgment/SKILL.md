@@ -146,7 +146,7 @@ Append to the verification report (`skills/prove/report/`):
 
 ## Mode Behavior
 
-Defer to orchestrator matrix on conflict. Skill-specific additions:
+Defer to the unified mode matrix in `skills/orchestrator/references/behavior.md` on conflict. Skill-specific additions:
 
 | Mode | Judgment Gate |
 |------|---------------|

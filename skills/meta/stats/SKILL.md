@@ -87,7 +87,7 @@ At end of each monthly file, maintain a running summary:
 
 ## Mode Behavior
 
-Defer to orchestrator matrix (`skills/orchestrator/SKILL.md`) on conflict. Skill-specific addition below: prototype mode still tracks `gates_skipped`.
+Defer to orchestrator matrix (`skills/orchestrator/references/behavior.md`) on conflict. Skill-specific addition below: prototype mode still tracks `gates_skipped`.
 
 | Mode | Stats Behavior |
 |------|---------------|

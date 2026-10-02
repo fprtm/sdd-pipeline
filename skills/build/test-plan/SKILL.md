@@ -49,7 +49,7 @@ For medium+ tasks in standard/strict mode:
 
 ### Mode Behavior for Tests-First
 
-Defer to orchestrator matrix on conflict. Skill-specific additions:
+Defer to the unified mode matrix in `skills/orchestrator/references/behavior.md` on conflict. Skill-specific additions:
 
 | Mode | Tests-first behavior |
 |------|---------------------|

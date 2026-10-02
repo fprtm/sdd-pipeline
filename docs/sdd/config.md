@@ -7,8 +7,8 @@ domain: library
 architecture: modular-monolith
 artifact-policy-version: 1
 artifact-retention: git-history
-active-entry-budget: 6
-active-entry-budget-reason: The approved vNext program adds one canonical full-team lifecycle work order while the two alignment review units, Quality Contract, and workflow-navigation lifecycles remain independently reviewable.
+active-entry-budget: 7
+active-entry-budget-reason: The approved vNext program and context-efficiency release each have independent consumers and verification lifecycles while the two alignment review units, Quality Contract, and workflow-navigation remain under active review.
 
 ## Quality Contract policy
 

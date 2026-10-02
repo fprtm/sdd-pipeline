@@ -42,6 +42,8 @@ test('validator rejects a mode that stops delegating to the unified matrix', () 
 
 test('canonical policy owners retain safety and evidence precedence', () => {
   const orchestrator = readFileSync(join(ROOT, 'skills', 'orchestrator', 'SKILL.md'), 'utf8');
+  const behavior = readFileSync(join(ROOT, 'skills', 'orchestrator', 'references', 'behavior.md'), 'utf8');
+  const projectState = readFileSync(join(ROOT, 'skills', 'orchestrator', 'references', 'project-state.md'), 'utf8');
   const engine = readFileSync(join(ROOT, 'skills', 'build', 'constraints', 'SKILL.md'), 'utf8');
   const universal = readFileSync(join(ROOT, 'skills', 'constraints', 'universal', 'SKILL.md'), 'utf8');
   const verification = readFileSync(join(ROOT, 'skills', 'prove', 'verification', 'SKILL.md'), 'utf8');
@@ -52,9 +54,12 @@ test('canonical policy owners retain safety and evidence precedence', () => {
   assert.match(engine, /universal rules: `skills\/constraints\/universal\/SKILL\.md`/);
   assert.doesNotMatch(engine, /New functions with non-trivial logic need at least 1 test/);
   assert.match(universal, /two real adapters are enough because the variation already exists/);
-  assert.match(orchestrator, /Quick smoke test \+ applicable small\+ coverage gate/);
-  assert.match(orchestrator, /mandatory applicable coverage in post-fix follow-up/);
-  assert.match(orchestrator, /Do not close an unresolved discovery seat or skip an applicable evidence gate/);
+  assert.ok(orchestrator.split('\n').length <= 151, 'orchestrator entrypoint must remain context-bounded');
+  assert.ok(Buffer.byteLength(orchestrator) <= 12000, 'orchestrator entrypoint byte budget exceeded');
+  assert.match(orchestrator, /Non-software work or discussion without execution intent/);
+  assert.match(behavior, /smoke plus applicable small\+ coverage/);
+  assert.match(behavior, /coverage in post-fix follow-up/);
+  assert.match(projectState, /does not\s+erase unresolved discovery seats or applicable evidence/);
   assert.match(verification, /mandatory post-fix follow-up before ordinary acceptance/);
   assert.match(sdlc, /Identification is mandatory/);
   assert.doesNotMatch(sdlc, /SDLC skipped\. Fix first/);
@@ -99,6 +104,16 @@ test('plugin exposes exactly the eight public commands', () => {
   assert.equal(new Set(commands).size, 8);
 });
 
+test('plugin, marketplace, installer, and project router versions stay synchronized', () => {
+  const plugin = JSON.parse(readFileSync(join(ROOT, '.claude-plugin', 'plugin.json'), 'utf8'));
+  const marketplace = JSON.parse(readFileSync(join(ROOT, '.claude-plugin', 'marketplace.json'), 'utf8'));
+  const install = readFileSync(INSTALL, 'utf8');
+  const agents = readFileSync(join(ROOT, 'AGENTS.md'), 'utf8');
+  assert.equal(marketplace.version, plugin.version);
+  assert.match(install, new RegExp(`^VERSION="${plugin.version.replaceAll('.', '\\.') }"$`, 'm'));
+  assert.match(agents, new RegExp(`^# SDD Pipeline v${plugin.version.replaceAll('.', '\\.') } `));
+});
+
 test('docs and check command contracts retain their public routing semantics', () => {
   const docs = readFileSync(join(ROOT, 'skills', 'commands', 'docs', 'SKILL.md'), 'utf8');
   const check = readFileSync(join(ROOT, 'skills', 'commands', 'check', 'SKILL.md'), 'utf8');
@@ -117,7 +132,8 @@ test('selective command install exposes all eight commands and synchronized vers
   const dest = join(work, 'skills', 'sdd');
   const result = spawnSync(INSTALL, ['--agent', 'generic', '--dest', dest, '--only', 'commands'], { cwd: work, encoding: 'utf8' });
   assert.equal(result.status, 0, result.stdout + result.stderr);
-  assert.match(result.stdout, /v6\.11\.1/);
+  const plugin = JSON.parse(readFileSync(join(ROOT, '.claude-plugin', 'plugin.json'), 'utf8'));
+  assert.match(result.stdout, new RegExp(`v${plugin.version.replaceAll('.', '\\.')}`));
   assert.deepEqual(readdirSync(join(dest, 'commands')).sort(), COMMANDS);
   assert.match(readFileSync(join(dest, 'commands', 'handoff', 'SKILL.md'), 'utf8'), /^name: handoff$/m);
   assert.equal(existsSync(join(dest, 'meta', 'handoff', 'SKILL.md')), true);
@@ -195,12 +211,22 @@ test('canonical-block cardinality counts blocks, not just containing files', () 
   assert.equal(counted.stdout, '2');
 });
 
-test('full install retains the orchestrator while staging the quality-contract runtime', () => {
+test('OpenCode full install retains progressive orchestrator references and runtime', () => {
   const work = mkdtempSync(join(tmpdir(), 'sdd-full-install-'));
   const dest = join(work, 'skills', 'sdd');
-  const result = spawnSync(INSTALL, ['--agent', 'generic', '--dest', dest], { cwd: work, encoding: 'utf8' });
+  const result = spawnSync(INSTALL, ['--agent', 'opencode', '--dest', dest], { cwd: work, encoding: 'utf8' });
   assert.equal(result.status, 0, result.stdout + result.stderr);
   assert.equal(existsSync(join(dest, 'orchestrator', 'SKILL.md')), true);
+  assert.equal(existsSync(join(dest, 'orchestrator', 'references', 'behavior.md')), true);
+  assert.equal(existsSync(join(dest, 'orchestrator', 'references', 'delivery.md')), true);
+  assert.equal(existsSync(join(dest, 'orchestrator', 'references', 'project-state.md')), true);
+  const alias = readFileSync(join(dest, 'SKILL.md'), 'utf8');
+  assert.match(alias, /orchestrator\/references\/behavior\.md/);
+  assert.match(alias, /orchestrator\/references\/delivery\.md/);
+  const installedAgents = readFileSync(join(work, 'AGENTS.md'), 'utf8');
+  assert.ok(installedAgents.split('\n').length <= 81, 'installed AGENTS.md must remain context-bounded');
+  assert.ok(Buffer.byteLength(installedAgents) <= 8000, 'installed AGENTS.md byte budget exceeded');
+  assert.match(installedAgents, /discussion without execution intent/);
   assert.equal(existsSync(join(dest, 'meta', 'quality-contract', 'quality-contract.mjs')), true);
 });
 

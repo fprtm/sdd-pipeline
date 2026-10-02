@@ -14,6 +14,7 @@ updated: 2026-09-30
 - [Workflow navigation](changes/2026-10-01-workflow-navigation.md) — active review of contextual command transitions and skip explanations.
 - [Validator SSOT alignment](changes/2026-10-02-validator-ssot-alignment.md) — active remediation of stale mode-local validation after the unified matrix migration.
 - [Canonical policy alignment](changes/2026-10-02-canonical-policy-alignment.md) — active reconciliation of safety, evidence, SDLC, and abstraction rules found by WP-00.
+- [Context-efficient orchestrator](changes/2026-10-02-context-efficient-orchestrator.md) — progressive-disclosure refactor with an enforced entrypoint footprint budget.
 - [Full-Team SDLC vNext](specs/002-full-team-sdlc-vnext/) — approved WP-02–WP-14 canonical specification and dependency-ordered work order.
 
 ## Decisions

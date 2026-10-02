@@ -2,7 +2,7 @@
 
 Maximum control. For production systems, fintech, healthcare, compliance-sensitive, and security-critical code.
 
-**Phase behavior**: see the unified mode matrix in `skills/orchestrator/SKILL.md`. This file adds process rules unique to strict mode.
+**Phase behavior**: see the unified mode matrix in `skills/orchestrator/references/behavior.md`. This file adds process rules unique to strict mode.
 
 ## Checkpoint Pattern
 

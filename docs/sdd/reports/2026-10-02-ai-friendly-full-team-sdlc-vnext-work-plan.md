@@ -983,7 +983,7 @@ Pekerjaan berhenti pada relevant package bila:
 ## 24. References and evidence basis
 
 - Existing alignment work order: `docs/sdd/reports/2026-10-02-skill-runtime-docs-alignment-plan.md`
-- Current core behavior: `skills/orchestrator/SKILL.md`
+- Current routing behavior: `skills/orchestrator/SKILL.md`; conditional policy owners: `skills/orchestrator/references/behavior.md`, `delivery.md`, and `project-state.md`
 - Current product discovery: `skills/commands/discover/SKILL.md`
 - Current specification flow: `skills/commands/spec/SKILL.md`
 - Current ticket decomposition: `skills/build/ticket-decomposition/SKILL.md`

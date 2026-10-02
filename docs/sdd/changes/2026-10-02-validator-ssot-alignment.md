@@ -48,7 +48,7 @@ None — internal validator alignment derived from WP-00 finding ALN-008.
 
 ## Inline Decisions
 
-- Canonical behavior owner: `skills/orchestrator/SKILL.md`; mode files retain process-only additions and a delegation marker.
+- Canonical behavior owner: `skills/orchestrator/references/behavior.md`; the root orchestrator is a context-bounded router and mode files retain process-only additions plus a delegation marker.
 - Regression location: existing `install/install.test.mjs`, because `scripts/test-checkers.sh` already runs it in repository CI.
 
 ## What Was Tested

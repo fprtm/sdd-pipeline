@@ -30,4 +30,4 @@ Analyze what the task ACTUALLY involves, not just what the prompt says. Simple-s
 
 ## Mode Behavior
 
-**Mode behavior**: see unified mode matrix in `skills/orchestrator/SKILL.md`.
+**Mode behavior**: see unified mode matrix in `skills/orchestrator/references/behavior.md`.

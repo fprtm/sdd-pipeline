@@ -86,4 +86,4 @@ technique needs a seeded faulty implementation that its oracle catches.
 - Focus on the categories most likely to reveal real bugs in THIS specific task.
 - **Every test must name the specific behavior it expects** — "should handle gracefully" is not an assertion; "should return 403 with body `{error: 'forbidden'}`" is.
 
-**Mode behavior**: see unified mode matrix in `skills/orchestrator/SKILL.md`.
+**Mode behavior**: see unified mode matrix in `skills/orchestrator/references/behavior.md`.

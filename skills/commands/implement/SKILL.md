@@ -61,4 +61,7 @@ Offer `/handoff` only for an explicit transfer or pause.
 
 ## Full Behavior
 
-See `skills/orchestrator/SKILL.md` (BUILD phase section) and the individual `skills/build/*/SKILL.md` files for mode-specific behavior.
+See `skills/orchestrator/references/delivery.md` and the individual
+`skills/build/*/SKILL.md` files for BUILD behavior. Load
+`skills/orchestrator/references/behavior.md` only when mode/axis policy has not
+already been established for the current governed task.

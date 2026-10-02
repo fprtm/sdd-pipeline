@@ -302,7 +302,7 @@ The user picks a candidate from the report → hand off to **SDD Grill** (`skill
 
 ## Mode Behavior
 
-Defer to orchestrator matrix on conflict. Skill-specific additions below.
+Defer to the unified mode matrix in `skills/orchestrator/references/behavior.md` on conflict. Skill-specific additions below.
 
 | Mode | Architecture Analyzer |
 |------|----------------------|
