@@ -4,6 +4,17 @@ Turn acceptance criteria into an executable definition of "done and proven". Wri
 
 Write to `docs/sdd/specs/{NNN}-{slug}/tests.md` — inside the same feature folder as its FSD (found by number, per doc-generator's "Number-First Lookup" rule), shape in `skills/build/doc-generator/formats.md`. TEST-xxx IDs are item-level and global (counter in `docs/sdd/traceability.md`).
 
+## Assurance-derived evidence (vNext shadow)
+
+When the feature opts into the vNext Quality Contract, the executable mapping
+owned by `skills/meta/quality-contract/rules/delivery.mjs` is canonical: A0
+requires static evidence; A1 executed evidence plus review; A2 adds negative
+evidence and independent/non-self-reported verification; A3 additionally
+requires rollback, recovery, realistic-environment, and external-approval
+evidence. Criterion-specific evidence augments this floor, never replaces it.
+The plan records the required evidence class for every acceptance criterion;
+it does not duplicate or weaken the assurance mapping in prose.
+
 ## When This Runs
 
 Medium+ tasks in standard/strict mode get a test plan; small tasks get their tests named in the DoD instead of a separate file; micro tasks skip. Strict promotes (small gets a mini plan); prototype/vibe demote. Announce what was (not) generated, per doc-generator's rules.

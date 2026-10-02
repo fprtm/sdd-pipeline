@@ -46,15 +46,25 @@ EXPECTED_SKILLS=(
   "think/sdlc-detector/SKILL.md"
   "think/arch-analyzer/SKILL.md"
   "think/grill/SKILL.md"
+  "think/analytics-design/SKILL.md"
+  "think/database-design/SKILL.md"
+  "think/stack-conventions/SKILL.md"
+  "think/threat-model/SKILL.md"
+  "think/ux-design/SKILL.md"
   "build/constraints/SKILL.md"
   "build/anti-patterns/SKILL.md"
   "build/change-plan/SKILL.md"
   "build/execution-guard/SKILL.md"
+  "build/git-workflow/SKILL.md"
+  "build/infra/SKILL.md"
   "build/model-router/SKILL.md"
+  "build/test-plan/SKILL.md"
   "build/doc-generator/SKILL.md"
   "build/ticket-decomposition/SKILL.md"
   "prove/verification/SKILL.md"
   "prove/adversarial/SKILL.md"
+  "prove/browser-qa/SKILL.md"
+  "prove/coverage-check/SKILL.md"
   "prove/diagnose/SKILL.md"
   "prove/pentest/SKILL.md"
   "prove/performance-check/SKILL.md"
@@ -70,6 +80,7 @@ EXPECTED_SKILLS=(
   "meta/memory/SKILL.md"
   "meta/stats/SKILL.md"
   "meta/glossary/SKILL.md"
+  "meta/traceability/SKILL.md"
   "modes/prototype/SKILL.md"
   "modes/vibe/SKILL.md"
   "modes/standard/SKILL.md"
@@ -82,6 +93,7 @@ EXPECTED_SKILLS=(
   "constraints/library/SKILL.md"
   "constraints/api/SKILL.md"
   "agents/orchestration/SKILL.md"
+  "agents/parallel-work/SKILL.md"
   "agents/subagent-patterns/SKILL.md"
   "commands/discover/SKILL.md"
   "commands/spec/SKILL.md"
@@ -274,52 +286,43 @@ if [ -f "$PLUGIN_JSON" ]; then
   fi
 fi
 
-# --- Check 3: Mode files have behavior tables ---
-echo "## Checking mode files have behavior tables..."
+# --- Check 3: Unified mode matrix is canonical and complete ---
+echo "## Checking unified mode matrix..."
 
-for mode in prototype vibe standard strict emergency; do
-  file="$SKILLS_DIR/modes/$mode/SKILL.md"
-  if [ -f "$file" ]; then
-    if grep -q "| Phase " "$file" || grep -q "| phase " "$file" || grep -q "| Setting" "$file"; then
-      log_ok "modes/$mode: has behavior table"
-    else
-      log_warn "modes/$mode: missing behavior table"
-    fi
+ORCHESTRATOR="$SKILLS_DIR/orchestrator/SKILL.md"
+matrix_headers=$(grep -Fc '| Phase | prototype | vibe | standard | strict | emergency |' "$ORCHESTRATOR" || true)
+if [ "$matrix_headers" -eq 4 ]; then
+  log_ok "orchestrator: unified matrix has THINK, BUILD, PROVE, and META tables"
+else
+  log_error "orchestrator: unified matrix must have exactly 4 phase tables (found $matrix_headers)"
+fi
 
-    # Check v0.2.0 additions
-    if grep -q "Written record\|Plan file\|Plan handling\|plan file" "$file"; then
-      log_ok "modes/$mode: has written-record handling"
-    else
-      log_warn "modes/$mode: missing written-record handling"
-    fi
+REQUIRED_MATRIX_ROWS=(
+  "Elicitation" "Context" "Scope guard" "Complexity" "SDLC detector" "Arch analyzer" "Threat model"
+  "Constraints" "Anti-patterns" "Written record" "Change plan" "Doc generator" "Execution guard"
+  "Verification" "Adversarial" "Security" "Performance"
+  "Report" "Decision log" "Comprehension" "Insight" "Memory" "Stats"
+)
 
-    if grep -q "Stats\|stats\|footer" "$file"; then
-      log_ok "modes/$mode: has stats/footer config"
-    else
-      log_warn "modes/$mode: missing stats config (v0.2.0)"
-    fi
+for phase in "${REQUIRED_MATRIX_ROWS[@]}"; do
+  if grep -Fqi "| $phase |" "$ORCHESTRATOR"; then
+    log_ok "orchestrator matrix: $phase"
+  else
+    log_error "orchestrator matrix: missing phase row '$phase'"
   fi
 done
 
 echo ""
 
-# --- Check 4: Mode behavior table consistency ---
-echo "## Checking mode table phase coverage..."
-
-REQUIRED_PHASES="Elicitation|Context|Scope|Complexity|Constraints|Anti-pattern|Change plan|Execution|Verification|Adversarial|Security|Performance|Report|Decision|Comprehension|Insight|Memory"
+# --- Check 4: Mode files delegate behavior instead of duplicating the matrix ---
+echo "## Checking mode delegation..."
 
 for mode in prototype vibe standard strict emergency; do
   file="$SKILLS_DIR/modes/$mode/SKILL.md"
-  if [ -f "$file" ]; then
-    missing=""
-    for phase in Elicitation Verification Security; do
-      if ! grep -qi "$phase" "$file"; then
-        missing="$missing $phase"
-      fi
-    done
-    if [ -n "$missing" ]; then
-      log_warn "modes/$mode: missing critical phases:$missing"
-    fi
+  if grep -Fq '**Phase behavior**: see the unified mode matrix in `skills/orchestrator/SKILL.md`.' "$file"; then
+    log_ok "modes/$mode: delegates phase behavior to orchestrator"
+  else
+    log_error "modes/$mode: missing canonical unified-matrix delegation marker"
   fi
 done
 

@@ -1,10 +1,16 @@
 # SDD Pipeline — Architecture & Skill Reference
 
-How the 64 skill files in `skills/` wire together: what each one does, what it calls, what it reads/writes, and when it runs. Read this after `README.md` (the pitch) and `skills/orchestrator/SKILL.md` (the source of truth) — this doc exists to make the *shape* of the system visible at a glance.
+How the 65 skill files in `skills/` wire together: what each one does, what it calls, what it reads/writes, and when it runs. Read this after `README.md` (the pitch) and `skills/orchestrator/SKILL.md` (the source of truth) — this doc exists to make the *shape* of the system visible at a glance.
+
+The opt-in vNext contracts live under `skills/meta/quality-contract/`: control
+axes → role authority → lifecycle → product/delivery/QA/readiness →
+release/outcome, with benchmark, packs, capabilities, and gate-effectiveness as
+supporting modules. They remain shadow/report-only until explicit migration;
+the [adoption map](guides/vnext-adoption.md) is the non-normative entry point.
 
 ## 1. The Big Picture
 
-SDD Pipeline is not a program — it's a tree of Markdown "skill" files an AI coding agent reads and follows, plus 4 zero-dependency `.mjs` scripts that mechanically check what prose can't guarantee. One file, `skills/orchestrator/SKILL.md`, is the entry point; everything else is either a **phase skill** it dispatches to, a **mode** that dials behavior up/down, a **constraint pack**, or **meta machinery** that runs across every phase.
+SDD Pipeline is primarily a tree of Markdown "skill" files an AI coding agent reads and follows. Four classic zero-dependency checker entry points, the executable Quality Contract runtime, and installer/validation tests mechanically enforce the parts prose cannot guarantee. One file, `skills/orchestrator/SKILL.md`, is the entry point; everything else is either a **phase skill** it dispatches to, a **mode** that dials behavior up/down, a **constraint pack**, or **meta machinery** that runs across every phase.
 
 Everything below is organized around one five-step sequence. It runs in this order every time; only *depth* varies.
 
@@ -301,7 +307,7 @@ flowchart LR
 | **stats** | Per-task metrics (anti-patterns caught, security issues, scope deviations, docs generated…) → vibe-mode 1-line footer + monthly aggregate; never appends a history ledger to `index.md` | — | `docs/sdd/stats/{YYYY-MM}.md` |
 | **traceability** | Owns `docs/sdd/traceability.md`: one row per REQ with 🟢/🟠/🟡/🔴/⚪ status **plus an Evidence column** (the actual command + result + date backing a 🟢 — an empty or stale Evidence cell on a 🟢 row is itself a defect, and evidence older than the code it verifies demotes the row to 🟡); global ID counters; **ship gate** — large/full work can't ship while a Must/Should row is red; gated by task size (large=full matrix, medium=lite inline trail, small/micro=skip) | `check-traceability.mjs` (bundled), `enforcement/ci/sdd-check.yml`, `doc-generator`'s ID spine, `prove/verification` (evidence source) | `docs/sdd/traceability.md` |
 
-**Mechanical enforcement scripts** (the only executable code in the framework — zero dependencies, CI-wireable):
+**Classic mechanical checker entry points** (zero dependencies and CI-wireable; the Quality Contract runtime is documented separately under the meta skills):
 
 | Script | Lives in | Checks |
 |---|---|---|
@@ -314,23 +320,7 @@ flowchart LR
 
 ## 7. Modes — `skills/modes/` (the ceremony dial)
 
-One file per mode; each defines, for *every* skill above, exactly how it behaves at that ceremony level. This is the mechanism that lets the same pipeline run a hackathon prototype and a fintech production change without code duplication.
-
-| Dimension | prototype | vibe | standard (default) | strict | emergency |
-|---|---|---|---|---|---|
-| Elicitation | skip | 0-1, auto-infer | adaptive 0-5 | 5+, confirm understanding | skip |
-| Plan file | none | written, auto-approved | shown, wait for "go" | **must** be explicitly approved | none (post-fix retro) |
-| Constraints | secrets only | auto-correct silently | flag + self-correct | pause + wait for approval | skip all |
-| Anti-patterns | hallucinated API + secrets only | auto-fix silently | fix + note | report + fix after ack | skip |
-| Doc generator | skip | silent | generate + show summary | full suite, review required | skip (post-fix report only) |
-| Arch analyzer | skip | silent, CRITICAL only | full for new / consistency for existing | full + require approval | skip |
-| Verification | smoke test only | layers 1-3 silently | all 4 layers | all 4 + manual checkpoint | smoke test only |
-| Adversarial | skip | skip | 3-5 tests | 5-10+ tests | skip |
-| Security check | secrets only | silent, CRITICAL only | full checklist | full + recommend manual review | critical items only |
-| Judgment gate | skip | silent self-audit | full, comprehension aid | full + explicit user confirmation | weakest point noted for later |
-| Trigger signal | asked for: "prototype", "MVP", "hackathon" | asked for: "vibe", "no ceremony" — **never inferred from tone** | default | "production", "fintech", "compliance" | "down", "broken", "urgent", "ASAP" |
-
-Full per-skill tables live in each `skills/modes/{mode}/SKILL.md` — the table above is the cross-section.
+One file per mode declares its activation signal, working posture, and explicit delegation to the unified matrix in `skills/orchestrator/SKILL.md`. The orchestrator-owned matrix is the single source of truth for THINK, BUILD, PROVE, and META behavior; mode files must not restate local per-skill policy tables. This keeps the ceremony dial usable for both prototypes and production changes without allowing duplicate policy copies to drift.
 
 **What the dial may not reach.** Mode controls *depth and visibility*, never *coverage*. No mode may skip a discovery seat (`commands/discover`'s Why · Constraints · What · Data · Technical), the DoD floor above `micro`, or an `OVERRIDE: none` rule. A seat is skipped only when the product has no such surface, announced with its reason. And ceremony is never inferred from how a message is written — a casual prompt about a payment system is still a payment system, so `vibe`/`prototype` are entered only on request or via `config.md`.
 
@@ -812,17 +802,17 @@ Read order for a newcomer: **12.1 → 12.2** to see the whole shape in under a m
 
 ## 13. Cross-Agent Skill Discovery — 9 Registered Entry Points
 
-This repo has 64 `SKILL.md` modules. Nine are registered entry points:
+This repo has 65 `SKILL.md` modules. Nine are registered entry points:
 `orchestrator` and the eight files under `skills/commands/`. The rest are
 path-loaded reference modules. The gate is structural, not provider-specific:
 
 > A directory is registered when its `SKILL.md` has valid `name` and
 > `description` frontmatter and the harness discovers or registers it. The
-> other 55 modules are reference content, not standalone commands.
+> other 56 modules are reference content, not standalone commands.
 
 Verified against each tool's own documentation:
 
-| Tool | Discovery mechanism | Where it scans | What happens to the 55 without frontmatter |
+| Tool | Discovery mechanism | Where it scans | What happens to the 56 without frontmatter |
 |---|---|---|---|
 | **Claude Code** | `plugin.json`'s `skills` array (marketplace) or `.claude/skills/<name>/SKILL.md` (manual) | The 9 paths listed in `plugin.json` | Reference modules are copied as content and read by path |
 | **OpenCode** | Native skill scanner, requires `name` (alphanumeric+hyphens, matches dir name) + `description` (1-1024 chars) in frontmatter; unknown fields ignored | `.opencode/skills/`, `.claude/skills/`, `.agents/skills/` (+ global `~/.config/opencode/`, `~/.claude/`, `~/.agents/` equivalents) | Fail frontmatter validation → not discovered at all, invisible to the `<available_skills>` list injected into agent context at session start |
@@ -840,6 +830,6 @@ the folder-name/frontmatter validation.
 
 **A second bug this surfaced**: `skills/orchestrator/SKILL.md` sits in a folder named `orchestrator`, but its own frontmatter says `name: sdd`. Claude Code's plugin-marketplace path doesn't care (it registers skills by path via `plugin.json`), but the native Agent Skills discovery on Claude Code's manual install, OpenCode, Codex, and Cursor all require the immediate parent folder to match `name:` exactly — so as installed, the orchestrator itself was failing discovery validation on all four. The installer now adds a small alias copy at each container's root (`install_orchestrator_alias()` in `install/install.sh`), one per target's actual destination — `~/.claude/skills/sdd/SKILL.md` (claude), `.claude/skills/sdd/SKILL.md` (claude-proj), `.agents/skills/sdd/SKILL.md` (codex), `.opencode/skills/sdd/SKILL.md` (opencode), `.cursor/skills/sdd/SKILL.md` (cursor) — so the folder name matches without renaming the canonical `skills/orchestrator/` path this repo's own cross-references and `.claude-plugin/plugin.json` depend on.
 
-**Also fixed — internal path references now resolve**: every one of the 54 reference modules cross-references its siblings with paths like `skills/think/grill/SKILL.md`, written assuming a project-root-relative `skills/` directory (true only when running straight out of this repo). Since the `codex`/`opencode`/`cursor`/`generic` installers copy that tree into a *nested* destination (`.agents/skills/sdd/`, `.cursor/skills/sdd/`, a custom `--dest`), those references used to point nowhere once installed elsewhere. `install/install.sh` now rewrites every literal `skills/` prefix — across every copied `.md`/`.mjs` file, plus the copied `AGENTS.md` — to the actual install location right after copying (`rewrite_skill_paths()` / `rewrite_skill_paths_in_file()`), computed relative to wherever `AGENTS.md` itself lands (so it also works for a `--dest` whose parent directory isn't the project root). Verified by installing into a scratch repo for every target (`codex`, `opencode`, `cursor`, `claude-proj`, `generic` with both a `skills`-named and non-`skills`-named `--dest`) and mechanically checking that every rewritten reference resolves to a real file or directory on disk — zero broken references in each case, and `--update` re-runs the rewrite from the pristine source each time (no double-rewrite drift).
+**Also fixed — internal path references now resolve**: reference modules cross-reference their siblings with paths like `skills/think/grill/SKILL.md`, written assuming a project-root-relative `skills/` directory (true only when running straight out of this repo). Since the `codex`/`opencode`/`cursor`/`generic` installers copy that tree into a *nested* destination (`.agents/skills/sdd/`, `.cursor/skills/sdd/`, a custom `--dest`), those references used to point nowhere once installed elsewhere. `install/install.sh` now rewrites every literal `skills/` prefix — across every copied `.md`/`.mjs` file, plus the copied `AGENTS.md` — to the actual install location right after copying (`rewrite_skill_paths()` / `rewrite_skill_paths_in_file()`), computed relative to wherever `AGENTS.md` itself lands (so it also works for a `--dest` whose parent directory isn't the project root). Verified by installing into a scratch repo for every target (`codex`, `opencode`, `cursor`, `claude-proj`, `generic` with both a `skills`-named and non-`skills`-named `--dest`) and mechanically checking that every rewritten reference resolves to a real file or directory on disk — zero broken references in each case, and `--update` re-runs the rewrite from the pristine source each time (no double-rewrite drift).
 
 Sources: [Agent Skills — OpenCode docs](https://opencode.ai/docs/skills/) · [Build skills — Codex / ChatGPT Learn](https://developers.openai.com/codex/skills) · [Slash commands in Codex CLI — OpenAI Developers](https://developers.openai.com/codex/guides/slash-commands) · [Agent Skills — Cursor Docs](https://cursor.com/docs/skills)

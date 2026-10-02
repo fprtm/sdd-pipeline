@@ -1,6 +1,6 @@
 # SDLC Detector
 
-Detect the project's SDLC model and adapt SDD Pipeline behavior accordingly. **Mandatory — never skipped, never left undeclared.** There is no "none" value: a project with no formal process is `solo`, which is itself a real, adapted-for methodology, not an absence of one.
+Detect the project's SDLC model and adapt SDD Pipeline behavior accordingly. **Identification is mandatory — never skipped, never left undeclared.** Emergency mode may defer process adaptations while mitigation is active, but it still reads the configured/current model and reports it. There is no "none" value: a project with no formal process is `solo`, which is itself a real, adapted-for methodology, not an absence of one.
 
 ## Two Layers, Not One — Don't Confuse Them
 
@@ -155,7 +155,7 @@ Defer to orchestrator matrix on conflict. Skill-specific additions below.
 | **vibe** | SDLC adapts silently. No ceremony shown to user. |
 | **standard** | Full SDLC adaptation. Context shown in plan. |
 | **strict** | Full SDLC adaptation + formal compliance checks. Waterfall/V-Model: require traceability. Agile+Scrum: require story reference. |
-| **emergency** | SDLC skipped. Fix first, process later. |
+| **emergency** | Read the configured/current SDLC without a slow detection pass; announce it, defer its process adaptations during mitigation, and apply them in the post-fix follow-up. |
 
 ## Output
 

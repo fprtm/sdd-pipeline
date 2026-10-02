@@ -37,6 +37,11 @@ The recommendation is an offer, never an automatic invocation. A user can
 revise, discuss, pause, or stop at any completed boundary. Do not repeat an
 offer the user explicitly declined unless new evidence changes why it applies.
 
+For vNext outcome review, keep product outcome and technical outcome separate,
+then use `rules/outcome.mjs` to derive keep, iterate, rollback, or retire. An
+incident contributes only a minimal redacted regression record; raw logs,
+secrets, and PII stay in the authorized external incident system.
+
 ## Decision and Skip Rules
 
 1. **Ask before assuming.** A material product, scope, risk, UX, data, or

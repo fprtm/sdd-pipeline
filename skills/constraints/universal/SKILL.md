@@ -19,9 +19,9 @@ See `skills/build/constraints/SKILL.md` for the full constraint engine behavior.
 - **CHECK**: mechanical
 
 ### 3. No Premature Abstraction
-- **RULE**: No factories, strategies, repositories, or base classes without 3+ implementations.
+- **RULE**: No factories, strategies, repositories, or base classes without 3+ concrete implementations or call sites that genuinely need the shared abstraction. A boundary port is the narrow exception: two real adapters are enough because the variation already exists; one adapter remains hypothetical.
 - **RATIONALE**: AI defaults to enterprise patterns. Duplication is cheaper than wrong abstraction.
-- **OVERRIDE**: Task explicitly requires extensibility.
+- **OVERRIDE**: Task explicitly requires extensibility. The two-real-adapter boundary exception follows `skills/think/arch-analyzer/SKILL.md`; it does not justify unrelated factories or base classes.
 - **CHECK**: judgment
 
 ### 4. Follow Existing Conventions

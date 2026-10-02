@@ -142,7 +142,7 @@ cd sdd-pipeline   # the cloned repo, not your project
 ./scripts/validate-skills.sh
 ```
 
-Should print `ALL CHECKS PASSED` and a count of skills found (currently 64 in a full install — this counts every module, not just the 9 registered entry points: the orchestrator plus 8 commands). This checks skill files exist, have valid frontmatter, and that `plugin.json`'s registrations resolve — it validates the source repo, not what got copied into your project.
+Should print `ALL CHECKS PASSED` and a count of skills found (currently 65 in a full install — this counts every module, not just the 9 registered entry points: the orchestrator plus 8 commands). Advisory size warnings may appear without failing the command. This checks skill files exist, have valid frontmatter, and that `plugin.json`'s registrations resolve — it validates the source repo, not what got copied into your project.
 
 ---
 

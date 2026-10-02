@@ -56,6 +56,17 @@ Run these in parallel when multi-agent is available. Sequential otherwise.
   gateway operation, or establish `may_accept`. Verify those claims with their
   corresponding projection, trusted-event, gateway, and sealed-evidence tests;
   never turn a facade PASS, unknown, or unavailable result into approval.
+- **vNext delivery evidence:** evaluate the current exact-subject packet with
+  `skills/meta/quality-contract/rules/delivery.mjs`. Treat missing, stale,
+  self-reported/self-verified A2/A3 evidence and open defects as BLOCKED or
+  REWORK exactly as emitted. Its shadow `DELIVERY_VALID` result still has
+  `may_accept: false`; only the authorized lifecycle transition can accept.
+- **vNext engineering profile:** evaluate all six explicit engineering
+  dimensions with `skills/meta/quality-contract/rules/engineering.mjs`.
+  Missing dimensions, false `not-required` states, failed criteria,
+  below-floor evidence, unbound E5/E6 claims, and A2/A3 self-verification are
+  failures or blockers exactly as emitted. `ENGINEERING_PROFILE_VALID` is
+  shadow evidence and never acceptance authority.
 - **If `docs/sdd/traceability.md` exists, run the mechanical check first** — `node tools/check-traceability.mjs docs/sdd` (bundled with `skills/meta/traceability/`) — instead of re-tracing by hand; its findings (orphans, broken refs, freelance tickets/tests) are this layer's findings.
 - Then trace each requirement identified in the THINK phase to at least one test or verifiable check (covers work the matrix doesn't, e.g. small tasks with no matrix).
 - Requirements with no corresponding test = **red flag**. List them explicitly.
@@ -90,11 +101,11 @@ Defer to orchestrator matrix on conflict. Skill-specific additions:
 
 | Mode | Layers |
 |------|--------|
-| prototype | Quick smoke test only (does it run?) |
-| vibe | Layers 1-3 silently. Only surface failures. |
+| prototype | Quick smoke test plus the applicable small+ coverage gate; micro work remains smoke-only. |
+| vibe | Layers 1-3 plus the applicable coverage gate silently. Only surface failures. |
 | standard | All 4 layers |
 | strict | All 4 layers + pause for manual review before proceeding |
-| emergency | Quick smoke test (does the fix work?) |
+| emergency | Quick smoke during mitigation; run the applicable coverage gate in the mandatory post-fix follow-up before ordinary acceptance. |
 
 ## Graceful Degradation
 

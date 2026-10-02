@@ -23,6 +23,6 @@ Activate emergency mode when prompt contains urgency signals:
 ## Post-Emergency
 
 After the emergency is resolved, suggest:
-- "Run `health-check` to verify fix quality."
+- "Run `/sdd-pipeline:check` in VERIFY mode to verify the fix; use its AUDIT branch later when no fresh diff remains."
 - "Consider adding a test for this failure case."
 - "Review the fix in standard mode when things calm down."

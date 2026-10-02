@@ -76,6 +76,11 @@ install_quality_contract_runtime() {
   printf '%s\n' 'SDD Pipeline Quality Contract Runtime v1' > "$marker"
   rm -rf "$staged"
   cp -R "$source" "$staged"
+  # Reference packs are data-only runtime inputs and ship inside the same
+  # immutable release so a reader never observes new rules with old packs.
+  if [ -d "$SKILLS_DIR/packs" ]; then
+    cp -R "$SKILLS_DIR/packs" "$staged/packs"
+  fi
 
   local source_file relative
   while IFS= read -r -d '' source_file; do
@@ -86,6 +91,16 @@ install_quality_contract_runtime() {
       return 1
     }
   done < <(find "$source" -type f -print0)
+  if [ -d "$SKILLS_DIR/packs" ]; then
+    while IFS= read -r -d '' source_file; do
+      relative="${source_file#$SKILLS_DIR/packs/}"
+      cmp -s "$source_file" "$staged/packs/$relative" || {
+        rm -rf "$staged"
+        echo "Quality Contract pack staging verification failed: $relative" >&2
+        return 1
+      }
+    done < <(find "$SKILLS_DIR/packs" -type f -print0)
+  fi
 
   # Test-only fault injection exercises the failure boundary before a live
   # pointer changes; it cannot create a partially live runtime.

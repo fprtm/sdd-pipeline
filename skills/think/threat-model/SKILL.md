@@ -54,6 +54,13 @@ Always confirm addressed or consciously N/A: input validation & output encoding 
 
 ## SSDLC Hooks — Not One-and-Done
 
+For vNext-opted work, map local controls to the version-pinned vocabulary in
+`docs/sdd/reports/2026-10-02-wp08-standards-mapping.md` (NIST SSDF 1.1 final,
+OWASP ASVS 5.0.0, OWASP SAMM 2.0). These references support traceability; they
+do not create certification. `rules/readiness.mjs` remains the executable
+owner, and no mapping or exception can turn missing High/Critical evidence
+green.
+
 - `skills/build/test-plan/` must create a TEST-xxx (security/regression class) for **each High/Critical control**.
 - `skills/build/ticket-decomposition/` must create a ticket for each control that needs code (tiered honestly — usually not the cheapest tier).
 - `/sdd-pipeline:check` on the affected area re-runs this skill: confirm nothing regressed and no new boundary-crossing flow appeared without a threat pass.

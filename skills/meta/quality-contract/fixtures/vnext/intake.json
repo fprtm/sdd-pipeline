@@ -1,0 +1,11 @@
+{
+  "base": {
+    "intake_version": "1", "intake_id": "intake-1",
+    "source": { "type": "customer-evidence", "evidence_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" },
+    "problem_statement": "reviewers cannot recover decision context from repository state",
+    "requested_solution": "add a bounded repository intake record",
+    "owner_role": "product-owner", "affected_users": "software delivery reviewers", "affected_surfaces": ["repository-workflow"],
+    "urgency": "normal", "evidence_strength": "field", "risk_hints": ["comprehension debt"], "duplicate_candidates": [],
+    "decision": { "value": "valid", "role_id": "product-owner" }
+  }
+}

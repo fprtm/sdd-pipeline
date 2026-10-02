@@ -34,6 +34,21 @@ import { redactOutput, sealEvidenceRun, isValidEvidenceEnvelope } from './skills
 import { verifySealedEvidence } from './skills/meta/quality-contract/rules/evidence.mjs';
 import { verifyAcceptanceAttestation } from './skills/meta/quality-contract/rules/acceptance.mjs';
 import { evaluateCompatibility, evaluateRetirement, evaluatePilotGates, verifyFrozenPilotPlan, verifyPilotMeasurements } from './skills/meta/quality-contract/rules/pilot-gates.mjs';
+import { evaluateControlAxes } from './skills/meta/quality-contract/rules/axes.mjs';
+import { DEFAULT_ROLE_CONTRACTS, evaluateRoleAuthority } from './skills/meta/quality-contract/rules/roles.mjs';
+import { LIFECYCLE_TRANSITIONS, evaluateLegacyLifecycle, evaluateLifecycleTransition, lifecycleEventDigest, verifyLifecycleEvent } from './skills/meta/quality-contract/rules/lifecycle.mjs';
+import { evaluateProductDecision } from './skills/meta/quality-contract/rules/product.mjs';
+import { evaluateDeliveryEvidence } from './skills/meta/quality-contract/rules/delivery.mjs';
+import { ENGINEERING_DIMENSIONS, evaluateEngineeringProfile } from './skills/meta/quality-contract/rules/engineering.mjs';
+import { QA_TECHNIQUES, evaluateQaProfile } from './skills/meta/quality-contract/rules/qa.mjs';
+import { evaluateReadiness } from './skills/meta/quality-contract/rules/readiness.mjs';
+import { createIncidentRegression, createObservationPlan, evaluateOutcome, evaluateReleaseAuthorization, verifyReleaseAuthorization } from './skills/meta/quality-contract/rules/outcome.mjs';
+import { mergePolicyPacks } from './skills/meta/quality-contract/rules/packs.mjs';
+import { benchmarkDigest } from './skills/meta/quality-contract/benchmark/runner.mjs';
+import { evaluatePromotionReadiness, verifyPromotionDecision } from './skills/meta/quality-contract/benchmark/promotion.mjs';
+import { negotiateCapabilities } from './skills/meta/quality-contract/rules/capabilities.mjs';
+import { evaluateGateEffectiveness } from './skills/meta/quality-contract/rules/gate-effectiveness.mjs';
+import { evaluateIntake } from './skills/meta/quality-contract/rules/intake.mjs';
 import { evaluateScopeAccounting } from './skills/meta/quality-contract/rules/scope-accounting.mjs';
 import { evaluateExecutorFit } from './skills/meta/quality-contract/rules/executor-fit.mjs';
 import { RESULT_CODES, isResultCode } from './skills/meta/quality-contract/codes.mjs';
@@ -43,6 +58,19 @@ const projectionFixture = JSON.parse(await readFile('./skills/meta/quality-contr
 const preflightFixture = JSON.parse(await readFile('./skills/meta/quality-contract/fixtures/preflight.json', 'utf8'));
 const evidenceFixture = JSON.parse(await readFile('./skills/meta/quality-contract/fixtures/evidence.json', 'utf8'));
 const pilotFixture = JSON.parse(await readFile('./skills/meta/quality-contract/fixtures/pilot.json', 'utf8'));
+const axesFixture = JSON.parse(await readFile('./skills/meta/quality-contract/fixtures/vnext/axes.json', 'utf8'));
+const rolesFixture = JSON.parse(await readFile('./skills/meta/quality-contract/fixtures/vnext/roles.json', 'utf8'));
+const lifecycleFixture = JSON.parse(await readFile('./skills/meta/quality-contract/fixtures/vnext/lifecycle.json', 'utf8'));
+const productFixture = JSON.parse(await readFile('./skills/meta/quality-contract/fixtures/vnext/product.json', 'utf8'));
+const deliveryFixture = JSON.parse(await readFile('./skills/meta/quality-contract/fixtures/vnext/delivery.json', 'utf8'));
+const engineeringFixture = JSON.parse(await readFile('./skills/meta/quality-contract/fixtures/vnext/engineering.json', 'utf8'));
+const qaFixture = JSON.parse(await readFile('./skills/meta/quality-contract/fixtures/vnext/qa.json', 'utf8'));
+const readinessFixture = JSON.parse(await readFile('./skills/meta/quality-contract/fixtures/vnext/readiness.json', 'utf8'));
+const outcomeFixture = JSON.parse(await readFile('./skills/meta/quality-contract/fixtures/vnext/outcome.json', 'utf8'));
+const intakeFixture = JSON.parse(await readFile('./skills/meta/quality-contract/fixtures/vnext/intake.json', 'utf8'));
+const promotionFixture = JSON.parse(await readFile('./skills/meta/quality-contract/fixtures/vnext/promotion.json', 'utf8'));
+const developerPack = JSON.parse(await readFile('./skills/packs/developer-tooling/pack.json', 'utf8'));
+const apiPack = JSON.parse(await readFile('./skills/packs/high-risk-api/pack.json', 'utf8'));
 const valid = parseContractDocument(fixture.valid);
 assert.equal(valid.ok, true, valid.cause);
 assert.equal(parseContractDocument(fixture.duplicate_key).code, 'PARSE_DUPLICATE_KEY');
@@ -406,7 +434,8 @@ const pilotMeasurements = { measurement_version: '1', plan_digest: verifiedPilot
 const measurementAttestor = { kind: 'external-pilot-measurement-attestor-v1', verify: async ({ plan_digest, measurement_digest }) => ({ ok: true, plan_digest, measurement_digest, envelope_digest: `sha256:${'5'.repeat(64)}` }) };
 const attestMeasurements = async (value) => verifyPilotMeasurements(verifiedPilotPlan, value, measurementAttestor);
 const verifiedPilotMeasurements = await attestMeasurements(pilotMeasurements);
-assert.equal(evaluatePilotGates({ verified_plan: verifiedPilotPlan, verified_measurements: verifiedPilotMeasurements }).status, 'pass');
+const legacyPilotPass = evaluatePilotGates({ verified_plan: verifiedPilotPlan, verified_measurements: verifiedPilotMeasurements });
+assert.equal(legacyPilotPass.status, 'pass'); assert.equal(legacyPilotPass.authority_scope, 'quality-contract-v1-artifact-efficiency'); assert.equal(legacyPilotPass.may_promote_vnext, false);
 assert.throws(() => { verifiedPilotPlan.plan.tuples[0].repository = 'mutated-repository'; }, /read only|Cannot assign/);
 assert.throws(() => { verifiedPilotMeasurements.measurements.unseen_validation.segments[0].candidate.retrieval_p90_ms = 999; }, /read only|Cannot assign/);
 assert.equal(evaluatePilotGates({ verified_plan: verifiedPilotPlan, verified_measurements: verifiedPilotMeasurements }).status, 'pass', 'nested mutation after verification cannot alter a gate result');
@@ -430,5 +459,338 @@ const deepPlan = structuredClone(pilotPlan); let deepNode = deepPlan; for (let i
 await assert.rejects(() => verifyFrozenPilotPlan(pilotPlan, { kind: 'external-pilot-plan-attestor-v1', verify: async ({ plan_digest }) => ({ ok: true, plan_digest, plan: deepPlan, envelope_digest: `sha256:${'7'.repeat(64)}` }) }), /depth limit/);
 const oversizedPlan = { ...pilotPlan, padding: 'x'.repeat(300000) };
 await assert.rejects(() => verifyFrozenPilotPlan(pilotPlan, { kind: 'external-pilot-plan-attestor-v1', verify: async ({ plan_digest }) => ({ ok: true, plan_digest, plan: oversizedPlan, envelope_digest: `sha256:${'8'.repeat(64)}` }) }), /byte limit|invalid string/);
+
+// TICKET-007 / TEST-027: size and ceremony cannot lower risk or assurance.
+for (const testCase of axesFixture.cases) {
+  const input = structuredClone(axesFixture.base);
+  input.complexity.level = testCase.complexity;
+  input.risk.level = testCase.risk;
+  if (testCase.risk === 'low') input.risk.dimensions.user_harm = 'none';
+  input.risk.dimensions.authorization = testCase.authorization;
+  input.requested_assurance = testCase.assurance;
+  input.ceremony.mode = testCase.ceremony;
+  const result = evaluateControlAxes(input);
+  assert.equal(result.status, testCase.expected_status, testCase.id);
+  assert.equal(result.effective.risk, testCase.expected_risk, testCase.id);
+  assert.equal(result.effective.assurance, testCase.expected_assurance, testCase.id);
+  assert.equal(result.shadow.may_dispatch, false, testCase.id);
+  assert.equal(result.shadow.may_accept, false, testCase.id);
+  if (testCase.expected_code) assert.ok(Object.values(result.dimensions).some(({ code }) => code === testCase.expected_code), testCase.id);
+  assert.throws(() => { result.status = 'pass'; }, /read only|Cannot assign/, testCase.id);
+}
+const criticalByDimension = structuredClone(axesFixture.base);
+criticalByDimension.risk.level = 'low'; criticalByDimension.risk.dimensions.authorization = 'privileged'; criticalByDimension.requested_assurance = 'A3';
+assert.equal(evaluateControlAxes(criticalByDimension).dimensions.risk_floor.code, 'RISK_BELOW_FLOOR');
+const failedHardStop = structuredClone(axesFixture.base); failedHardStop.hard_stops[0].status = 'fail';
+assert.equal(evaluateControlAxes(failedHardStop).dimensions.hard_stops.code, 'HARD_STOP_FAILED');
+const unknownHardStop = structuredClone(axesFixture.base); unknownHardStop.hard_stops[0].status = 'unknown';
+assert.equal(evaluateControlAxes(unknownHardStop).status, 'unknown');
+assert.equal(evaluateControlAxes({ ...axesFixture.base, unexpected: true }).dimensions.schema.code, 'AXES_SCHEMA_INVALID');
+assert.equal(evaluateControlAxes({ ...axesFixture.base, requested_assurance: 'A9' }).status, 'fail');
+assert.equal(evaluateControlAxes({ ...axesFixture.base, subject_digest: 'bad' }).status, 'fail');
+assert.equal(evaluateControlAxes({ ...axesFixture.base, complexity: { level: 'small', basis: [] } }).status, 'fail');
+assert.equal(evaluateControlAxes({ ...axesFixture.base, ceremony: { mode: 'standard', source: 'tone' } }).status, 'fail');
+const invalidDimension = structuredClone(axesFixture.base); invalidDimension.risk.dimensions.privacy = 'public';
+assert.equal(evaluateControlAxes(invalidDimension).status, 'fail');
+const extraRiskKey = structuredClone(axesFixture.base); extraRiskKey.risk.extra = true;
+assert.equal(evaluateControlAxes(extraRiskKey).status, 'fail');
+const duplicateStops = structuredClone(axesFixture.base); duplicateStops.hard_stops.push(structuredClone(duplicateStops.hard_stops[0]));
+assert.equal(evaluateControlAxes(duplicateStops).status, 'fail');
+const invalidStop = structuredClone(axesFixture.base); invalidStop.hard_stops[0].id = 'not valid';
+assert.equal(evaluateControlAxes(invalidStop).status, 'fail');
+const highPromotion = structuredClone(axesFixture.base); highPromotion.risk.level = 'critical'; highPromotion.risk.dimensions.privacy = 'personal'; highPromotion.requested_assurance = 'A3';
+assert.equal(evaluateControlAxes(highPromotion).dimensions.risk_floor.code, 'RISK_PROMOTED');
+
+// TICKET-008 / TEST-028: role strings are not independent or human authority.
+assert.equal(Object.keys(DEFAULT_ROLE_CONTRACTS).length, 9);
+for (const role of Object.values(DEFAULT_ROLE_CONTRACTS)) assert.deepEqual(Object.keys(role), ['owns', 'may_approve', 'may_block', 'must_not_self_approve', 'required_inputs', 'required_outputs', 'required_evidence', 'escalates_when', 'fallback_when_unavailable']);
+for (const ownership of ['architecture-fitness', 'compatibility', 'reversibility', 'performance-budget', 'maintainability', 'operability']) assert.ok(DEFAULT_ROLE_CONTRACTS.architect.owns.includes(ownership));
+for (const ownership of ['implementation', 'local-tests', 'deviations', 'code-comprehension', 'bounded-change']) assert.ok(DEFAULT_ROLE_CONTRACTS.implementer.owns.includes(ownership));
+for (const ownership of ['slo', 'error-budget', 'observability', 'capacity', 'backup-restore', 'incident-readiness', 'recovery']) assert.ok(DEFAULT_ROLE_CONTRACTS.sre.owns.includes(ownership));
+const roleInput = structuredClone(rolesFixture.base); roleInput.assignments = [structuredClone(rolesFixture.assignment)];
+assert.equal(evaluateRoleAuthority(roleInput).code, 'ROLE_AUTHORITY_VALID');
+const selfApproval = structuredClone(roleInput); selfApproval.assignments[0].actor_id = selfApproval.implementer_actor_id;
+assert.equal(evaluateRoleAuthority(selfApproval).code, 'ROLE_SELF_APPROVAL');
+const missingRole = structuredClone(roleInput); missingRole.assignments = [];
+assert.equal(evaluateRoleAuthority(missingRole).code, 'ROLE_AUTHORITY_MISSING');
+const staleRole = structuredClone(roleInput); staleRole.assignments[0].expires_at = '2026-10-02T12:00:00Z';
+assert.equal(evaluateRoleAuthority(staleRole).code, 'ROLE_ASSIGNMENT_STALE');
+const wrongSubjectRole = structuredClone(roleInput); wrongSubjectRole.assignments[0].work_subject_digest = `sha256:${'c'.repeat(64)}`;
+assert.equal(evaluateRoleAuthority(wrongSubjectRole).code, 'ROLE_SUBJECT_MISMATCH');
+const assertedA2 = structuredClone(roleInput); assertedA2.assignments[0].qualification_class = 'asserted';
+assert.equal(evaluateRoleAuthority(assertedA2).code, 'ROLE_ATTESTATION_INSUFFICIENT');
+const conflictedRole = structuredClone(roleInput); conflictedRole.assignments[0].conflicts = ['same-control-implementer'];
+assert.equal(evaluateRoleAuthority(conflictedRole).code, 'ROLE_CONFLICT');
+const a1MultiHat = structuredClone(roleInput); a1MultiHat.assurance = 'A1'; a1MultiHat.assignments[0].actor_id = a1MultiHat.implementer_actor_id; a1MultiHat.assignments[0].qualification_class = 'asserted';
+assert.equal(evaluateRoleAuthority(a1MultiHat).code, 'ROLE_AUTHORITY_DEGRADED');
+const a3Weak = structuredClone(roleInput); a3Weak.assurance = 'A3';
+assert.equal(evaluateRoleAuthority(a3Weak).code, 'ROLE_ATTESTATION_INSUFFICIENT');
+const a3Valid = structuredClone(a3Weak); a3Valid.assignments[0].qualification_class = 'externally-attested';
+assert.equal(evaluateRoleAuthority(a3Valid).code, 'ROLE_AUTHORITY_VALID');
+const securityRole = structuredClone(roleInput); securityRole.security_sensitive = true;
+assert.equal(evaluateRoleAuthority(securityRole).code, 'ROLE_AUTHORITY_MISSING');
+assert.equal(evaluateRoleAuthority({ ...roleInput, unexpected: true }).code, 'ROLE_SCHEMA_INVALID');
+const malformedAssignment = structuredClone(roleInput); malformedAssignment.assignments[0].expires_at = 'never';
+assert.equal(evaluateRoleAuthority(malformedAssignment).code, 'ROLE_SCHEMA_INVALID');
+assert.throws(() => { DEFAULT_ROLE_CONTRACTS.implementer.owns.push('anything'); }, /read only|extensible|Cannot add/);
+
+// TICKET-009 / TEST-029: exact predecessor/subject/role and single-use replay.
+const lifecycleAttestor = { kind: 'external-lifecycle-event-attestor-v1', verify: async ({ event_digest, event }) => ({ ok: true, event_digest, event, attestation_digest: `sha256:${'2'.repeat(64)}`, trusted_at: '2026-10-02T12:00:00Z' }) };
+const lifecycleReplay = () => { const consumed = new Set(); return { kind: 'external-durable-replay-v1', async consumeOnce({ workflow_id, event_id, nonce }) { const key = `${workflow_id}\0${event_id}\0${nonce}`; if (consumed.has(key)) return false; consumed.add(key); return true; } }; };
+function lifecycleEvent(edge, index = 0) {
+  return { lifecycle_event_version: '1', event_id: `event-${index}`, workflow_id: 'workflow-1', predecessor_event_digest: lifecycleFixture.predecessor_event_digest, from_state: edge.from, to_state: edge.to, work_subject: structuredClone(lifecycleFixture.subject), decision: { kind: edge.decision, role_id: edge.role, assignment_digest: lifecycleFixture.assignment_digest }, evidence_refs: [{ evidence_digest: lifecycleFixture.evidence_digest, evidence_class: 'executed', observed_at: '2026-10-02T11:59:00Z' }], issued_at: '2026-10-02T11:00:00Z', expires_at: '2026-10-02T13:00:00Z', nonce: `nonce-${index}`, issuer: 'fixture-authority', signature: 'fixture-signature' };
+}
+for (const [index, edge] of LIFECYCLE_TRANSITIONS.entries()) {
+  const event = lifecycleEvent(edge, index);
+  assert.match(lifecycleEventDigest(event), /^sha256:[a-f0-9]{64}$/);
+  const verified = await verifyLifecycleEvent(event, lifecycleAttestor);
+  const result = await evaluateLifecycleTransition({ current_state: edge.from, current_event_digest: lifecycleFixture.predecessor_event_digest, work_subject: lifecycleFixture.subject, verified_event: verified }, lifecycleReplay());
+  assert.equal(result.code, 'LIFECYCLE_STATE_ADVANCED', `${edge.from}->${edge.to}`);
+  assert.equal(result.state, edge.to);
+}
+for (const expected of [
+  { from: 'outcome-reviewed', to: 'learned', decision: 'keep', role: 'outcome-owner' },
+  { from: 'outcome-reviewed', to: 'validating', decision: 'iterate', role: 'outcome-owner' },
+  { from: 'outcome-reviewed', to: 'rolled-back', decision: 'rollback', role: 'release-authority' },
+  { from: 'outcome-reviewed', to: 'retired', decision: 'retire', role: 'outcome-owner' },
+  { from: 'rolled-back', to: 'learned', decision: 'learn', role: 'outcome-owner' },
+]) assert.ok(LIFECYCLE_TRANSITIONS.some((edge) => JSON.stringify(edge) === JSON.stringify(expected)), `${expected.decision} outcome route must exist`);
+const baseLifecycleEvent = lifecycleEvent(LIFECYCLE_TRANSITIONS[0], 100);
+const verifiedLifecycleEvent = await verifyLifecycleEvent(baseLifecycleEvent, lifecycleAttestor);
+const replayStore = lifecycleReplay();
+const lifecycleInput = { current_state: 'intake', current_event_digest: lifecycleFixture.predecessor_event_digest, work_subject: lifecycleFixture.subject, verified_event: verifiedLifecycleEvent };
+assert.equal((await evaluateLifecycleTransition(lifecycleInput, replayStore)).status, 'pass');
+assert.equal((await evaluateLifecycleTransition(lifecycleInput, replayStore)).code, 'LIFECYCLE_REPLAY');
+assert.equal((await evaluateLifecycleTransition({ ...lifecycleInput, current_event_digest: `sha256:${'9'.repeat(64)}` }, lifecycleReplay())).code, 'LIFECYCLE_PREDECESSOR_MISMATCH');
+assert.equal((await evaluateLifecycleTransition({ ...lifecycleInput, work_subject: { ...lifecycleFixture.subject, candidate_digest: `sha256:${'9'.repeat(64)}` } }, lifecycleReplay())).code, 'LIFECYCLE_SUBJECT_MISMATCH');
+const wrongRole = structuredClone(baseLifecycleEvent); wrongRole.event_id = 'wrong-role'; wrongRole.nonce = 'wrong-role'; wrongRole.decision.role_id = 'implementer';
+assert.equal((await evaluateLifecycleTransition({ ...lifecycleInput, verified_event: await verifyLifecycleEvent(wrongRole, lifecycleAttestor) }, lifecycleReplay())).code, 'LIFECYCLE_ROLE_UNAUTHORIZED');
+const invalidEdge = structuredClone(baseLifecycleEvent); invalidEdge.event_id = 'invalid-edge'; invalidEdge.nonce = 'invalid-edge'; invalidEdge.to_state = 'released';
+assert.equal((await evaluateLifecycleTransition({ ...lifecycleInput, verified_event: await verifyLifecycleEvent(invalidEdge, lifecycleAttestor) }, lifecycleReplay())).code, 'LIFECYCLE_TRANSITION_INVALID');
+assert.equal((await evaluateLifecycleTransition({ ...lifecycleInput, verified_event: baseLifecycleEvent }, lifecycleReplay())).code, 'LIFECYCLE_ATTESTATION_INVALID');
+assert.equal((await evaluateLifecycleTransition(lifecycleInput)).code, 'LIFECYCLE_REPLAY_UNVERIFIED');
+assert.equal(evaluateLegacyLifecycle({ legacy: true, operation: 'report', state: 'building' }).status, 'pass');
+assert.equal(evaluateLegacyLifecycle({ legacy: true, operation: 'start', state: 'building' }).status, 'blocked');
+await assert.rejects(() => verifyLifecycleEvent({ ...baseLifecycleEvent, unexpected: true }, lifecycleAttestor), /externally verified/);
+await assert.rejects(() => verifyLifecycleEvent(baseLifecycleEvent, { ...lifecycleAttestor, verify: async ({ event_digest, event }) => ({ ok: true, event_digest, event, attestation_digest: `sha256:${'2'.repeat(64)}`, trusted_at: '2026-10-02T14:00:00Z' }) }), /expired/);
+await assert.rejects(() => verifyLifecycleEvent(baseLifecycleEvent, { ...lifecycleAttestor, verify: async () => ({ ok: false }) }), /attestation/);
+
+// TICKET-010 / TEST-030: reject and revise are valid product outcomes before BUILD.
+assert.equal(evaluateIntake(intakeFixture.base).code, 'INTAKE_VALID');
+const solutionOnlyIntake = structuredClone(intakeFixture.base); solutionOnlyIntake.problem_statement = solutionOnlyIntake.requested_solution; solutionOnlyIntake.decision.value = 'clarify';
+assert.equal(evaluateIntake(solutionOnlyIntake).code, 'INTAKE_CLARIFICATION_REQUIRED');
+const forcedIntake = structuredClone(solutionOnlyIntake); forcedIntake.decision.value = 'valid';
+assert.equal(evaluateIntake(forcedIntake).code, 'INTAKE_DECISION_MISMATCH');
+const duplicateIntake = structuredClone(intakeFixture.base); duplicateIntake.duplicate_candidates = ['intake-previous']; duplicateIntake.decision.value = 'clarify';
+assert.equal(evaluateIntake(duplicateIntake).code, 'INTAKE_CLARIFICATION_REQUIRED');
+assert.equal(evaluateIntake({ ...intakeFixture.base, unexpected: true }).code, 'INTAKE_SCHEMA_INVALID');
+assert.equal(evaluateProductDecision(productFixture.base).code, 'PRODUCT_PROCEED');
+const rejectProduct = structuredClone(productFixture.base); rejectProduct.observation.outcome = 'contradicts'; rejectProduct.decision.value = 'reject';
+assert.equal(evaluateProductDecision(rejectProduct).next_state, 'rejected');
+const invalidatedProduct = structuredClone(productFixture.base); invalidatedProduct.assumptions[0].status = 'invalidated'; invalidatedProduct.decision.value = 'reject';
+assert.equal(evaluateProductDecision(invalidatedProduct).code, 'PRODUCT_REJECTED');
+const reviseProduct = structuredClone(productFixture.base); reviseProduct.observation.outcome = 'inconclusive'; reviseProduct.decision.value = 'revise';
+assert.equal(evaluateProductDecision(reviseProduct).next_state, 'discovering');
+const openProduct = structuredClone(productFixture.base); openProduct.stage = 'solution-fit'; openProduct.assumptions[0].status = 'open'; openProduct.assumptions[0].evidence_digest = null; openProduct.decision.value = 'revise';
+assert.equal(evaluateProductDecision(openProduct).next_state, 'validating');
+const forcedBuild = structuredClone(rejectProduct); forcedBuild.decision.value = 'proceed';
+assert.equal(evaluateProductDecision(forcedBuild).code, 'PRODUCT_DECISION_MISMATCH');
+assert.equal(evaluateProductDecision({ ...productFixture.base, unexpected: true }).code, 'PRODUCT_SCHEMA_INVALID');
+const wrongOwner = structuredClone(productFixture.base); wrongOwner.decision.role_id = 'implementer';
+assert.equal(evaluateProductDecision(wrongOwner).status, 'fail');
+const duplicateEvidence = structuredClone(productFixture.base); duplicateEvidence.problem_evidence.push(structuredClone(duplicateEvidence.problem_evidence[0]));
+assert.equal(evaluateProductDecision(duplicateEvidence).status, 'fail');
+const missingOpportunityCost = structuredClone(productFixture.base); delete missingOpportunityCost.product_context.opportunity_cost;
+assert.equal(evaluateProductDecision(missingOpportunityCost).code, 'PRODUCT_SCHEMA_INVALID');
+const missingKill = structuredClone(productFixture.base); delete missingKill.hypothesis.kill_threshold;
+assert.equal(evaluateProductDecision(missingKill).code, 'PRODUCT_SCHEMA_INVALID');
+const duplicateAlternative = structuredClone(productFixture.base); duplicateAlternative.rejected_alternatives.push(duplicateAlternative.rejected_alternatives[0]);
+assert.equal(evaluateProductDecision(duplicateAlternative).code, 'PRODUCT_SCHEMA_INVALID');
+
+// TICKET-011 / TEST-031: assurance-derived evidence and rework are exact-subject-bound.
+assert.equal(evaluateDeliveryEvidence(deliveryFixture.base).code, 'DELIVERY_VALID');
+assert.equal(evaluateDeliveryEvidence(deliveryFixture.base).may_accept, false, 'shadow delivery evaluation cannot grant acceptance');
+const lowRiskDelivery = structuredClone(deliveryFixture.base);
+lowRiskDelivery.assurance = 'A0'; lowRiskDelivery.acceptance_criteria = [{ id: 'ac-static', evidence_class: 'static', minimum_evidence_level: 'E1' }];
+lowRiskDelivery.evidence = [{ ...lowRiskDelivery.evidence[0], id: 'static-1', evidence_class: 'static', evidence_level: 'E1', producer_actor: 'implementer-1', verifier_actor: 'implementer-1', provenance: 'self-reported' }];
+assert.equal(evaluateDeliveryEvidence(lowRiskDelivery).code, 'DELIVERY_VALID');
+const missingDelivery = structuredClone(deliveryFixture.base); missingDelivery.evidence = missingDelivery.evidence.filter(({ evidence_class }) => evidence_class !== 'negative');
+assert.deepEqual(evaluateDeliveryEvidence(missingDelivery).missing_evidence, ['negative']);
+const weakDelivery = structuredClone(deliveryFixture.base); weakDelivery.evidence[0].provenance = 'self-reported';
+assert.equal(evaluateDeliveryEvidence(weakDelivery).code, 'DELIVERY_EVIDENCE_WEAK');
+const selfVerifiedDelivery = structuredClone(deliveryFixture.base); selfVerifiedDelivery.evidence[0].verifier_actor = selfVerifiedDelivery.evidence[0].producer_actor;
+assert.equal(evaluateDeliveryEvidence(selfVerifiedDelivery).code, 'DELIVERY_VERIFIER_NOT_INDEPENDENT');
+const weakLevelDelivery = structuredClone(deliveryFixture.base); weakLevelDelivery.evidence.find(({ evidence_class }) => evidence_class === 'review').evidence_level = 'E2';
+assert.equal(evaluateDeliveryEvidence(weakLevelDelivery).code, 'DELIVERY_EVIDENCE_LEVEL_INSUFFICIENT');
+const staleDelivery = structuredClone(deliveryFixture.base); staleDelivery.subject.candidate_digest = `sha256:${'9'.repeat(64)}`;
+assert.equal(evaluateDeliveryEvidence(staleDelivery).code, 'DELIVERY_EVIDENCE_STALE');
+const reworkDelivery = structuredClone(deliveryFixture.base); reworkDelivery.defects = [{ id: 'defect-1', severity: 'medium', status: 'open', subject_digest: reworkDelivery.subject.candidate_digest }];
+assert.equal(evaluateDeliveryEvidence(reworkDelivery).code, 'DELIVERY_REWORK_REQUIRED');
+assert.equal(evaluateDeliveryEvidence({ ...deliveryFixture.base, unexpected: true }).code, 'DELIVERY_SCHEMA_INVALID');
+const duplicateDeliveryEvidence = structuredClone(deliveryFixture.base); duplicateDeliveryEvidence.evidence.push(structuredClone(duplicateDeliveryEvidence.evidence[0]));
+assert.equal(evaluateDeliveryEvidence(duplicateDeliveryEvidence).code, 'DELIVERY_SCHEMA_INVALID');
+
+// TICKET-011 / TEST-031: every engineering concern is explicit and assurance-bound.
+assert.equal(evaluateEngineeringProfile(engineeringFixture.base).code, 'ENGINEERING_PROFILE_VALID');
+assert.equal(evaluateEngineeringProfile(engineeringFixture.base).may_accept, false);
+assert.deepEqual(engineeringFixture.base.checks.map(({ dimension }) => dimension).sort(), [...ENGINEERING_DIMENSIONS].sort());
+const missingEngineeringDimension = structuredClone(engineeringFixture.base); missingEngineeringDimension.checks.pop();
+assert.equal(evaluateEngineeringProfile(missingEngineeringDimension).code, 'ENGINEERING_SCHEMA_INVALID');
+const failedEngineering = structuredClone(engineeringFixture.base); failedEngineering.checks[0].status = 'fail';
+assert.equal(evaluateEngineeringProfile(failedEngineering).code, 'ENGINEERING_CHECK_FAILED');
+const weakEngineering = structuredClone(engineeringFixture.base); weakEngineering.checks[0].provenance = 'self-reported';
+assert.equal(evaluateEngineeringProfile(weakEngineering).code, 'ENGINEERING_EVIDENCE_WEAK');
+const selfVerifiedEngineering = structuredClone(engineeringFixture.base); selfVerifiedEngineering.checks[0].verifier_actor = selfVerifiedEngineering.checks[0].producer_actor;
+assert.equal(evaluateEngineeringProfile(selfVerifiedEngineering).code, 'ENGINEERING_VERIFIER_NOT_INDEPENDENT');
+const lowEngineeringEvidence = structuredClone(engineeringFixture.base); lowEngineeringEvidence.checks[0].evidence_level = 'E2';
+assert.equal(evaluateEngineeringProfile(lowEngineeringEvidence).code, 'ENGINEERING_EVIDENCE_LEVEL_INSUFFICIENT');
+const fieldEngineering = structuredClone(engineeringFixture.base); fieldEngineering.assurance = 'A3'; fieldEngineering.checks.forEach((check) => { if (['migration-reversibility', 'performance-budget', 'operability'].includes(check.dimension)) { check.evidence_level = 'E5'; check.environment_digest = `sha256:${'7'.repeat(64)}`; } });
+assert.equal(evaluateEngineeringProfile(fieldEngineering).code, 'ENGINEERING_PROFILE_VALID');
+const unboundFieldEngineering = structuredClone(fieldEngineering); unboundFieldEngineering.checks.find(({ dimension }) => dimension === 'performance-budget').environment_digest = null;
+assert.equal(evaluateEngineeringProfile(unboundFieldEngineering).code, 'ENGINEERING_ENVIRONMENT_MISSING');
+const lowFieldEngineering = structuredClone(fieldEngineering); lowFieldEngineering.checks.find(({ dimension }) => dimension === 'operability').evidence_level = 'E4';
+assert.equal(evaluateEngineeringProfile(lowFieldEngineering).code, 'ENGINEERING_EVIDENCE_LEVEL_INSUFFICIENT');
+const inapplicableEngineering = structuredClone(engineeringFixture.base); inapplicableEngineering.assurance = 'A0'; Object.assign(inapplicableEngineering.checks[0], { applicable: false, status: 'not-required', evidence_level: 'E0', evidence_digest: null, environment_digest: null, provenance: 'self-reported', producer_actor: 'implementer-1', verifier_actor: 'implementer-1' });
+assert.equal(evaluateEngineeringProfile(inapplicableEngineering).code, 'ENGINEERING_PROFILE_VALID');
+const falseGreenEngineering = structuredClone(inapplicableEngineering); falseGreenEngineering.checks[0].status = 'pass';
+assert.equal(evaluateEngineeringProfile(falseGreenEngineering).code, 'ENGINEERING_STATUS_INVALID');
+const missingEngineeringEvidence = structuredClone(engineeringFixture.base); missingEngineeringEvidence.checks[0].evidence_digest = null;
+assert.equal(evaluateEngineeringProfile(missingEngineeringEvidence).code, 'ENGINEERING_EVIDENCE_MISSING');
+assert.equal(evaluateEngineeringProfile({ ...engineeringFixture.base, unexpected: true }).code, 'ENGINEERING_SCHEMA_INVALID');
+
+// TICKET-012 / TEST-032: behavioral techniques must catch seeded faults; unsupported never means pass.
+assert.equal(evaluateQaProfile(qaFixture.base).code, 'QA_PROFILE_VALID');
+assert.equal(evaluateQaProfile(qaFixture.base).coverage_is_correctness_claim, false);
+for (const technique of QA_TECHNIQUES) {
+  const survivor = structuredClone(qaFixture.base); const row = survivor.techniques.find((item) => item.technique === technique); row.caught_faults = 0;
+  assert.equal(evaluateQaProfile(survivor).code, 'QA_ORACLE_WEAK', `${technique} must fail a surviving seeded fault`);
+}
+const unavailableRequired = structuredClone(qaFixture.base); Object.assign(unavailableRequired.techniques[0], { tool_available: false, status: 'blocked' });
+assert.equal(evaluateQaProfile(unavailableRequired).code, 'QA_REQUIRED_TOOL_UNAVAILABLE');
+const falseGreenTool = structuredClone(unavailableRequired); falseGreenTool.techniques[0].status = 'pass';
+assert.equal(evaluateQaProfile(falseGreenTool).code, 'QA_REQUIRED_TOOL_UNAVAILABLE');
+const optionalSkip = structuredClone(qaFixture.base); Object.assign(optionalSkip.techniques[0], { required: false, tool_available: false, status: 'skipped', seeded_faults: 0, caught_faults: 0 });
+assert.equal(evaluateQaProfile(optionalSkip).code, 'QA_PROFILE_VALID');
+const notRequired = structuredClone(qaFixture.base); Object.assign(notRequired.techniques[0], { applicable: false, required: false, tool_available: false, status: 'not-required', seeded_faults: 0, caught_faults: 0 });
+assert.equal(evaluateQaProfile(notRequired).code, 'QA_PROFILE_VALID');
+const badNotRequired = structuredClone(notRequired); badNotRequired.techniques[0].status = 'skipped';
+assert.equal(evaluateQaProfile(badNotRequired).code, 'QA_STATUS_INVALID');
+const noSeed = structuredClone(qaFixture.base); noSeed.techniques[0].seeded_faults = 0; noSeed.techniques[0].caught_faults = 0;
+assert.equal(evaluateQaProfile(noSeed).code, 'QA_SEEDED_FAULT_MISSING');
+const failedCoverage = structuredClone(qaFixture.base); failedCoverage.coverage_status = 'fail';
+assert.equal(evaluateQaProfile(failedCoverage).code, 'QA_COVERAGE_GATE_FAILED');
+assert.equal(evaluateQaProfile({ ...qaFixture.base, unexpected: true }).code, 'QA_SCHEMA_INVALID');
+
+// TICKET-013 / TEST-033: High/Critical and operational evidence fail closed without release authority.
+const readinessOptions = { trustedNowMs: readinessFixture.trusted_now_ms };
+assert.equal(evaluateReadiness(readinessFixture.base, readinessOptions).code, 'READINESS_VALID');
+assert.equal(evaluateReadiness(readinessFixture.base, readinessOptions).may_release, false);
+const missingControl = structuredClone(readinessFixture.base); missingControl.controls[0].evidence_digest = null; missingControl.controls[0].evidence_status = 'skipped';
+assert.equal(evaluateReadiness(missingControl, readinessOptions).code, 'READINESS_CONTROL_EVIDENCE_MISSING');
+const activeException = structuredClone(missingControl); activeException.exceptions = [{ control_id: 'SEC-017', owner_role: 'security-owner', subject_digest: activeException.subject_digest, issued_at: '2026-10-01T00:00:00Z', expires_at: '2026-10-03T00:00:00Z', status: 'active', approval_digest: `sha256:${'e'.repeat(64)}` }];
+assert.equal(evaluateReadiness(activeException, readinessOptions).code, 'READINESS_EXCEPTION_ACTIVE');
+const expiredException = structuredClone(activeException); expiredException.exceptions[0].expires_at = '2026-10-02T00:00:00Z';
+assert.equal(evaluateReadiness(expiredException, readinessOptions).code, 'READINESS_EXCEPTION_EXPIRED');
+const wrongSubjectException = structuredClone(activeException); wrongSubjectException.exceptions[0].subject_digest = `sha256:${'9'.repeat(64)}`;
+assert.equal(evaluateReadiness(wrongSubjectException, readinessOptions).code, 'READINESS_EXCEPTION_SUBJECT_MISMATCH');
+for (const field of ['slo', 'error_budget', 'observability', 'alerting', 'rollout', 'rollback', 'schema_compatibility', 'backup', 'restore', 'incident_runbook', 'capacity']) {
+  const missingOperation = structuredClone(readinessFixture.base); missingOperation.operations[field] = null;
+  assert.ok(evaluateReadiness(missingOperation, readinessOptions).missing_evidence.includes(`operations:${field}`), field);
+}
+for (const field of ['sbom_digest', 'provenance_digest']) {
+  const missingArtifact = structuredClone(readinessFixture.base); missingArtifact.artifacts[field] = null;
+  assert.ok(evaluateReadiness(missingArtifact, readinessOptions).missing_evidence.includes(`artifact:${field.replace('_digest', '')}`), field);
+}
+const unsignedReadiness = structuredClone(readinessFixture.base); unsignedReadiness.artifacts.signature_status = 'unsupported';
+assert.ok(evaluateReadiness(unsignedReadiness, readinessOptions).missing_evidence.includes('artifact:signature'));
+assert.equal(evaluateReadiness(readinessFixture.base).code, 'READINESS_SCHEMA_INVALID');
+assert.equal(evaluateReadiness({ ...readinessFixture.base, unexpected: true }, readinessOptions).code, 'READINESS_SCHEMA_INVALID');
+
+// TICKET-014 / TEST-034: release tuple is single-use; outcomes are separate; incidents are redacted.
+const releaseAttestor = { kind: 'external-release-attestor-v1', verify: async ({ authorization_digest, event }) => ({ ok: true, authorization_digest, event, attestation_digest: `sha256:${'1'.repeat(64)}`, trusted_at: '2026-10-02T12:00:00Z' }) };
+const releaseReplay = () => { const used = new Set(); return { kind: 'external-durable-release-replay-v1', async consumeOnce({ authorization_id, nonce }) { const key = `${authorization_id}\0${nonce}`; if (used.has(key)) return false; used.add(key); return true; } }; };
+const verifiedRelease = await verifyReleaseAuthorization(outcomeFixture.authorization, releaseAttestor);
+const releaseInput = { candidate_digest: outcomeFixture.authorization.candidate_digest, environment_digest: outcomeFixture.authorization.environment_digest, readiness_digest: outcomeFixture.authorization.readiness_digest, verified_authorization: verifiedRelease };
+const releaseStore = releaseReplay();
+assert.equal((await evaluateReleaseAuthorization(releaseInput, releaseStore)).code, 'RELEASE_AUTHORIZATION_VALID');
+assert.equal((await evaluateReleaseAuthorization(releaseInput, releaseStore)).code, 'RELEASE_AUTHORIZATION_REPLAY');
+assert.equal((await evaluateReleaseAuthorization({ ...releaseInput, environment_digest: `sha256:${'9'.repeat(64)}` }, releaseReplay())).code, 'RELEASE_BINDING_MISMATCH');
+assert.equal((await evaluateReleaseAuthorization(releaseInput)).code, 'RELEASE_REPLAY_UNVERIFIED');
+assert.equal((await evaluateReleaseAuthorization({ ...releaseInput, verified_authorization: outcomeFixture.authorization }, releaseReplay())).code, 'RELEASE_AUTHORIZATION_INVALID');
+const observationPlan = createObservationPlan(outcomeFixture.observation_plan);
+assert.equal(observationPlan.code, 'OBSERVATION_PLAN_VALID');
+const boundOutcome = { ...outcomeFixture.outcome, observation_plan_digest: observationPlan.observation_plan_digest };
+assert.equal(evaluateOutcome(boundOutcome).code, 'OUTCOME_KEEP');
+for (const [product_outcome, technical_outcome, decision, code] of [['inconclusive', 'healthy', 'iterate', 'OUTCOME_ITERATE'], ['achieved', 'unsafe', 'rollback', 'OUTCOME_ROLLBACK'], ['missed', 'healthy', 'retire', 'OUTCOME_RETIRE']]) {
+  assert.equal(evaluateOutcome({ ...boundOutcome, product_outcome, technical_outcome, decision }).code, code);
+}
+assert.equal(evaluateOutcome({ ...boundOutcome, technical_outcome: 'unsafe' }).code, 'OUTCOME_DECISION_MISMATCH');
+assert.equal(createObservationPlan({ ...outcomeFixture.observation_plan, raw_sensitive_data_policy: 'raw-logs' }).code, 'OBSERVATION_PLAN_INVALID');
+const regression = createIncidentRegression(outcomeFixture.incident);
+assert.equal(regression.code, 'INCIDENT_REGRESSION_CREATED'); assert.equal(Object.hasOwn(regression.regression, 'raw_log'), false);
+assert.equal(createIncidentRegression({ ...outcomeFixture.incident, raw_log: 'secret' }).code, 'INCIDENT_REDACTION_INVALID');
+const piiIncident = structuredClone(outcomeFixture.incident); piiIncident.reproduction.actual = 'affected user alice@example.com';
+assert.equal(createIncidentRegression(piiIncident).code, 'INCIDENT_REDACTION_INVALID');
+await assert.rejects(() => verifyReleaseAuthorization({ ...outcomeFixture.authorization, unexpected: true }, releaseAttestor), /strict input/);
+
+// TICKET-016 / TEST-036: pack composition is data-only, deterministic, and monotonic.
+const developerGlobal = { minimum_assurance: 'A1', hard_stops: ['no-secret-output'], allowed_paths: ['skills'], required_evidence: ['executed', 'review'] };
+assert.equal(mergePolicyPacks(developerGlobal, [developerPack]).code, 'PACK_POLICY_VALID');
+assert.equal(mergePolicyPacks(developerGlobal, [developerPack]).merged.pack_context[0].context.approved_stacks[0], 'node-esm');
+const apiGlobal = { minimum_assurance: 'A2', hard_stops: ['no-secret-output'], allowed_paths: ['src'], required_evidence: ['executed', 'review', 'negative'] };
+assert.equal(mergePolicyPacks(apiGlobal, [apiPack]).code, 'PACK_POLICY_VALID');
+const tighten = structuredClone(developerPack); tighten.pack_id = 'org-tightening'; tighten.layer = 'organization'; tighten.minimum_assurance = 'A2'; tighten.required_evidence.push('security'); tighten.controls = [{ id: 'ORG-REVIEW', minimum_assurance: 'A2', evidence_class: 'review' }];
+assert.deepEqual(mergePolicyPacks(developerGlobal, [tighten, developerPack]).merged.applied_packs, ['developer-tooling', 'org-tightening']);
+const weaken = structuredClone(apiPack); weaken.minimum_assurance = 'A1';
+assert.equal(mergePolicyPacks(apiGlobal, [weaken]).code, 'PACK_POLICY_WEAKENING');
+const deleteStop = structuredClone(apiPack); deleteStop.hard_stops = [];
+assert.equal(mergePolicyPacks(apiGlobal, [deleteStop]).code, 'PACK_POLICY_WEAKENING');
+const broaden = structuredClone(developerPack); broaden.allowed_paths = ['outside'];
+assert.equal(mergePolicyPacks(developerGlobal, [broaden]).code, 'PACK_SCOPE_BROADENING');
+const executable = { ...developerPack, command: 'curl example.invalid' };
+assert.equal(mergePolicyPacks(developerGlobal, [executable]).code, 'PACK_SCHEMA_INVALID');
+const traversal = structuredClone(developerPack); traversal.allowed_paths = ['../escape'];
+assert.equal(mergePolicyPacks(developerGlobal, [traversal]).code, 'PACK_SCHEMA_INVALID');
+const incompleteOrganization = structuredClone(developerPack); incompleteOrganization.layer = 'organization'; delete incompleteOrganization.context.release_authorities;
+assert.equal(mergePolicyPacks(developerGlobal, [incompleteOrganization]).code, 'PACK_SCHEMA_INVALID');
+const executableContext = structuredClone(developerPack); executableContext.context.command = 'curl example.invalid';
+assert.equal(mergePolicyPacks(developerGlobal, [executableContext]).code, 'PACK_SCHEMA_INVALID');
+assert.match(benchmarkDigest({ imported: true }), /^sha256:[a-f0-9]{64}$/);
+
+// TICKET-017 / TEST-037: explicit migration and required/optional provider capability semantics.
+const capabilityBase = { capability_version: '1', provider_id: 'generic-local', legacy: false, vnext_marker: true, operation: 'enforce', capabilities: [{ id: 'node-runtime', required: true, available: true, provenance: 'tool-attested' }, { id: 'browser', required: false, available: true, provenance: 'declared' }] };
+assert.equal(negotiateCapabilities(capabilityBase).code, 'CAPABILITY_SUPPORTED');
+const optionalMissing = structuredClone(capabilityBase); optionalMissing.capabilities[1].available = false;
+assert.equal(negotiateCapabilities(optionalMissing).code, 'CAPABILITY_OPTIONAL_MISSING');
+const requiredMissing = structuredClone(capabilityBase); requiredMissing.capabilities[0].available = false;
+assert.equal(negotiateCapabilities(requiredMissing).code, 'CAPABILITY_REQUIRED_MISSING');
+const legacyReport = { ...structuredClone(capabilityBase), legacy: true, vnext_marker: false, operation: 'report' };
+assert.equal(negotiateCapabilities(legacyReport).code, 'CAPABILITY_LEGACY_REPORT_ONLY');
+assert.equal(negotiateCapabilities({ ...legacyReport, operation: 'enforce' }).code, 'CAPABILITY_MIGRATION_REQUIRED');
+assert.equal(negotiateCapabilities({ ...capabilityBase, operation: 'downgrade' }).code, 'CAPABILITY_DOWNGRADE_PREVIEW');
+assert.equal(negotiateCapabilities({ ...capabilityBase, unexpected: true }).code, 'CAPABILITY_SCHEMA_INVALID');
+
+// TICKET-018 / TEST-038: gates carry effectiveness fields and removable gates need evidence.
+const gateBase = { gate_id: 'security-evidence', risk_prevented: 'unverified High control', trigger: 'High or Critical control applies', owner: 'security-owner', required_evidence: 'executable candidate-bound test', decision_outputs: ['block', 'allow'], skip_when: 'not applicable only when no security boundary exists', skip_authority: 'security-owner', estimated_cost: 'review_minutes per invocation', observed_findings: 3, invocations: 12, false_positives: 0, false_positive_rate: 0, duplicate_of: null, review_or_expiry_date: '2026-10-02', decision: 'keep' };
+assert.equal(evaluateGateEffectiveness({ effectiveness_version: '2', gates: [gateBase] }).code, 'GATE_EFFECTIVENESS_VALID');
+const removableGate = { ...gateBase, gate_id: 'duplicate-security-check', observed_findings: 0, duplicate_of: 'security-evidence', decision: 'remove' };
+assert.equal(evaluateGateEffectiveness({ effectiveness_version: '2', gates: [gateBase, removableGate] }).decisions[1].decision, 'remove');
+const noisyUselessGate = { ...gateBase, observed_findings: 0, invocations: 10, false_positives: 4, false_positive_rate: .4, decision: 'keep' };
+assert.equal(evaluateGateEffectiveness({ effectiveness_version: '2', gates: [noisyUselessGate] }).code, 'GATE_EFFECTIVENESS_DECISION_MISMATCH');
+const noisyUsefulGate = { ...gateBase, observed_findings: 2, invocations: 10, false_positives: 3, false_positive_rate: .3, decision: 'revise' };
+assert.equal(evaluateGateEffectiveness({ effectiveness_version: '2', gates: [noisyUsefulGate] }).decisions[0].decision, 'revise');
+assert.equal(evaluateGateEffectiveness({ effectiveness_version: '2', gates: [{ ...gateBase, false_positive_rate: .5 }] }).code, 'GATE_EFFECTIVENESS_SCHEMA_INVALID');
+const missingGateTrigger = structuredClone(gateBase); delete missingGateTrigger.trigger;
+assert.equal(evaluateGateEffectiveness({ effectiveness_version: '2', gates: [missingGateTrigger] }).code, 'GATE_EFFECTIVENESS_SCHEMA_INVALID');
+assert.equal(evaluateGateEffectiveness({ effectiveness_version: '2', gates: [{ ...gateBase, review_or_expiry_date: null }] }).code, 'GATE_EFFECTIVENESS_SCHEMA_INVALID');
+
+// TICKET-019 / TEST-039: benchmark success cannot manufacture human promotion authority.
+assert.equal(evaluatePromotionReadiness(promotionFixture.pending).code, 'PILOT_EVIDENCE_INCOMPLETE');
+assert.equal(evaluatePromotionReadiness(promotionFixture.synthetic_complete_shape).code, 'PILOT_AUTHORITY_ATTESTATION_REQUIRED');
+assert.equal((await verifyPromotionDecision(promotionFixture.synthetic_complete_shape, null)).code, 'PILOT_AUTHORITY_ATTESTATION_REQUIRED');
+const promotionPacketDigest = benchmarkDigest(promotionFixture.synthetic_complete_shape);
+const promotionAdapter = { kind: 'external-promotion-authority-v1', verify: async () => ({ ok: true, packet_digest: promotionPacketDigest, envelope_digest: `sha256:${'e'.repeat(64)}`, actor_id: promotionFixture.synthetic_complete_shape.authority.actor_id, decision: promotionFixture.synthetic_complete_shape.decision }) };
+const promotionDecision = await verifyPromotionDecision(promotionFixture.synthetic_complete_shape, promotionAdapter);
+assert.equal(promotionDecision.code, 'PILOT_PROMOTION_DECISION_VALID'); assert.equal(promotionDecision.may_promote_default, false);
 console.log('quality-contract core: ok');
 NODE

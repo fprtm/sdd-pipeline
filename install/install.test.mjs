@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, mkdirSync, readdirSync, readFileSync, writeFileSync, existsSync, lstatSync, readlinkSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, readdirSync, readFileSync, writeFileSync, existsSync, lstatSync, readlinkSync, cpSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -11,6 +11,83 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = dirname(HERE);
 const INSTALL = join(HERE, 'install.sh');
 const COMMANDS = ['check', 'discover', 'docs', 'handoff', 'implement', 'learn', 'spec', 'update'];
+
+function validatorFixture() {
+  const work = mkdtempSync(join(tmpdir(), 'sdd-validator-'));
+  for (const path of ['skills', 'scripts', '.claude-plugin', 'install', 'enforcement', 'templates']) {
+    cpSync(join(ROOT, path), join(work, path), { recursive: true });
+  }
+  for (const file of ['README.md', 'AGENTS.md', 'LICENSE', '.gitignore']) {
+    cpSync(join(ROOT, file), join(work, file));
+  }
+  return work;
+}
+
+test('validator follows the orchestrator-owned unified mode matrix', () => {
+  const result = spawnSync('bash', [join(ROOT, 'scripts', 'validate-skills.sh')], { cwd: ROOT, encoding: 'utf8' });
+  assert.equal(result.status, 0, result.stdout + result.stderr);
+  assert.match(result.stdout, /Total skills found: 65/);
+  assert.match(result.stdout, /unified matrix has THINK, BUILD, PROVE, and META tables/);
+  assert.doesNotMatch(result.stdout, /modes\/.*missing (?:behavior table|written-record handling|stats config|critical phases)/);
+});
+
+test('validator rejects a mode that stops delegating to the unified matrix', () => {
+  const work = validatorFixture();
+  const mode = join(work, 'skills', 'modes', 'prototype', 'SKILL.md');
+  writeFileSync(mode, readFileSync(mode, 'utf8').replace('**Phase behavior**:', '**Local behavior**:'));
+  const result = spawnSync('bash', [join(work, 'scripts', 'validate-skills.sh')], { cwd: work, encoding: 'utf8' });
+  assert.equal(result.status, 1, result.stdout + result.stderr);
+  assert.match(result.stdout, /modes\/prototype: missing canonical unified-matrix delegation marker/);
+});
+
+test('canonical policy owners retain safety and evidence precedence', () => {
+  const orchestrator = readFileSync(join(ROOT, 'skills', 'orchestrator', 'SKILL.md'), 'utf8');
+  const engine = readFileSync(join(ROOT, 'skills', 'build', 'constraints', 'SKILL.md'), 'utf8');
+  const universal = readFileSync(join(ROOT, 'skills', 'constraints', 'universal', 'SKILL.md'), 'utf8');
+  const verification = readFileSync(join(ROOT, 'skills', 'prove', 'verification', 'SKILL.md'), 'utf8');
+  const sdlc = readFileSync(join(ROOT, 'skills', 'think', 'sdlc-detector', 'SKILL.md'), 'utf8');
+  const docs = readFileSync(join(ROOT, 'skills', 'build', 'doc-generator', 'SKILL.md'), 'utf8');
+
+  assert.match(engine, /`OVERRIDE: None` are hard stops and cannot be overridden/);
+  assert.match(engine, /universal rules: `skills\/constraints\/universal\/SKILL\.md`/);
+  assert.doesNotMatch(engine, /New functions with non-trivial logic need at least 1 test/);
+  assert.match(universal, /two real adapters are enough because the variation already exists/);
+  assert.match(orchestrator, /Quick smoke test \+ applicable small\+ coverage gate/);
+  assert.match(orchestrator, /mandatory applicable coverage in post-fix follow-up/);
+  assert.match(orchestrator, /Do not close an unresolved discovery seat or skip an applicable evidence gate/);
+  assert.match(verification, /mandatory post-fix follow-up before ordinary acceptance/);
+  assert.match(sdlc, /Identification is mandatory/);
+  assert.doesNotMatch(sdlc, /SDLC skipped\. Fix first/);
+  assert.match(docs, /prototype.*minimum DoD/);
+  assert.match(docs, /emergency.*required retrospective record/);
+});
+
+test('public docs and examples track the canonical skill and command surface', () => {
+  const architecture = readFileSync(join(ROOT, 'docs', 'ARCHITECTURE.md'), 'utf8');
+  const install = readFileSync(join(ROOT, 'docs', 'INSTALL.md'), 'utf8');
+  const prototype = readFileSync(join(ROOT, 'skills', 'modes', 'prototype', 'SKILL.md'), 'utf8');
+  const emergency = readFileSync(join(ROOT, 'skills', 'modes', 'emergency', 'SKILL.md'), 'utf8');
+  const parallel = readFileSync(join(ROOT, 'skills', 'agents', 'parallel-work', 'SKILL.md'), 'utf8');
+
+  const countSkills = (directory) => readdirSync(directory, { withFileTypes: true }).reduce(
+    (total, entry) => total + (entry.isDirectory()
+      ? countSkills(join(directory, entry.name))
+      : Number(entry.name === 'SKILL.md')),
+    0,
+  );
+  const skillCount = countSkills(join(ROOT, 'skills'));
+
+  assert.equal(skillCount, 65);
+  assert.ok(architecture.includes(`This repo has ${skillCount} \`SKILL.md\` modules`));
+  assert.match(architecture, /What happens to the 56 without frontmatter/);
+  assert.match(install, new RegExp(`currently ${skillCount} in a full install`));
+  assert.match(architecture, /unified matrix.*single source of truth/);
+  assert.doesNotMatch(architecture, /Full per-skill tables live in each/);
+  assert.match(prototype, /\/sdd-pipeline:check/);
+  assert.match(emergency, /\/sdd-pipeline:check/);
+  assert.doesNotMatch(parallel, /docs\/sdd\/tickets/);
+  assert.match(parallel, /docs\/sdd\/specs\/\{NNN\}-\{slug\}\/tickets/);
+});
 
 test('plugin exposes exactly the eight public commands', () => {
   const plugin = JSON.parse(readFileSync(join(ROOT, '.claude-plugin', 'plugin.json'), 'utf8'));
@@ -66,7 +143,9 @@ test('installed quality-contract runtime is complete and preserves facade JSON s
     });
     return visit(root).sort();
   };
-  assert.deepEqual(files(installedRuntime), files(sourceRuntime));
+  for (const relative of files(sourceRuntime)) assert.equal(existsSync(join(installedRuntime, relative)), true, `installed runtime missing ${relative}`);
+  assert.equal(existsSync(join(installedRuntime, 'packs', 'developer-tooling', 'pack.json')), true);
+  assert.equal(existsSync(join(installedRuntime, 'packs', 'high-risk-api', 'pack.json')), true);
   assert.equal(existsSync(join(dest, 'commands', 'quality-contract')), false, 'the facade is not a public command');
 
   const fixture = JSON.parse(readFileSync(join(sourceRuntime, 'fixtures', 'core.json'), 'utf8'));
@@ -93,6 +172,15 @@ test('quality-contract CI selects GitHub SHAs and delegates without a new comman
   assert.match(workflow, /quality-contract\.mjs .*--json/);
   assert.match(workflow, /report-only legacy repository/);
   assert.doesNotMatch(workflow, /commands\/quality-contract/);
+});
+
+test('distributed CI keeps legacy report-only and vNext opt-in fail-closed', () => {
+  const workflow = readFileSync(join(ROOT, 'enforcement', 'ci', 'sdd-check.yml'), 'utf8');
+  assert.match(workflow, /\.sdd\/vnext-enforced/);
+  assert.match(workflow, /legacy\/report-only repository/);
+  assert.match(workflow, /missing required checker blocks CI/);
+  for (const checker of ['capabilities.mjs', 'lifecycle.mjs', 'readiness.mjs']) assert.match(workflow, new RegExp(checker.replace('.', '\\.')));
+  assert.doesNotMatch(workflow, /touch .*vnext-enforced|mkdir .*\.sdd/, 'CI must never opt a project in implicitly');
 });
 
 test('canonical-block cardinality counts blocks, not just containing files', () => {

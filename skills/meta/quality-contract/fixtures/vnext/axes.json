@@ -1,0 +1,25 @@
+{
+  "base": {
+    "axis_schema_version": "1",
+    "subject_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "complexity": { "level": "small", "basis": ["bounded fixture"] },
+    "risk": {
+      "level": "moderate",
+      "dimensions": { "user_harm": "bounded", "money": "none", "privacy": "none", "authorization": "none", "availability": "none", "data_change": "reversible", "compliance": "none" },
+      "basis": ["bounded reversible behavior"]
+    },
+    "requested_assurance": "A1",
+    "ceremony": { "mode": "standard", "source": "default" },
+    "hard_stops": [{ "id": "no-hardcoded-secrets", "status": "pass" }],
+    "policy_version": "vnext-shadow-1"
+  },
+  "cases": [
+    { "id": "micro-critical-standard", "complexity": "micro", "risk": "critical", "authorization": "privileged", "assurance": "A3", "ceremony": "standard", "expected_status": "pass", "expected_risk": "critical", "expected_assurance": "A3" },
+    { "id": "micro-critical-prototype", "complexity": "micro", "risk": "critical", "authorization": "privileged", "assurance": "A3", "ceremony": "prototype", "expected_status": "pass", "expected_risk": "critical", "expected_assurance": "A3" },
+    { "id": "micro-critical-emergency", "complexity": "micro", "risk": "critical", "authorization": "privileged", "assurance": "A3", "ceremony": "emergency", "expected_status": "pass", "expected_risk": "critical", "expected_assurance": "A3" },
+    { "id": "large-low", "complexity": "large", "risk": "low", "authorization": "none", "assurance": "A1", "ceremony": "standard", "expected_status": "pass", "expected_risk": "low", "expected_assurance": "A1" },
+    { "id": "requested-elevation", "complexity": "micro", "risk": "low", "authorization": "none", "assurance": "A3", "ceremony": "standard", "expected_status": "pass", "expected_risk": "low", "expected_assurance": "A3" },
+    { "id": "requested-demotion", "complexity": "small", "risk": "critical", "authorization": "privileged", "assurance": "A1", "ceremony": "prototype", "expected_status": "blocked", "expected_risk": "critical", "expected_assurance": "A3", "expected_code": "ASSURANCE_BELOW_FLOOR" },
+    { "id": "unknown-risk", "complexity": "small", "risk": "unknown", "authorization": "unknown", "assurance": "A2", "ceremony": "standard", "expected_status": "unknown", "expected_risk": "unknown", "expected_assurance": "A2", "expected_code": "RISK_UNKNOWN" }
+  ]
+}

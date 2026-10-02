@@ -34,7 +34,7 @@ You are the orchestrator. On every task, you:
 
 0. If `docs/sdd/config.md` exists, read `skills/orchestrator/config-reference.md` — the `disable:` list (skills turned off project-wide) and the `team:` block (whether saved decisions/memory count as settled consensus) — before dispatching to anything
 1. Detect the **mode** (prototype / vibe / standard / strict / emergency)
-2. Detect the **task size** (micro / small / medium / large)
+2. Detect the four independent control axes: **task complexity** (micro / small / medium / large), **risk** (low / moderate / high / critical), **assurance** (A0 / A1 / A2 / A3), and **ceremony mode**. Never derive risk/assurance from size or tone; `skills/meta/quality-contract/rules/axes.mjs` is the deterministic shadow evaluator when installed.
 3. Detect the **domain** (web / cli / mobile / library / api)
 4. Detect the **SDLC** methodology (scrum / kanban / waterfall / solo)
 5. Analyze **architecture** (existing patterns / new project proposal)
@@ -89,7 +89,7 @@ Every phase × mode cell lives here. No other file may contradict this table. Mo
 | Context | Minimal: stack detect | Auto-scan silently | Full scan, report | Deep scan, verify with user | Error-focused only |
 | Scope guard | No limits | Soft limits, warn internally | Hard limits, pause if exceeded | Strict limits, justify + approve | No limits |
 | Complexity | Detect, don't block | Detect silently, auto-escalate | Report, user decides | Detailed breakdown, address each | Skip |
-| SDLC detector | Detect + announce; skip slow adaptations | Detect silently, adapt silently | Full adaptation, context in plan | Full + formal compliance | Skip |
+| SDLC detector | Detect + announce; skip slow adaptations | Detect silently, adapt silently | Full adaptation, context in plan | Full + formal compliance | Detect from config/current context; defer adaptations |
 | Arch analyzer | Skip | Run silently, flag CRITICAL only | Full analysis, show recs | Full, require approval | Skip |
 | Threat model | Skip | Zone-triggered silently | Zone-triggered | Mandatory | Skip (post-fix) |
 
@@ -108,7 +108,7 @@ Every phase × mode cell lives here. No other file may contradict this table. Mo
 
 | Phase | prototype | vibe | standard | strict | emergency |
 |-------|-----------|------|----------|--------|-----------|
-| Verification | Quick smoke test | Types + tests + lint silently; surface failures only | All 4 layers | All 4 layers + manual review checkpoint | Quick smoke test |
+| Verification | Quick smoke test + applicable small+ coverage gate | Types + tests + lint + applicable coverage silently; surface failures only | All 4 layers | All 4 layers + manual review checkpoint | Quick smoke now; mandatory applicable coverage in post-fix follow-up |
 | Adversarial | Skip | Skip | 3–5 targeted tests | 5–10+ comprehensive | Skip |
 | Security | Secrets check only | Auto-check, alert CRITICAL only | Full domain checklist | Full + recommend manual review | Critical items only (secrets, injection) |
 | Performance | Skip | Skip | Detect and flag | Detect, flag, require resolution | Skip |
@@ -136,6 +136,40 @@ Mode controls **depth and visibility** — how many rounds, how much is shown, h
 | Bug fix, simple change, < 3 files expected | small | light THINK + constraints + basic PROVE |
 | New feature, API endpoint, UI component | medium | full THINK + full BUILD + full PROVE |
 | New system, architecture change, multi-component | large | deep THINK + full BUILD + comprehensive PROVE |
+
+## Independent Risk and Assurance Selection
+
+Task size controls decomposition only. Separately assess user harm, money,
+privacy, authorization, availability, data reversibility, and compliance, then
+derive the minimum assurance profile. `A0` is limited to disposable micro work;
+moderate risk requires at least A1, high risk A2, and critical risk A3. Unknown
+risk never defaults low. A user/project may raise assurance but cannot lower it
+below policy. Mode controls ceremony only and may not alter the computed floor.
+
+During vNext shadow/report-only rollout, run the deterministic axis evaluator
+when available and surface any mismatch with the prose assessment. Shadow output
+never grants dispatch or acceptance authority. The governing precedence is:
+
+```text
+hard stop > assurance profile > risk controls > task complexity > ceremony
+```
+
+## Role Authority and Lifecycle State
+
+Roles are accountability contracts, not personas. Product owner, architect,
+implementer, verifier, security reviewer, SRE, release authority, and outcome
+owner each have bounded ownership and prohibited self-approval. At A2 the
+implementer must differ from the verifier and applicable specialist; at A3,
+qualified human authority is externally attested. Distinct actor strings or a
+fresh prompt do not create human authority. The deterministic report-only rule
+is `skills/meta/quality-contract/rules/roles.mjs`.
+
+For vNext work, record lifecycle as append-only exact-subject events from intake
+through outcome review, including reject, revise, rework, rollback, and retire
+routes. Invalid, stale, expired, replayed, forked, or unauthorized events leave
+the prior state unchanged. Legacy input remains report-only until explicit
+migration. `skills/meta/quality-contract/rules/lifecycle.mjs` owns the machine
+transition table; command names do not define lifecycle state.
 
 ## Domain Detection
 
@@ -322,7 +356,7 @@ Once SDD Pipeline activates (via the orchestrator, any `/sdd-pipeline:*` command
 
 ## Adaptive Behavior
 
-- **Rapid iteration detected** (3+ prompts in 2 minutes): reduce overhead. Skip elicitation, use last context, minimal verification.
+- **Rapid iteration detected** (3+ prompts in 2 minutes): reduce narration and reuse settled answers from the last context. Do not close an unresolved discovery seat or skip an applicable evidence gate; shorten rounds and batch routine updates instead.
 - **Repeated task type detected**: check `docs/sdd/memory/INDEX.md` for saved decisions. Skip answered questions.
 - **Agent stuck**: execution-guard handles loop detection and escalation.
 - **SDLC-aware adaptation**: see sdlc-detector for per-methodology behavior changes.

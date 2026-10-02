@@ -1,0 +1,20 @@
+{
+  "base": {
+    "delivery_version": "1",
+    "subject": {
+      "base_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "candidate_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "spec_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+    },
+    "assurance": "A2",
+    "acceptance_criteria": [{ "id": "ac-1", "evidence_class": "security", "minimum_evidence_level": "E3" }],
+    "evidence": [
+      { "id": "run-1", "evidence_class": "executed", "evidence_level": "E2", "evidence_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111", "subject_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "environment_digest": null, "observed_at": "2026-10-02T12:00:00Z", "producer_actor": "implementer-1", "verifier_actor": "qa-1", "provenance": "tool-attested", "status": "pass" },
+      { "id": "review-1", "evidence_class": "review", "evidence_level": "E4", "evidence_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222", "subject_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "environment_digest": null, "observed_at": "2026-10-02T12:00:00Z", "producer_actor": "implementer-1", "verifier_actor": "reviewer-1", "provenance": "independently-attested", "status": "pass" },
+      { "id": "negative-1", "evidence_class": "negative", "evidence_level": "E3", "evidence_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333", "subject_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "environment_digest": null, "observed_at": "2026-10-02T12:00:00Z", "producer_actor": "implementer-1", "verifier_actor": "qa-1", "provenance": "tool-attested", "status": "pass" },
+      { "id": "security-1", "evidence_class": "security", "evidence_level": "E3", "evidence_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444", "subject_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "environment_digest": null, "observed_at": "2026-10-02T12:00:00Z", "producer_actor": "implementer-1", "verifier_actor": "security-1", "provenance": "independently-attested", "status": "pass" }
+    ],
+    "defects": [],
+    "rework_iteration": 0
+  }
+}

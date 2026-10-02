@@ -31,12 +31,32 @@ Never click production into existence by hand — describe it in code so it's re
 
 ## 4. Observability & Operations
 
+For vNext-opted A2/A3 work, record candidate-bound readiness evidence through
+`skills/meta/quality-contract/rules/readiness.mjs`. A2 requires SLO,
+error-budget, observability, alerting, rollout, rollback, schema-compatibility,
+backup, SBOM, and provenance proof. A3 additionally requires restore, an
+incident runbook, capacity, and passing artifact-signature evidence. This is a
+readiness result only and never substitutes for external production approval.
+
 - **Structured logs** without secrets/PII (per the threat model).
 - **Metrics + SLOs tied to the REQ-NF targets** (p95 latency, availability) — this is how NFRs that aren't unit-testable get verified.
 - **Alerting** on SLO breach and error spikes.
 - **Health checks** and a real, tested rollback path.
 
 ## 5. Deploy & Release
+
+For vNext-opted releases, validate the externally attested, single-use tuple
+with `skills/meta/quality-contract/rules/outcome.mjs`: exact candidate digest,
+environment digest, and readiness digest. Its result prepares a deployment but
+does not perform one (`may_deploy: false`). A changed tuple or consumed nonce
+requires fresh release authority.
+
+Before requesting that authority, compile a bounded release package containing
+the immutable candidate digest, target environment digest,
+deployment/migration/rollback plan digests, release-notes digest,
+monitoring query digest, accountable owner, and on-call actor. “No migration” is a
+digest-bound no-op plan, not an omitted field. The package is evidence input;
+it does not grant deployment authority.
 
 - Automated deploy from CI; no manual copying.
 - Safe rollout (blue/green or canary where justified) with a tested rollback.

@@ -181,3 +181,26 @@ jobs:
           else
             echo "tools/check-file-hygiene.mjs not present — copy it from the sdd-pipeline health-check skill to enable this gate"
           fi
+      - name: vNext capability enforcement
+        run: |
+          REQUIRED=(
+            skills/meta/quality-contract/rules/capabilities.mjs
+            skills/meta/quality-contract/rules/lifecycle.mjs
+            skills/meta/quality-contract/rules/readiness.mjs
+          )
+          MISSING=0
+          for path in "${REQUIRED[@]}"; do
+            if [ ! -f "$path" ]; then
+              echo "missing optional vNext checker: $path"
+              MISSING=1
+            fi
+          done
+          if [ -f .sdd/vnext-enforced ]; then
+            if [ "$MISSING" -ne 0 ]; then
+              echo "::error::vNext is explicitly enforced, so missing required checker blocks CI"
+              exit 1
+            fi
+            echo "vNext marker present: required checker set is complete"
+          else
+            echo "legacy/report-only repository: missing vNext checkers remain non-blocking until explicit migration"
+          fi

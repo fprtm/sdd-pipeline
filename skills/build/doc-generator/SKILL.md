@@ -225,7 +225,7 @@ For each document, in order:
 4. **Report after**: filename, plus any decision the doc had to make that the user never stated — entity boundaries, what landed out of scope, a requirement's Must/Should priority. **These are the assumptions worth surfacing; a filename list alone hides them.**
 5. **Check in when the doc opened a real fork** (per `skills/commands/spec/SKILL.md`'s fork table — architecture pattern, v1 scope, entity model, UI direction, a Mitigate-vs-Accept control, ticket granularity). Use `skills/think/elicitation/`'s "How to Ask" rule: native question tool first. No real fork → one line and continue; a checkpoint with nothing to decide is ceremony.
 
-**standard/strict** run the full loop (strict requires approval, not just a check-in, between docs); **vibe** announces and batches, asking only on a fork; **prototype/emergency** skip docs entirely, so the question doesn't arise.
+**standard/strict** run the full loop (strict requires approval, not just a check-in, between docs); **vibe** announces and batches, asking only on a fork; **prototype** keeps the minimum DoD and any deliberation ledger while abbreviating other documents; **emergency** defers documentation during mitigation and writes the required retrospective record in the post-fix follow-up.
 
 ## Mode Behavior
 

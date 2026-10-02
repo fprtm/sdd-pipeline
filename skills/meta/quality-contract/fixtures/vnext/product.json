@@ -1,0 +1,14 @@
+{
+  "base": {
+    "product_validation_version": "1",
+    "subject_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "stage": "problem-fit",
+    "product_context": { "target_user_job": "review a delivery decision without conversation history", "current_workaround": "ask the original implementer to reconstruct context", "frequency_or_severity": "recurs on every asynchronous handoff", "cost_of_doing_nothing": "review delay and incorrect acceptance remain", "opportunity_cost": "review time cannot be spent on higher-risk behavior" },
+    "problem_evidence": [{ "id": "evidence-1", "source_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "method": "synthetic interview fixture", "limitation": "not production population evidence" }],
+    "assumptions": [{ "id": "assumption-1", "statement": "target user has this problem", "material": true, "status": "supported", "evidence_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc" }],
+    "hypothesis": { "target_behavior": "user completes target job", "success_threshold": "at least frozen success", "failure_threshold": "at or below frozen failure", "kill_threshold": "stop when the frozen failure threshold is reached", "sample_rule": "use the frozen fixture sample", "protocol_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd" },
+    "rejected_alternatives": ["store conversation transcripts as canonical evidence"],
+    "observation": { "outcome": "supports", "sample_size": 5, "evidence_digest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee", "observed_at": "2026-10-02T12:00:00Z" },
+    "decision": { "value": "proceed", "role_id": "product-owner", "decision_digest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff" }
+  }
+}

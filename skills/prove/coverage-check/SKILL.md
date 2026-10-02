@@ -36,6 +36,11 @@ Prefer **branch** coverage, not just line — branch is what catches untested er
 
 A passing percentage is necessary but not sufficient:
 
+For vNext-opted work, coverage is one input to `rules/qa.mjs` and the emitted
+`coverage_is_correctness_claim` is always false. Do not promote a passing
+percentage into a behavioral verdict; the selected seeded-fault techniques
+and their oracles must pass separately.
+
 1. **Every FSD error/alternate flow has a test that hits it.** Cross-check the plan's edge cases against actually-executed lines.
 2. **Every flow has both a positive and a negative case.** Per `skills/build/test-plan/`'s positive-AND-negative rule: a flow whose FSD defines an error path but whose suite only proves the happy path is a **gate failure**, not a rounding error. An all-green suite of exclusively passing-input tests is the most common way an 80% number means nothing.
 3. **Multi-perspective coverage is not optional.** If the FSD defines multiple actors/roles (admin, user, anonymous), tests from only one role's perspective = gate failure. Check the plan's condition matrix against executed tests — a flow with a 5-row matrix but only 1 test is undertested.

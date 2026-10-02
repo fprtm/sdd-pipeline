@@ -1,0 +1,38 @@
+{
+  "authorization": {
+    "release_auth_version": "1", "authorization_id": "release-1",
+    "candidate_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "environment_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "readiness_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "issued_at": "2026-10-02T11:00:00Z", "expires_at": "2026-10-02T13:00:00Z", "nonce": "release-nonce-1",
+    "authority_role": "release-authority", "decision": "authorize", "signature": "fixture-signature"
+  },
+  "outcome": {
+    "outcome_version": "1",
+    "candidate_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "environment_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "observation_plan_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "product_outcome": "achieved", "technical_outcome": "healthy", "incident_regression_digest": null,
+    "decision": "keep", "role_id": "outcome-owner"
+  },
+  "observation_plan": {
+    "observation_plan_version": "1",
+    "candidate_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "environment_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "window": { "starts_at": "2026-10-02T13:00:00Z", "ends_at": "2026-10-09T13:00:00Z" },
+    "product_signals": [{ "id": "product-task-success", "measure": "bounded task success rate", "success_threshold": "at or above frozen target", "failure_threshold": "below frozen kill threshold", "owner": "product-owner" }],
+    "technical_signals": [{ "id": "technical-slo", "measure": "availability and latency SLO", "success_threshold": "within error budget", "failure_threshold": "error budget exhausted", "owner": "sre" }],
+    "security_signals": [{ "id": "security-control-health", "measure": "security control alerts", "success_threshold": "no confirmed critical event", "failure_threshold": "confirmed critical event", "owner": "security-reviewer" }],
+    "rollback_trigger": "unsafe technical outcome or confirmed critical security event",
+    "raw_sensitive_data_policy": "aggregate-or-pointer-only",
+    "decision_owner": "outcome-owner"
+  },
+  "incident": {
+    "incident_version": "1",
+    "candidate_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "incident_digest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+    "root_cause_class": "authorization-state-race", "control_id": "SEC-018",
+    "reproduction": { "precondition": "two bounded actors share stale state", "action": "submit both authorized transitions", "expected": "one transition is accepted", "actual": "both transitions were accepted" },
+    "redaction": { "raw_sensitive_included": false, "redaction_digest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff" }
+  }
+}

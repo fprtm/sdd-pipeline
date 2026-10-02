@@ -40,6 +40,25 @@ Gear 2 works through five seats, in dependency order. A seat earns its place by 
 
 **Order is dependency, not ceremony**: *why → limited by what → what → what data → built how*. A question whose answer depends on an unsettled earlier seat waits for a later round.
 
+## Product validation transition
+
+Before the five-seat discovery frontier, a vNext-opted intake is normalized by
+`skills/meta/quality-contract/rules/intake.mjs`. It binds source evidence,
+states the problem separately from a requested solution, and records owner,
+affected users/surfaces, urgency, duplicate candidates, and risk hints. A
+clarification result preserves the intake but cannot silently advance.
+
+Discovery does not imply that an idea should be built. For material work, record
+the target job, current workaround, frequency/severity, cost of doing nothing,
+opportunity cost, problem evidence, material assumptions, target behavior,
+frozen success/failure/kill thresholds, sample rule, rejected alternatives, and
+product-owner decision. The valid outcomes are `proceed`, `revise`, and
+`reject`; revision/rejection are successful lifecycle outcomes. Once
+observations exist, changing a threshold creates a new hypothesis revision and
+never rewrites the prior result. In vNext shadow/report-only mode,
+`skills/meta/quality-contract/rules/product.mjs` checks this contract. A material
+invalidated assumption or failure-threshold result must not be routed to BUILD.
+
 ## Council — Twice, For Different Reasons
 
 1. **Per decision**, as today: any decision passing the rule-of-three bar (hard to reverse + surprising + real trade-off) gets the five council seats (devil's advocate · maintainer-a-year-later · security · the bill · the end user) before it closes. See grill's Council section.

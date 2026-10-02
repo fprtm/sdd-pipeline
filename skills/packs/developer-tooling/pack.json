@@ -1,0 +1,17 @@
+{
+  "pack_version": "1", "pack_id": "developer-tooling", "layer": "domain", "content_type": "data-only", "minimum_assurance": "A1",
+  "hard_stops": ["no-secret-output"], "allowed_paths": ["skills"], "required_evidence": ["executed", "review"],
+  "controls": [{ "id": "DT-PATH-SAFETY", "minimum_assurance": "A1", "evidence_class": "negative" }],
+  "privacy": { "allow_raw_source": false, "allow_pii": false },
+  "context": {
+    "approved_stacks": ["node-esm"], "approved_dependencies": ["node-builtins"],
+    "architecture_boundaries": ["skills contain policy; public commands remain a stable routing surface"],
+    "coding_conventions": ["zero-runtime-dependencies", "strict-data-input"],
+    "data_classification": ["repository-internal"], "privacy_and_retention": ["retain bounded evidence; exclude raw secrets and PII"],
+    "security_baseline": ["path-safety", "inert-input"], "deployment_platform": ["local-filesystem"],
+    "slo_templates": ["local-command-success"], "incident_severity": ["p0-p1-p2-p3"],
+    "ownership_map": [{ "surface": "skills", "owner_role": "engineering-lead" }],
+    "release_authorities": ["repository-owner"],
+    "required_assurance_overrides": [{ "trigger": "authority-change", "minimum_assurance": "A2" }]
+  }
+}

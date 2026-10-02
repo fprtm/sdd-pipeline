@@ -46,6 +46,10 @@ test('every emitted Quality Contract machine code is in the stable v1 registry',
   for (const code of emitted) assert.equal(isResultCode(code), true, `${code} is emitted without a stable registry entry`);
 });
 
+test('vNext benchmark execution, grading, comparison, and promotion boundaries', async () => {
+  await import(`${pathToFileURL(resolve(root, 'scripts/test-vnext-benchmark.mjs')).href}?coverage-suite=1`);
+});
+
 test('quality-contract engine security and conformance suite', async () => {
   const source = await readFile(harness, 'utf8');
   const moduleSource = extractEsmHarness(source);

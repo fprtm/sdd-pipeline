@@ -140,6 +140,33 @@ what prior art in the codebase to follow, what's explicitly NOT going to be test
 
 **REQ IDs are item-level and global** (counter in `docs/sdd/traceability.md`) — every Must/Should REQ must eventually reach a passing test through the traceability matrix. Priority uses Must/Should/Nice so the ship gate knows which gaps block.
 
+### Product Validation Record — Intake / Problem Fit / Solution Fit
+
+Use before specification when product value is material or uncertain. It is a
+decision input, not a substitute for the eventual FSD/PRD.
+
+```markdown
+# Product Validation: [Hypothesis]
+
+**Target user / JTBD**: [who and what job]
+**Product owner**: [authorized role/actor]
+**Current workaround**: [what the user does today]
+**Frequency / severity**: [how often or how harmful]
+**Cost of doing nothing**: [continued user/business harm]
+**Opportunity cost**: [which alternative work this displaces]
+**Problem evidence**: [method + source digest + limitations]
+**Material assumptions**: [open / supported / invalidated + evidence]
+**Target behavior**: [observable change]
+**Success threshold**: [frozen before observation]
+**Failure threshold**: [frozen before observation]
+**Kill threshold**: [condition that stops or rejects the idea]
+**Sample rule**: [population/case inclusion]
+**Rejected alternatives**: [bounded list + why]
+**Observation**: supports | contradicts | inconclusive — [evidence digest]
+**Decision**: proceed | revise | reject — [decision digest]
+**Non-goals**: [explicit exclusions]
+```
+
 ### ERD — Entity Relationship Diagram (Field-Level)
 
 The ERD is **field-level complete** by default — every column, every type, every constraint. A skeleton ERD with 4 example fields is not useful; a developer needs the full picture to write migrations and queries. If the entity has enums, list the values. If a field has business rules (soft-delete, auto-timestamp, computed), note them.
@@ -527,3 +554,49 @@ flowchart TD
 | NOTIFY | Send push notification | Yes — queue |
 ```
 
+### vNext Security and Production Readiness Record
+
+Use only for vNext-opted work. Digests point to executed evidence; prose such
+as "configured" is not a substitute.
+
+```yaml
+readiness_version: "2"
+subject_digest: sha256:...
+assurance: A2 | A3
+standards: {ssdf: NIST-SP-800-218-v1.1-final, asvs: OWASP-ASVS-v5.0.0, samm: OWASP-SAMM-v2.0}
+controls: [] # SEC id, severity, executable requirement/status/digest, versioned mappings
+exceptions: [] # owner, exact subject, issuance, expiry, status, approval digest
+artifacts: {sbom_digest: sha256:..., provenance_digest: sha256:..., signature_status: pass}
+operations:
+  slo: sha256:...
+  error_budget: sha256:...   # assumptions and consumption policy
+  observability: sha256:... # alert owner and queries
+  alerting: sha256:...
+  rollout: sha256:...       # canary/blue-green plan
+  rollback: sha256:...      # rollback rehearsal
+  schema_compatibility: sha256:...
+  backup: sha256:...
+  restore: sha256:...       # restore test
+  incident_runbook: sha256:...
+  capacity: sha256:...      # load assumptions and measured headroom
+production_authority_external: true
+```
+
+### vNext Observation Plan
+
+```yaml
+observation_plan_version: "1"
+candidate_digest: sha256:...
+environment_digest: sha256:...
+window: {starts_at: ..., ends_at: ...}
+product_signals: [{id: ..., measure: ..., success_threshold: ..., failure_threshold: ..., owner: product-owner}]
+technical_signals: [{id: ..., measure: ..., success_threshold: ..., failure_threshold: ..., owner: sre}]
+security_signals: [{id: ..., measure: ..., success_threshold: ..., failure_threshold: ..., owner: security-reviewer}]
+rollback_trigger: ...
+raw_sensitive_data_policy: aggregate-or-pointer-only
+decision_owner: outcome-owner
+```
+
+The outcome record stores the observation-plan digest and keeps product and
+technical results separate. Incident learning stores only a minimal redacted
+regression; raw logs remain in the authorized incident system.

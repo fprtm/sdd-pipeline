@@ -21,6 +21,12 @@ SDD Pipeline is designed to make AI-assisted delivery reviewable, not merely fas
 
 These are product guarantees about the pipeline's workflow and observable records—not a claim that every host can force an LLM to obey prose. The [limitations](#limitations) section states that boundary directly.
 
+The opt-in full-team vNext track adds machine-checkable lifecycle, role,
+assurance, QA, readiness, release/outcome, benchmark, pack, and capability
+contracts without adding a public command. Start with the
+[vNext adoption map](docs/guides/vnext-adoption.md). Its synthetic tests prove
+mechanics; they are not evidence that vNext outperforms the baseline.
+
 ## The Problem
 
 AI generates code far faster than a human can review it line by line. Without a system, you end up stacking code you don't fully understand — and "all tests pass" doesn't make you feel safe, because it shouldn't:
@@ -242,7 +248,7 @@ SDD Pipeline detects when a task needs capabilities beyond engineering guardrail
 
 Read this before trusting any of the guarantees above at face value:
 
-- **Most of this is markdown instructions, not code.** Only four things in this repo are actually executed and enforced mechanically: `check-traceability.mjs`, `check-file-hygiene.mjs`, `check-parallel-safety.mjs`, and `check-retirement.mjs`. Everything else — the phases, the gates, the judgment prompts, the "never skip this" rules — is prose an LLM agent reads and (with high but not perfect reliability) follows. A markdown rule is a strong steer, not a guarantee, the same way any instruction to any agent is.
+- **Most of this is markdown instructions, not code.** Four classic checker entry points enforce traceability, file hygiene, parallel safety, and artifact retirement; the Quality Contract has its own executable runtime, and installer/validator tests guard distribution semantics. The remaining phases, gates, judgment prompts, and "never skip this" rules are prose an LLM agent reads and follows with high but imperfect reliability. A markdown rule is a strong steer, not a guarantee, the same way any instruction to any agent is.
 - **Independent judgment depends on harness capability.** When fresh contexts exist, implementer, reviewer, verifier, and security reviewer use distinct actor IDs; otherwise the run is explicitly `degraded independence` and medium/security-sensitive work records human-review items. These controls improve provenance, but the mechanical checkers cannot prove that a reported "weakest point" is the real one or that a claimed test result is truthful.
 - **The stats footer is self-measured, not audited.** "N anti-patterns caught" is the agent's own count of its own session, not something externally validated.
 - **No benchmark shows this pipeline reduces the vulnerability rate cited above.** The research table motivates *why* a judgment layer matters; it isn't evidence that this specific implementation moves that number. Treat it as a structured way to apply scrutiny, not a proven fix.

@@ -87,6 +87,12 @@ Given a bug report, find *where* behavior diverged from what was actually specif
 
 ## Executable Security Test Verification
 
+For vNext-opted work, also evaluate `rules/readiness.mjs` with an external
+trusted time. Verify exact candidate binding, exception owner/expiry,
+High/Critical executable evidence, SBOM/provenance requirements, and the
+assurance-derived operational fields. A `READINESS_VALID` shadow result never
+authorizes production; release authority remains external.
+
 If the test plan includes security test cases (class: security — see `skills/build/test-plan/`), run them and verify each SEC control has a passing test.
 
 ### What to Verify

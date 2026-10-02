@@ -113,6 +113,23 @@ canonical owner in the ticket. The projection stays non-authoritative: any
 canonical, scope, landmark, AC-map, or authority drift requires a fresh
 projection and review.
 
+For a vNext delivery handoff, materialize the context-minimal verifier packet
+through `rules/delivery.mjs`: exact base/candidate/spec digests, effective
+assurance, acceptance-criterion evidence classes, and evidence references.
+The packet is non-authoritative and shadow-only. A changed candidate makes
+prior evidence stale; an open defect returns the ticket to rework; A2/A3
+self-reported or self-verified evidence cannot support acceptance.
+
+Also materialize the shadow engineering profile through
+`rules/engineering.mjs`. Every ticket must address architecture fitness,
+dependency/API compatibility, migration/reversibility, maintainability,
+performance budget, and operability. A dimension may be `not-required` only
+with an explicit applicability rationale; it must never disappear. The
+assurance level sets the evidence floor, E5/E6 claims require an environment
+binding, and A2/A3 engineering evidence cannot be self-reported or
+self-verified. This profile informs the delivery verifier packet but cannot
+accept a ticket.
+
 **IDs**: the `{NN}` in the filename orders tickets within the feature, but every ticket ALSO gets a **globally unique `TICKET-xxx`** in its heading (counter in `docs/sdd/traceability.md`) — the matrix, commits (`Refs:`), and tests point at that global ID, which must never collide across features.
 
 **Durability exemption**: tickets are exempt from the no-file-paths rule that governs FSD/SDS/PRD — like test plans and DoD checklists, a ticket is inherently tied to the current state of the code and dies at merge. Concrete paths are *required* here: `Files likely touched:` feeds `check-parallel-safety.mjs` (see `skills/agents/parallel-work/`), and naming exact files/functions is what makes a T1 ticket executable by a junior dev or cheap model without inventing anything. Describe *behavior* end-to-end, but *point* at real files.
@@ -123,6 +140,8 @@ projection and review.
 **Feature**: [parent feature/epic, if any]
 **Refs**: FSD-003 [, SEC-004 if this implements a security control]
 **Tier**: T1 | T2 | T3
+**Risk**: low | moderate | high | critical — [basis]
+**Assurance**: A0 | A1 | A2 | A3 — [effective floor source]
 **Status**: ⬜ todo | 🔨 in progress | 🧪 testing/review | ✅ done | ⛔ blocked
 **Security-sensitive**: true | false
 **Dependencies**: TICKET-011 [global IDs that must land first, or "none"]
@@ -208,6 +227,42 @@ test plan): write the expectation explicitly and completely here instead —
 this ticket IS the only record of what must be tested, so it can't be a
 vague pointer to a document that doesn't exist.
 - [ ] Given [precondition], when [action], then [observable outcome] — no test-plan for this scope, assert this directly in the ticket's own test file
+
+## Engineering Quality Profile
+
+[For each line record the frozen criterion, applicability rationale, minimum
+evidence level, and evidence reference. Use `not-required` only when genuinely
+inapplicable; never omit a dimension. The machine-readable companion is owned
+by `skills/meta/quality-contract/rules/engineering.mjs` and remains
+non-authoritative.]
+
+- Architecture fitness: [criterion / applicability / evidence]
+- Dependency and API compatibility: [criterion / applicability / evidence]
+- Migration and reversibility: [criterion / applicability / evidence]
+- Maintainability: [criterion / applicability / evidence]
+- Performance budget: [criterion / applicability / evidence]
+- Operability: [criterion / applicability / evidence]
+
+## Evidence Requirements
+
+[Map each acceptance criterion to its evidence class and minimum E0–E6 level.
+Name required negative/security/recovery/realistic-environment evidence from
+effective assurance. A higher level never broadens subject, environment,
+timeframe, or measurement scope.]
+
+- [AC/test ID] → [evidence class, minimum level, exact subject/environment]
+
+## Rollback / Recovery
+
+[How to reverse the code/schema/config/data effect and verify recovery. For a
+genuinely non-mutating T1 slice, state `not required` with the reason; never
+omit this section.]
+
+## Stop Conditions and Deviations
+
+[Conditions that return the ticket to planning/rework or require external
+authority. Record every approved deviation from scope, design, AC, evidence,
+or rollback here; `none` is explicit.]
 
 ## Out of Scope
 - [Explicitly excluded from this ticket — usually deferred to a later ticket]

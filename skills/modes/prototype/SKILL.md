@@ -21,4 +21,4 @@ Prototype is fast, not blind. Even at maximum speed, these sinks always run:
 
 ## Warning
 
-Prototype mode produces code that is NOT production-ready. If the prototype becomes a real product, run `health-check` to identify issues before going to production.
+Prototype mode produces code that is NOT production-ready. If the prototype becomes a real product, run `/sdd-pipeline:check` (AUDIT when there is no fresh diff, VERIFY when there is one) before going to production.

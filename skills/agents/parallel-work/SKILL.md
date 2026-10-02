@@ -22,7 +22,7 @@ Assign **one full vertical slice per agent** (route → service → domain → t
 **The checker is the actual test, not a guess:**
 
 ```bash
-node skills/agents/parallel-work/check-parallel-safety.mjs docs/sdd/tickets
+node skills/agents/parallel-work/check-parallel-safety.mjs docs/sdd/specs/{NNN}-{slug}/tickets
 ```
 
 It parses the tickets (each ticket's `Files likely touched:` / `Dependencies:` / `Status:` / `Claimed by:` fields — see `skills/build/ticket-decomposition/`'s format), finds those eligible right now (not done, not claimed, dependencies met), and outputs **strict-safe clusters** (zero shared files) plus **near-safe pairs** (1–2 shared files — a human judgment call, neither silently included nor excluded). Use its output as the starting plan.
@@ -38,7 +38,7 @@ Before starting a ticket, the agent sets `**Claimed by:** <agent-id>, <worktree 
 ## 5. Roles — Who's Actually Concurrent
 
 - **Test plan is upstream, not a peer** — completed *before* implementation tickets are assigned; parallel agents execute test-first against an already-locked plan.
-- **Review is genuinely concurrent-compatible** — the ticket status flow is the coordination surface: an implementation agent flips its ticket to **🧪 testing/review** when the branch/PR opens, and a review agent (or the human) picks up 🧪 tickets independently of the other agents' 🔨 work. `node skills/agents/parallel-work/check-parallel-safety.mjs docs/sdd/tickets --board` shows the live kanban (⬜/🔨/🧪/⛔/✅ + who claimed what) — one glance answers "who's doing what" without opening every ticket file.
+- **Review is genuinely concurrent-compatible** — the ticket status flow is the coordination surface: an implementation agent flips its ticket to **🧪 testing/review** when the branch/PR opens, and a review agent (or the human) picks up 🧪 tickets independently of the other agents' 🔨 work. `node skills/agents/parallel-work/check-parallel-safety.mjs docs/sdd/specs/{NNN}-{slug}/tickets --board` shows the live kanban (⬜/🔨/🧪/⛔/✅ + who claimed what) — one glance answers "who's doing what" without opening every ticket file.
 - **Implementation agents** each own one claimed vertical slice, test-first, inside their own worktree — parallelism changes nothing about the code-quality bar, the LOCAL-only test rule, or scope discipline.
 
 ## 6. Merge Order — Trial-Merge in Its Own Worktree Too

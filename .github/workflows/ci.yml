@@ -44,5 +44,5 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "24"
-      - name: Run behavioral test suites (check-file-hygiene, check-traceability, check-parallel-safety)
+      - name: Run checker, Quality Contract, command, and installer behavior suites
         run: bash scripts/test-checkers.sh

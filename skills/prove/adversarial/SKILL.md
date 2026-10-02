@@ -73,6 +73,13 @@ Generate tests from these categories, picking only those RELEVANT to the task:
 
 ## Rules
 
+For vNext-opted work, record mutation, property, state, contract,
+differential, fault, and concurrency techniques through
+`skills/meta/quality-contract/rules/qa.mjs`. Applicability and tool availability
+are explicit. A required unavailable technique is `blocked`; an optional one
+is `skipped`; an irrelevant one is `not-required`. Every applicable available
+technique needs a seeded faulty implementation that its oracle catches.
+
 - Generate 5-8 tests for standard mode, 8-15+ for strict mode.
 - Tests must be RUNNABLE, not theoretical descriptions — actual test code with assertions, not a list of "things to check."
 - Do NOT generate tests for irrelevant categories (no SQL injection tests for a CLI tool).

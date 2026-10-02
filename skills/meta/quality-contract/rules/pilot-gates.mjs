@@ -140,16 +140,17 @@ function segmentGate(segment, tuple, minimumRuns) {
 /** No aggregate exists: both calibrated and unseen cohorts gate each canonical tuple. */
 export function evaluatePilotGates(input = {}) {
   const plan = input?.verified_plan; const measurement = input?.verified_measurements;
-  if (!VERIFIED_PLANS.has(plan) || !VERIFIED_MEASUREMENTS.has(measurement) || measurement.plan_digest !== plan.plan_digest || pilotDigest(plan.plan) !== plan.plan_digest || pilotDigest(measurement.measurements) !== measurement.measurement_digest) return finding('blocked', 'VERSION_UNSUPPORTED', 'externally verified frozen plan and measurements are required');
+  const scoped = (value) => ({ ...value, authority_scope: 'quality-contract-v1-artifact-efficiency', may_promote_vnext: false });
+  if (!VERIFIED_PLANS.has(plan) || !VERIFIED_MEASUREMENTS.has(measurement) || measurement.plan_digest !== plan.plan_digest || pilotDigest(plan.plan) !== plan.plan_digest || pilotDigest(measurement.measurements) !== measurement.measurement_digest) return scoped(finding('blocked', 'VERSION_UNSUPPORTED', 'externally verified frozen plan and measurements are required'));
   const segment_results = [];
   for (const [name, cohortPlan] of [['calibration', plan.plan.calibration], ['unseen_validation', plan.plan.unseen_validation]]) {
     const map = cohortMap(measurement.measurements[name], cohortPlan.cohort_digest, plan.plan.tuples.length);
-    if (!map) return finding('blocked', 'VERSION_UNSUPPORTED', `${name} is not bound to every canonical tuple`);
+    if (!map) return scoped(finding('blocked', 'VERSION_UNSUPPORTED', `${name} is not bound to every canonical tuple`));
     for (const tuple of plan.plan.tuples) {
       const result = segmentGate(map.get(tupleKey(tuple)), tuple, name === 'unseen_validation' ? 1 : cohortPlan.minimum_runs);
       segment_results.push({ cohort: name, tuple: tupleKey(tuple), result });
     }
   }
   const failed = segment_results.find(({ result }) => result !== 'pass');
-  return failed ? { ...finding('blocked', 'VERSION_UNSUPPORTED', `${failed.cohort} tuple is ${failed.result}; aggregate results cannot offset it`), segment_results } : { ...finding('pass', 'VERSION_SUPPORTED', 'every calibration and unseen tuple passed matched bloat/latency gates'), segment_results };
+  return scoped(failed ? { ...finding('blocked', 'VERSION_UNSUPPORTED', `${failed.cohort} tuple is ${failed.result}; aggregate results cannot offset it`), segment_results } : { ...finding('pass', 'VERSION_SUPPORTED', 'every Quality Contract v1 calibration and unseen tuple passed matched artifact-efficiency gates; this is not a vNext promotion decision'), segment_results });
 }
