@@ -1,0 +1,25 @@
+{
+  "base": {
+    "role_schema_version": "1",
+    "work_subject_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "assurance": "A2",
+    "transition": "release-candidate",
+    "evaluated_at": "2026-10-02T12:00:00Z",
+    "implementer_actor_id": "builder-1",
+    "security_sensitive": false,
+    "required_roles": ["verifier"],
+    "optional_roles": [],
+    "assignments": []
+  },
+  "assignment": {
+    "role_id": "verifier",
+    "actor_id": "verifier-1",
+    "work_subject_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "qualification_class": "harness-attested",
+    "valid_from": "2026-10-02T11:00:00Z",
+    "expires_at": "2026-10-02T13:00:00Z",
+    "issuer": "fixture-authority",
+    "conflicts": [],
+    "attestation_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  }
+}

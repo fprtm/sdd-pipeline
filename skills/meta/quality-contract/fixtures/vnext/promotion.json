@@ -1,0 +1,67 @@
+{
+  "description": "Synthetic promotion-packet fixture. Digests exercise mechanics and are not field or human authority evidence.",
+  "pending": {
+    "promotion_packet_version": "1",
+    "benchmark": {
+      "status": "PASS",
+      "code": "BENCHMARK_PASS",
+      "evidence_class": "field-pilot",
+      "result_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+    },
+    "rollout_evidence": {
+      "shadow": null,
+      "report_only": null,
+      "opt_in": null,
+      "unseen": null
+    },
+    "independent_reviews": {
+      "verifier": null,
+      "security": null,
+      "sre": null
+    },
+    "field_outcomes": {
+      "quality": null,
+      "productivity": null,
+      "product": null,
+      "operations": null
+    },
+    "authority": null,
+    "decision": null,
+    "rationale": null,
+    "decided_at": null
+  },
+  "synthetic_complete_shape": {
+    "promotion_packet_version": "1",
+    "benchmark": {
+      "status": "PASS",
+      "code": "BENCHMARK_PASS",
+      "evidence_class": "field-pilot",
+      "result_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+    },
+    "rollout_evidence": {
+      "shadow": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+      "report_only": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+      "opt_in": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+      "unseen": "sha256:5555555555555555555555555555555555555555555555555555555555555555"
+    },
+    "independent_reviews": {
+      "verifier": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+      "security": "sha256:7777777777777777777777777777777777777777777777777777777777777777",
+      "sre": "sha256:8888888888888888888888888888888888888888888888888888888888888888"
+    },
+    "field_outcomes": {
+      "quality": "sha256:9999999999999999999999999999999999999999999999999999999999999999",
+      "productivity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "product": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "operations": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+    },
+    "authority": {
+      "actor_id": "synthetic-authority-shape",
+      "role": "promotion-authority",
+      "attestation_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+    },
+    "decision": "revise",
+    "rationale": "Synthetic shape validation only; this is not a real promotion decision.",
+    "decided_at": "2026-10-02T00:00:00Z"
+  }
+}

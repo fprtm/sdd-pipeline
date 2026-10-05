@@ -1,0 +1,42 @@
+{
+  "name": "sdd-pipeline",
+  "version": "0.1.0",
+  "description": "SDD Pipeline — spec in front, judgment behind. Control over and trust in AI-generated code: THINK, BUILD, PROVE. Adaptive-depth pipeline (ask → spec → plan → build → check), AI-output judgment gate, traceability spine (REQ→FSD→SEC→TICKET→TEST), design-phase threat modeling, coverage gate, mechanical enforcement scripts, multi-agent orchestration.",
+  "author": {
+    "name": "ferrypratama"
+  },
+  "homepage": "https://github.com/fprtm/sdd-pipeline",
+  "repository": "https://github.com/fprtm/sdd-pipeline",
+  "license": "MIT",
+  "keywords": [
+    "spec-driven-development",
+    "sdd",
+    "ai-code-review",
+    "judgment-gate",
+    "traceability",
+    "threat-modeling",
+    "ssdlc",
+    "test-coverage",
+    "prd",
+    "fsd",
+    "tdd",
+    "decision-log",
+    "vertical-slice",
+    "multi-agent",
+    "guardrails",
+    "brownfield",
+    "yagni",
+    "comprehension-debt"
+  ],
+  "skills": [
+    "./skills/orchestrator",
+    "./skills/commands/discover",
+    "./skills/commands/spec",
+    "./skills/commands/implement",
+    "./skills/commands/check",
+    "./skills/commands/docs",
+    "./skills/commands/learn",
+    "./skills/commands/handoff",
+    "./skills/commands/update"
+  ]
+}

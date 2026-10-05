@@ -1,0 +1,16 @@
+{
+  "base": {
+    "engineering_profile_version": "1",
+    "profile_id": "full-engineering",
+    "subject_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "assurance": "A2",
+    "checks": [
+      { "dimension": "architecture-fitness", "applicable": true, "applicability_rationale": "the candidate changes a policy boundary", "criterion": "module ownership and dependency direction match the approved architecture", "status": "pass", "evidence_level": "E4", "evidence_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111", "environment_digest": null, "producer_actor": "implementer-1", "verifier_actor": "architect-1", "provenance": "independently-attested" },
+      { "dimension": "dependency-api-compatibility", "applicable": true, "applicability_rationale": "the candidate exposes a versioned consumer contract", "criterion": "supported consumers preserve their documented input and result semantics", "status": "pass", "evidence_level": "E4", "evidence_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222", "environment_digest": null, "producer_actor": "implementer-1", "verifier_actor": "architect-1", "provenance": "independently-attested" },
+      { "dimension": "migration-reversibility", "applicable": true, "applicability_rationale": "the candidate introduces opt-in state", "criterion": "migration is explicit and downgrade leaves legacy readers usable", "status": "pass", "evidence_level": "E4", "evidence_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333", "environment_digest": null, "producer_actor": "implementer-1", "verifier_actor": "architect-1", "provenance": "independently-attested" },
+      { "dimension": "maintainability", "applicable": true, "applicability_rationale": "the candidate adds a durable policy module", "criterion": "one canonical owner exists and complexity stays within the reviewed boundary", "status": "pass", "evidence_level": "E4", "evidence_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444", "environment_digest": null, "producer_actor": "implementer-1", "verifier_actor": "architect-1", "provenance": "independently-attested" },
+      { "dimension": "performance-budget", "applicable": true, "applicability_rationale": "the evaluator runs in every opted-in verification", "criterion": "evaluation remains within the frozen local latency and memory budget", "status": "pass", "evidence_level": "E4", "evidence_digest": "sha256:5555555555555555555555555555555555555555555555555555555555555555", "environment_digest": null, "producer_actor": "implementer-1", "verifier_actor": "architect-1", "provenance": "tool-attested" },
+      { "dimension": "operability", "applicable": true, "applicability_rationale": "operators consume stable findings and remediation", "criterion": "failures expose stable codes, ownership, and actionable remediation", "status": "pass", "evidence_level": "E4", "evidence_digest": "sha256:6666666666666666666666666666666666666666666666666666666666666666", "environment_digest": null, "producer_actor": "implementer-1", "verifier_actor": "architect-1", "provenance": "independently-attested" }
+    ]
+  }
+}

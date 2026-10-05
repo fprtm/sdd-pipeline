@@ -1,0 +1,22 @@
+{
+  "base": {
+    "qa_profile_version": "1",
+    "profile_id": "full-behavioral",
+    "risk_matrix_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "condition_matrix_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "oracle_review_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "exploratory_charter_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "flaky_assessment_digest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+    "coverage_status": "pass",
+    "oracle_assertions": 14,
+    "techniques": [
+      { "technique": "mutation", "applicable": true, "required": true, "tool_available": true, "status": "pass", "seeded_faults": 1, "caught_faults": 1 },
+      { "technique": "property", "applicable": true, "required": true, "tool_available": true, "status": "pass", "seeded_faults": 1, "caught_faults": 1 },
+      { "technique": "state", "applicable": true, "required": true, "tool_available": true, "status": "pass", "seeded_faults": 1, "caught_faults": 1 },
+      { "technique": "contract", "applicable": true, "required": true, "tool_available": true, "status": "pass", "seeded_faults": 1, "caught_faults": 1 },
+      { "technique": "differential", "applicable": true, "required": true, "tool_available": true, "status": "pass", "seeded_faults": 1, "caught_faults": 1 },
+      { "technique": "fault", "applicable": true, "required": true, "tool_available": true, "status": "pass", "seeded_faults": 1, "caught_faults": 1 },
+      { "technique": "concurrency", "applicable": true, "required": true, "tool_available": true, "status": "pass", "seeded_faults": 1, "caught_faults": 1 }
+    ]
+  }
+}

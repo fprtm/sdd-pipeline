@@ -1,0 +1,28 @@
+{
+  "base": {
+    "readiness_version": "2",
+    "subject_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "assurance": "A3",
+    "standards": { "ssdf": "NIST-SP-800-218-v1.1-final", "asvs": "OWASP-ASVS-v5.0.0", "samm": "OWASP-SAMM-v2.0" },
+    "controls": [
+      { "id": "SEC-017", "severity": "critical", "executable_required": true, "evidence_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "evidence_status": "pass", "mappings": { "ssdf": ["PW.8"], "asvs": ["v5.0.0-14.2.1"], "samm": ["V-RT-A-1"] } }
+    ],
+    "exceptions": [],
+    "artifacts": { "sbom_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc", "provenance_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd", "signature_status": "pass" },
+    "operations": {
+      "slo": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+      "error_budget": "sha256:1212121212121212121212121212121212121212121212121212121212121212",
+      "observability": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+      "alerting": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+      "rollout": "sha256:7777777777777777777777777777777777777777777777777777777777777777",
+      "rollback": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+      "schema_compatibility": "sha256:8888888888888888888888888888888888888888888888888888888888888888",
+      "backup": "sha256:9999999999999999999999999999999999999999999999999999999999999999",
+      "restore": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+      "incident_runbook": "sha256:abababababababababababababababababababababababababababababababab",
+      "capacity": "sha256:5555555555555555555555555555555555555555555555555555555555555555"
+    },
+    "production_authority_external": true
+  },
+  "trusted_now_ms": 1790942400000
+}

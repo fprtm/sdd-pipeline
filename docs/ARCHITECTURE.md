@@ -1,0 +1,839 @@
+# SDD Pipeline — Architecture & Skill Reference
+
+How the 65 skill files in `skills/` wire together: what each one does, what it calls, what it reads/writes, and when it runs. Read this after `README.md` (the pitch) and `skills/orchestrator/SKILL.md` (the context-bounded router) — this doc exists to make the *shape* of the system visible at a glance.
+
+The opt-in vNext contracts live under `skills/meta/quality-contract/`: control
+axes → role authority → lifecycle → product/delivery/QA/readiness →
+release/outcome, with benchmark, packs, capabilities, and gate-effectiveness as
+supporting modules. They remain shadow/report-only until explicit migration;
+the [adoption map](guides/vnext-adoption.md) is the non-normative entry point.
+
+## 1. The Big Picture
+
+SDD Pipeline is primarily a tree of Markdown "skill" files an AI coding agent reads and follows. Four classic zero-dependency checker entry points, the executable Quality Contract runtime, and installer/validation tests mechanically enforce the parts prose cannot guarantee. `skills/orchestrator/SKILL.md` is a thin entrypoint that routes to conditional policy references; everything else is either a **phase skill** it dispatches to, a **mode** that dials behavior up/down, a **constraint pack**, or **meta machinery** that runs across every phase.
+
+Installed `AGENTS.md` is also a bounded router rather than a duplicate manual.
+This keeps always-on project context small; detail is disclosed only after the
+request crosses a concrete coding or delivery decision boundary.
+
+Everything below is organized around one five-step sequence. It runs in this order every time; only *depth* varies.
+
+```mermaid
+flowchart LR
+    subgraph T["THINK"]
+        ASK["1. ASK\nelicitation / grill\nscope · complexity · arch"]
+        SPEC["2. SPEC\nFSD/SDS/PRD/ERD · DoD\nthreat model · UX"]
+    end
+    subgraph B["BUILD"]
+        PLAN["3. PLAN\nticket breakdown (large)\nor changes/ file — approved"]
+        BUILDS["4. BUILD\ncode + guardrails\ntickets · commits"]
+    end
+    subgraph P["PROVE"]
+        CHECK["5. CHECK\nverify · coverage · security\nreport + judgment gate"]
+    end
+
+    ASK --> SPEC --> PLAN --> BUILDS --> CHECK
+
+    DISC(["/discover"]) -.enters.-> ASK
+    SP(["/spec"]) -.enters.-> SPEC
+    IMPL(["/implement"]) -.enters.-> BUILDS
+    CK(["/check"]) -.enters.-> CHECK
+
+    classDef fixed fill:#e8eef7,stroke:#4a6fa5,color:#1a1a1a;
+    classDef cmd fill:#f3ede4,stroke:#9a7b4f,color:#1a1a1a;
+    class ASK,SPEC,PLAN,BUILDS,CHECK fixed;
+    class DISC,SP,IMPL,CK cmd;
+```
+
+**Step ↔ phase ↔ command**, so the three vocabularies this doc uses stay pinned to each other:
+
+| Step | Phase | Command that enters here | Refuses to be skipped when… |
+|---|---|---|---|
+| 1. ASK | THINK | `/sdd-pipeline:discover` | always runs; question count scales 0 (micro) → 3-5 (large) |
+| 2. SPEC | THINK + BUILD¹ | `/sdd-pipeline:spec` | size ≥ `small` — the DoD floor has no exceptions above micro; deliberation before every document, held to a depth requirement per topic (§3's agenda tables), not a one-line label |
+| 3. PLAN | BUILD | *(none — orchestrator's own step)* | size ≥ `small` in vibe/standard/strict |
+| 4. BUILD | BUILD | `/sdd-pipeline:implement` | there's code to write |
+| 5. CHECK | PROVE | `/sdd-pipeline:check` | always — depth varies, existence doesn't |
+
+There is no `/brainstorm` command any more: a foggy idea and a forming decision are the same conversation at two moments, so `/discover` handles both and announces when it shifts gears. PLAN is the one step with no command of its own — it belongs to the orchestrator, and what gets approved there is the ticket breakdown (large) or the change file (small/medium).
+
+¹ **SPEC is the one step that straddles two phase directories**, and it's worth knowing before §§3-4 read as contradictory: its *analysis* half (`think/threat-model`, `think/ux-design`, `think/database-design`, `think/arch-analyzer`) is filed under `skills/think/`, while its *doc-writing* half (`build/doc-generator`, `build/test-plan`) is filed under `skills/build/`. The five steps describe the sequence a user experiences; the three phases describe how the skill files are organized on disk. They are related but not identical, and this footnote is the seam.
+
+This sequence is **fixed** — same order every time. Only *depth* adapts, driven by four things the orchestrator detects on every task:
+
+### Control boundaries
+
+The diagram is an execution flow, not a claim that every component has the same authority. The system is deliberately split into four boundaries:
+
+| Boundary | Responsibility | Cannot honestly claim |
+|---|---|---|
+| **Intent** — ASK, SPEC, PLAN | Settles scope and produces the approved work order | That an unstated product decision was approved |
+| **Execution** — BUILD | Changes code under constraints and records what changed | That a changed implementation satisfies an untested requirement |
+| **Evidence** — CHECK | Runs and records verification, traceability, coverage, security, and judgment checks | That a check was executed when no evidence exists |
+| **Governance** — META | Preserves canonical truth, controls artifact lifecycle, narrows handoffs, and tracks actor separation | That a single actor's self-review is independent |
+
+The orchestrator coordinates these boundaries; it does not collapse them. This is why the public surface remains one auto-routed orchestrator plus eight explicit commands while the internal skill tree can evolve without changing the adoption model.
+
+```mermaid
+flowchart TD
+    REQ["User request"] --> ORC["Orchestrator\nskills/orchestrator/SKILL.md"]
+    ORC --> MODE["Mode\nprototype · vibe · standard · strict · emergency"]
+    ORC --> SIZE["Task size\nmicro · small · medium · large"]
+    ORC --> DOM["Domain\nweb · cli · mobile · library · api"]
+    ORC --> SDLC["SDLC\nagile · waterfall · iterative · v-model · spiral\ndevops · rad · incremental · solo"]
+
+    MODE & SIZE & DOM & SDLC --> DEPTH["Pipeline depth for this task"]
+    DEPTH --> THINK_P["THINK phase"]
+    THINK_P --> COMP["Skill composition check\n(external skills needed?)"]
+    COMP --> GRILL{"Consequential decision\nstated casually?"}
+    GRILL -- yes, offered --> GRILLSKILL["SDD Grill"]
+    GRILL -- no / declined --> PLANFILE["Write specs/{NNN}-{slug}/tickets/ (large/full)\nor changes/{date}-{slug}.md (small/medium)"]
+    GRILLSKILL --> PLANFILE
+    PLANFILE --> BUILD_P["BUILD phase"]
+    BUILD_P --> PROVE_P["PROVE phase"]
+    PROVE_P --> REPORT["Report + Judgment gate"]
+    REPORT --> META["Meta: traceability, decisions,\nglossary, stats, memory, index"]
+```
+
+**Evidence gates scale with size** — this is the contract that keeps the pipeline honest (never silently skipping, never silently adding ceremony):
+
+| Gate | micro | small | medium | large / full |
+|---|---|---|---|---|
+| DoD | — | ✅ always | ✅ | ✅ |
+| Test plan file | — | named in DoD | ✅ | ✅ |
+| Threat model | — | zone-triggered | zone-triggered | ✅ mandatory |
+| Coverage gate ≥80% | — | ✅ on **changed lines** + suite green | ✅ overall + honesty checks | ✅ |
+| Committed e2e harness (UI) | — | ask before adding to an existing repo | ✅ | ✅ |
+| Traceability matrix | — | — | lite inline `Refs:` | ✅ full matrix + ship gate |
+
+`strict` promotes every gate one size-level down; `prototype`/`vibe` demote **narration**, not measurement; `emergency` defers to a post-fix follow-up. The coverage gate is the one row no mode may switch off — what scales with size is the denominator (changed lines vs. whole repo), never the 80% bar. See §7 for the full mode dial.
+
+---
+
+## 2. Orchestrator (`skills/orchestrator/SKILL.md`)
+
+The only auto-triggered top-level entry point (alongside the 8 manual commands in §10). It is capped at 150 lines and exits immediately for non-coding discussion. Governed work progressively loads `references/behavior.md`, `references/delivery.md`, or `references/project-state.md` only when the corresponding decision point is reached.
+
+| | |
+|---|---|
+| **Detects** | coding/execution boundary first; behavior policy then detects mode, complexity, risk, assurance, domain, SDLC, and architecture |
+| **Owns** | the fixed ASK→SPEC→PLAN→BUILD→CHECK sequence and progressive-disclosure routes; conditional references own matrix, delivery, and project-state detail |
+| **Dispatches to** | every skill under `think/`, `build/`, `prove/`, `meta/`; loads the matching file from `modes/[mode]/SKILL.md` and `constraints/[domain]/SKILL.md` |
+| **Multi-agent rule** | THINK skills spawn in parallel and merge; BUILD splits by independent file/component; PROVE spawns one agent per layer — see §10 |
+
+---
+
+## 3. THINK phase — `skills/think/`
+
+Everything that has to happen *before* code, so the agent isn't guessing scope, architecture, or security posture mid-build.
+
+```mermaid
+flowchart TD
+    subgraph THINK["THINK — skills/think/"]
+        ELI["elicitation\nadaptive questions"]
+        CTX["context-loader\nCLAUDE.md → docs/ → config.md → memory → code scan"]
+        SCOPE["scope-guard\nblast radius + SCOPE declaration"]
+        CPLX["complexity-analyzer\nhidden-scope lookup table"]
+        SDLCD["sdlc-detector\nwaterfall/iterative/v-model/spiral/agile(+scrum|kanban)/devops/rad/incremental/solo"]
+        ARCH["arch-analyzer\npattern detection, deletion test,\n1-vs-2-adapter rule"]
+        THREAT["threat-model\nSTRIDE, SEC-xxx controls"]
+        DB["database-design\nschema, 3NF, migrations"]
+        UX["ux-design\ntokens, flows, states, a11y"]
+        STACK["stack-conventions\nversion-pinned idiom guide"]
+        ANLY["analytics-design\nmetrics tree, event taxonomy"]
+        GRILL["SDD Grill\nfrontier/round interview"]
+    end
+
+    CPLX -.feeds hidden-scope table.-> GRILL
+    SCOPE -.feeds blast-radius table.-> GRILL
+    ARCH -.feeds decision matrix.-> GRILL
+    ARCH -->|"design-it-twice.md"| ARCH
+    ARCH -.ADR conflicts.-> DEC["meta/decision-log"]
+    DB -->|"bounded contexts"| GLOS["meta/glossary"]
+    DB --> STACK
+    DB --> THREAT
+    STACK --> THREAT
+    STACK --> INFRA["build/infra"]
+    THREAT --> TESTPLAN["build/test-plan"]
+    THREAT --> TICKETS["build/ticket-decomposition"]
+    THREAT --> SECCHECK["prove/diagnose"]
+    UX --> ARCH
+    UX --> DOCGEN["build/doc-generator"]
+    ANLY --> INFRA
+    GRILL --> GLOS
+    GRILL --> DEC
+    ELI -.checks first.-> MEM["meta/memory"]
+```
+
+| Skill | What it does | Calls / feeds | Writes to |
+|---|---|---|---|
+| **elicitation** | Asks 0–5 adaptive questions scaled to task size (micro=0 … large=3-5); checks memory first so a settled answer is never re-asked; "I don't know" → builds simplest version, lists assumptions | reads `docs/sdd/memory/INDEX.md` | nothing (inline) |
+| **context-loader** | Loads project context in priority order: `CLAUDE.md`/`AGENTS.md` → `docs/` → `config.md` → `memory/INDEX.md` → code scan fallback; brownfield vs greenfield distinction; scopes to the relevant package in a monorepo | — | nothing (inline summary) |
+| **scope-guard** | Blast-radius table by task type (bug fix 1-5 files, migration 20+…) with hard limits; requires a `SCOPE: IN/OUT/files expected` declaration before coding; pauses if exceeded (standard/strict) | recommendation source for **grill** and **arch-analyzer** | nothing (inline + completion notes) |
+| **complexity-analyzer** | Lookup table mapping surface prompts ("add search") to hidden sub-scope (indexing, ranking, pagination…); escalates task size when hidden complexity found | recommendation source for **grill** | nothing (inline) |
+| **sdlc-detector** | Two-layer detection: SDLC **model** (Waterfall/Iterative/V-Model/Spiral/Agile/DevOps/RAD/Incremental/Solo) from `config.md` → project signals (`.jira/`, `.linear/`, `ROADMAP.md`…) → ask-once fallback; if Agile, a nested **agile-framework** (Scrum/Kanban/Scrumban/XP) — Scrum/Kanban are never treated as SDLC models themselves; outputs a reasoned (`sdlc-reason`) adaptation block consumed by scope-guard, elicitation, change-plan, report, decision-log | reads project signals, `docs/sdd/config.md` | a note in `docs/sdd/memory/` if it had to ask |
+| **arch-analyzer** | Detects 1 of 16 architecture patterns via directory/import/config signals + confidence scoring; Deletion Test + "1 adapter=hypothetical, 2=real" heuristics; consistency report for brownfield, decision matrix + proposed tree for greenfield; optional self-contained HTML visual report (temp dir only); "Design It Twice" multi-agent technique for high-stakes calls; **deliberation agenda with depth requirements** (code patterns w/ structure example, module boundaries w/ public-API map, dependency rules, deep stack w/ comparison table, FE↔BE contract as typed request/response/error per endpoint, directory tree, performance architecture w/ named mechanism+target) grilled with the user before SDS is written — a topic named but not detailed at this granularity stays in the frontier | `design-it-twice.md` (companion), `build/anti-patterns` (premature-abstraction xref), `docs/sdd/decisions/` (ADR-conflict check), `agents/orchestration` (spawn gate), hands off to **grill** | no fixed doc path (inline / temp-dir HTML) |
+| **threat-model** | STRIDE pass over the FSD/SDS's data-flow diagram at trust boundaries; rates Likelihood×Impact; writes SEC-xxx controls (Mitigate/Accept/Transfer/Avoid); OWASP-ish baseline always checked | `build/test-plan` (TEST-xxx per High/Critical control), `build/ticket-decomposition` (ticket per control), `prove/diagnose` (PROVE-side pair via shared SEC-xxx), `prove/judgment`, `meta/traceability` | `docs/sdd/specs/{NNN}-{slug}/threats.md` |
+| **database-design** | One-entity-one-responsibility schema modeling from the domain glossary; 3NF default; naming/FK/cascade/index rules; additive-first migrations; **deliberation agenda with depth requirements** (every entity presented table-by-table with columns/types/constraints, every relationship with named FK + cardinality, every FK's cascade behavior in a table, normalization decisions tied to a named query, indexing tied to the query it serves, migration approach, top 5-10 data access patterns mapped to FSD flows) grilled with the user before ERD is written — "we'll use 3NF" alone doesn't settle the topic | `build/doc-generator/formats.md` (ERD shape), `docs/sdd/glossary.md`, `think/stack-conventions`, `think/threat-model` (multi-tenant isolation), `think/grill` (domain deliberation) | `docs/sdd/specs/{NNN}-{slug}/erd.md` |
+| **ux-design** | Confirms direction with a concrete preview first (respects existing design system if present); design tokens (WCAG AA) as SSOT; **one `design.md` entry doc always, however many files the content splits into** (mechanically enforced); index-first flow files; 4 states (empty/loading/error/success) per screen; yields to an external UI/UX skill on aesthetics if installed; **deliberation agenda with depth requirements** (interaction table per screen naming element/action/result, every state per screen with its trigger, error type → presentation → recovery table, step-by-step flow walkthrough with branches, named breakpoints with per-screen changes, navigation as a tree diagram) grilled with the user before UX docs are written | `think/arch-analyzer` (process peer), `build/doc-generator`, `check-file-hygiene.mjs`, `think/grill` (domain deliberation) | `docs/sdd/design-system/design.md` + `docs/sdd/specs/{NNN}-{slug}/ux.md` + one file per flow at `docs/sdd/design-system/ux-screens/<flow-slug>.md` |
+| **stack-conventions** | Reads official docs (context7/MCP/research skill) for the chosen stack+version, turns them into version-pinned, checkable rules; scaffolds config-as-code (`tsconfig.json`, ESLint, etc.) | `build/infra` (CI wiring), `think/threat-model` (security defaults), `constraints/` (stays stack-neutral layer beneath this) | `docs/sdd/stack-guide.md` + scaffolded config files |
+| **analytics-design** | Turns PRD success criteria into a metrics tree (north-star/inputs/guardrails), event taxonomy, funnels/cohorts, instrumentation plan; enforces no-PII-without-consent | `build/infra` (observability), `think/threat-model` (privacy) | `docs/sdd/analytics.md` |
+| **grill** (SDD Grill) | Interviews the user round-by-round over a "design tree," asking the whole open **frontier** per round with a recommendation per question; adversarial toward the user's premises *and* its own recommendations; **council pass** (5 seats: devil's advocate, maintainer-1yr-later, security, cost, end-user) for decisions passing rule-of-three; **three subject types**: single decision (mid-session), whole product (five seats), **technical domain deliberation** (agenda from a think/ skill, used during SPEC before each document is written); **depth enforcement** — a topic labeled but not settled at its agenda's depth requirement stays in the frontier, doesn't count as closed; never runs uninvited | `think/arch-analyzer`, `think/scope-guard`, `think/complexity-analyzer`, `think/database-design`, `think/ux-design`, `constraints/[domain]`, `build/constraints`, `think/sdlc-detector`, `meta/glossary`, `meta/decision-log`, `agents/orchestration` | live updates to `docs/sdd/glossary.md`; ADRs via `meta/decision-log`; feeds (never writes) the SPEC-step artifacts |
+
+---
+
+## 4. BUILD phase — `skills/build/`
+
+Runs once a plan is approved. This is where code gets written, tracked, and shaped to fit within declared scope.
+
+```mermaid
+flowchart TD
+    subgraph BUILD["BUILD — skills/build/"]
+        CONS["constraints\nuniversal → domain → project overrides"]
+        CHG["change-plan\nCREATE/MODIFY/DELETE declaration"]
+        DOCGEN["doc-generator\nFSD/SDS/PRD/ERD/DoD/test-plan"]
+        ANTI["anti-patterns\n12 known AI failure modes"]
+        EXEC["execution-guard\nloop detection, escalation"]
+        GIT["git-workflow\ncommit/branch/PR shape"]
+        INFRA["infra\nCI/CD, IaC, observability"]
+        ROUTER["model-router\nadvisory tier routing"]
+        TESTPLAN["test-plan\nGiven/When/Then TEST-xxx"]
+        TICKETS["ticket-decomposition\nvertical slices, T1/T2/T3"]
+    end
+
+    TICKETS -->|"large tasks only, before BUILD"| DOCGEN
+    TICKETS --> GIT
+    TICKETS -->|"check-parallel-safety.mjs"| PW["agents/parallel-work"]
+    TESTPLAN --> COVCHK["prove/coverage-check"]
+    TESTPLAN --> BQA["prove/browser-qa"]
+    TESTPLAN --> VERIFY["prove/verification"]
+    ANTI -.deletion test / adapter rule.-> ARCH["think/arch-analyzer"]
+    CONS --> DOMC["constraints/[domain]"]
+    DOCGEN --> TRACE["meta/traceability"]
+    INFRA --> THREAT["think/threat-model"]
+    INFRA --> CI["enforcement/ci/sdd-check.yml"]
+```
+
+| Skill | What it does | Calls / feeds | Writes to |
+|---|---|---|---|
+| **constraints** | Loads universal (10 rules: YAGNI, dep limits, no premature abstraction…) → domain-specific → project overrides, in that order; secrets rule (#7) is non-negotiable | `constraints/[domain]/SKILL.md`, `docs/sdd/config.md`, `CLAUDE.md`/`AGENTS.md`, decision log on override | decision-log entry + memory on override |
+| **change-plan** | Requires a `CHANGE PLAN:` block (CREATE/MODIFY/DELETE + why) before code; tracks deviations live; produces a Planned-vs-Deviations-vs-Refactoring summary after | the task’s written record (`changes/` file or the active ticket) | contributes to that record / verification report |
+| **doc-generator** | Auto-decides which docs a task needs (feature→FSD+DoD, DB change→ERD+SDS+DoD…); DoD floor for small+; **one folder per feature** (never append-forever); owns the ID spine (`FSD-003`, `SEC-004`, `TICKET-012`…); **Number-First Lookup** — an existing feature's folder is found by globbing its number, never by regenerating the slug and searching by full name (the failure mode a folder-per-feature layout is at risk of that flat numbered files weren't); splits `docs/user/` vs `docs/dev/`; **fidelity check** after writing any doc that followed a deliberation — every specific value (names, numbers, cascade rules, status codes) re-checked against what was actually settled, not reconstructed from memory of the conversation; **`specs/` is spec-first work only — ad-hoc cross-feature audit/consistency-review output goes to `docs/sdd/reports/{date}-{slug}.md` with an `OPEN`/`RESOLVED` status**, never a borrowed feature number (a `RESOLVED` report is Transactional-tier, flagged for archival by `health-check` once stale) | `formats.md` (companion templates), `meta/traceability`, `meta/decision-log`, `meta/glossary` | `docs/sdd/specs/{NNN}-{slug}/` (fsd/sds/prd/threats/ux/erd/tests/dod, one folder per feature), `index.md`, `docs/user/`, `docs/dev/`, `docs/sdd/reports/` (ad-hoc audits) |
+| **anti-patterns** | Scans generated code against 12 patterns (God Function, Deep Nesting, Hallucinated API, Hardcoded Secrets, N+1 Queries, Over-Typing…) and self-corrects | `think/arch-analyzer` (deletion test / adapter rule for over-engineering pattern) | corrects code in place; notes change in standard/strict |
+| **execution-guard** | Detects repeated-failure loops (same approach/error 2+ times) → escalates with 3 options instead of spinning; periodic progress signals; rapid-iteration detection (3+ prompts/2min → lightweight mode); **reviewable chunks** (medium+ standard/strict: implementation broken into semantic units, each announced with spec mapping + trust tier, 🔴 chunks paused for acknowledgment); **review debt tracking** (unacknowledged 🔴 chunks tracked, throttle on 2+ unacknowledged) | — | inline status only |
+| **git-workflow** | Commit granularity (1 per ticket), message format (`type(scope): what — why — Refs: TICKET-xxx, FSD-xxx`), branch naming, honest PR descriptions (never claims an ungated pass) | relies on ID spine from `doc-generator`/`meta/traceability`; composes with external branch-finishing skills | commit messages, branch names, PR body |
+| **infra** | Turns deployment ADRs into CI (coverage gate, dep scanning, SAST, e2e, docs-drift check, traceability + file-hygiene checks), IaC, secrets/config management, observability tied to REQ-NF SLOs; hard-stops before any real provisioning/deploy | `think/threat-model` (baseline), `enforcement/ci/sdd-check.yml`, `prove/coverage-check`, `prove/browser-qa`, `check-traceability.mjs`, `check-file-hygiene.mjs` | CI config, IaC defs, observability config |
+| **model-router** | Advisory-only, two independent dimensions: **model tier** (CHEAP/MID/STRONG by a fixed table — lint→CHEAP, architecture→STRONG…) and **execution mode** (read-only for exploration/`learn`/context-loader, read-mostly for verification/adversarial/judgment, read-write for implementation, read-write-docs-only for `/sdd-pipeline:docs`) — a cheap model can run read-only, a strong model can run read-write, the two don't imply each other; in single-agent environments the tier table doesn't apply but execution mode still sets a discipline — announce read-only vs read-write intent even without a runtime boundary enforcing it | reads `check: mechanical`/`check: judgment` tags from `build/constraints` | nothing |
+| **test-plan** | Converts acceptance criteria into TEST-xxx cases across 5 classes (happy/regression/edge/e2e/non-functional); enforces LOCAL-only test env as a hard stop; coverage target default ≥80%; **tests-before-code protocol** (medium+ standard/strict: test code generated from spec BEFORE implementation, developer reviews intent-expressing tests instead of implementation, tests pass = spec mechanically verified) | `formats.md`, `docs/sdd/traceability.md`, `prove/browser-qa`, `think/threat-model`, `prove/coverage-check`, `prove/verification` | `docs/sdd/specs/{NNN}-{slug}/tests.md` |
+| **ticket-decomposition** | Splits `large` tasks into vertical slices (never layer-splits) with computed blocking edges; **right-sizing check** against padding (ticket that only wires an adjacent one) before finalizing; expand→migrate→contract exception for wide mechanical refactors; T1/T2/T3 tiers; optional GitHub Issues mirror (asked, never assumed); Kanban ticket-status flow (⬜🔨🧪⛔✅); **contract check at 🧪 is never self-graded** (dispatch: separate sub-agent; single-agent: cold re-read) and a failure writes a **Defect Report** (Finding/Reproduction/Expected/Actual/Severity) back onto the ticket, returning it to 🔨 rather than looping silently; **Acceptance Criteria lock at approval** — post-approval AC changes require a visible `AC revised` line and the same approval level as the original ticket, never a silent edit; **`00-index.md`** is the feature's formalized entry point — spec/ERD/ADR refs + a "How to Review This Feature" reading-order section + status table + frontier | `docs/sdd/traceability.md` (global TICKET-xxx), `check-parallel-safety.mjs`, `build/git-workflow`, `agents/subagent-patterns` | `docs/sdd/specs/{NNN}-{slug}/tickets/{NN}-{ticket-slug}.md` + `00-index.md` |
+
+---
+
+## 5. PROVE phase — `skills/prove/`
+
+Runs after BUILD. Proves the code runs (verification/coverage/security/performance/adversarial), then the judgment gate proves a *human* actually understands and accepts it.
+
+```mermaid
+flowchart TD
+    subgraph PROVE["PROVE — skills/prove/"]
+        VERIFY["verification\n4 layers: types, tests, lint, spec-conformance"]
+        COV["coverage-check\n≥80% + honesty checks"]
+        ADV["adversarial\nboundary/injection/state/perm/scale tests"]
+        SEC["diagnose\ndomain checklist vs SEC-xxx"]
+        PERF["performance-check\n10 static anti-patterns"]
+        BQA["browser-qa\nreal browser, Must journeys only"]
+        REPORT["report\nverdict + confidence + blind spots"]
+        JUDGE["judgment\nweakest point + escalation + comprehension"]
+    end
+
+    VERIFY -->|"Layer 2, medium+"| COV
+    COV --> BQA
+    VERIFY -->|"Layer 4"| TRACECHK["check-traceability.mjs"]
+    SEC -.reads.-> THREATDOC["docs/sdd/specs/*/threats.md"]
+    VERIFY & ADV & SEC & PERF --> REPORT
+    REPORT --> JUDGE
+    JUDGE -->|"comprehension aid"| COMP["meta/comprehension"]
+    JUDGE -.review-capacity throttle.-> ORCH2["agents/orchestration cap"]
+```
+
+| Skill | What it does | Calls / feeds | Writes to |
+|---|---|---|---|
+| **verification** | Distinct verifier context when available; otherwise explicitly `degraded independence`. Four layers: types, local-only tests + coverage, lint, and specific-value spec conformance. Verifier reports defects, implementer fixes (max two attempts), verifier re-runs; sensitive work adds a distinct security reviewer | `build/test-plan`, `prove/coverage-check`, `check-traceability.mjs`, `agents/subagent-patterns` | actor-tagged 4-layer summary → feeds `prove/report` |
+| **coverage-check** | Same context-independence rule as verification. Runs the stack's coverage command; gate ≥80% line+branch, measured in **every mode** (mode dials narration and whether FAIL blocks, never whether it runs); denominator scales — changed lines at `small`, whole repo at medium+; **honesty checks**: every FSD error flow tested, **every flow has a positive AND a negative case**, **multi-perspective coverage** (tests from each actor role, condition matrix verified), every High/Critical SEC has executable security test, performance tests exist for REQ-NF targets, no `.only`/skip/always-true fakes, new-code coverage drag flagged, UI Must journeys browser-verified; reports only numbers a command actually produced; never rounds FAIL to PASS | `build/test-plan` (command/threshold), `prove/browser-qa` | verdict + prioritized TICKET/TEST backlog list |
+| **adversarial** | **Context independence**: dispatch available → separate Red Team sub-agent (`agents/subagent-patterns` Pattern 2) with no stake in the implementation; single-agent → explicit self-attacking stance, announced. Generates tests across 9 attack categories (Boundary, Injection, State, Type Confusion, Permission/Authorization, Entity State, Scale/Volume, Concurrency/Timing, Environment), skipping irrelevant ones; 5-8 tests standard, 8-15+ strict; every test names specific expected behavior, not vague "handle gracefully" | `agents/subagent-patterns` | tests as output |
+| **diagnose** | Two layers: domain-aware **checklist** (Web W1-8, CLI C1-5, API A1-8, Library L1-4, Mobile M1-4) AND **executable security test verification** (run test plan's security cases, verify each SEC-xxx control has a passing test that attempts the attack); a SEC control with no executable test is flagged as a gap even if checklist passes | `think/threat-model` (design-phase counterpart), `build/test-plan` (security test cases) | PASS/FAIL/N-A findings + security test results |
+| **performance-check** | Same context-independence rule as verification (matters most for the static layer — a pattern an implementer can rationalize away in their own code). Two layers: **static** detection of 10 patterns (O(n²), N+1, missing pagination, unbounded memory, sync blocking, redundant computation, large bundle imports, missing DB index, unbounded cache, missing connection pool) AND **executable** performance test verification (run test plan's performance cases, verify response time/query count/memory against REQ-NF targets with realistic data) | `build/test-plan` (performance test cases) | inline `PERFORMANCE CHECK:` report (static + executable) |
+| **browser-qa** | Drives a real browser (host tools → Playwright MCP → in-repo runner) through Must-priority journeys only, by accessibility ref not coordinates; LOCAL-only hard stop; commits a durable spec for CI when possible | `build/test-plan` (env safety, Must/e2e journeys), `build/infra` (CI wiring), `setup-browser-mcp.mjs` | flips traceability rows green; committed Playwright/Cypress specs |
+| **report** | Fixed-format Verdict/Confidence/Checks-run/You-should-verify/Not-tested/Key-decisions report, capped ~20 lines in standard mode; confidence is never rounded up when verification was partial | consumes verification's 4 layers + judgment's block | the report text itself |
+| **judgment** | Post-verification human-comprehension gate, always in a **fresh context that never saw the BUILD conversation** (dispatch available) or an explicitly-announced cold re-read (single-agent): Explain-Back check (via comprehension aid), Plausibility Discount self-audit (mandatory "weakest point" line, plus a **fidelity question** — does each specific value trace to something settled, or was a plausible default filled in silently), **Review Profiles** (§3 — a generalized escalation mechanism with security/UX/architecture profiles, each naming its own zones; profiles are additive and project-extensible via `config.md`'s `custom-constraints:`; code touching any active profile's zone is flagged for human eyes even if all automated checks pass), Review-Capacity Throttle (won't stack another large diff on an unreviewed one); **§5 Review Guide** — trust-tiered map (🔴 DEEP REVIEW / 🟡 VERIFY INTENT / 🟢 LIGHT SCAN) with spec mapping, verification targets, test coverage, and review order; review debt from prior tasks stated; **blocking authority** — a settled spec value missing from code, a 🔴 chunk with zero test coverage, or a High/Critical SEC control with no executable test all block rather than just report | `meta/comprehension`, `prove/report` (appends its block), `agents/orchestration` (cap rationale) | `### Judgment` block + `### Review Guide` appended to the report |
+
+---
+
+## 6. META layer — `skills/meta/` (cross-cutting, not a phase)
+
+These don't sit in the THINK→BUILD→PROVE sequence — they're invoked *from* many other skills and run continuously across a session.
+
+```mermaid
+flowchart LR
+    subgraph META["META — skills/meta/"]
+        COMP["comprehension\nplain-language explain-back"]
+        DEC["decision-log\nrule-of-three ADRs"]
+        GLOS["glossary\ncanonical domain terms"]
+        HAND["handoff\nresumable snapshot"]
+        HEALTH["health-check\nretroactive codebase audit"]
+        INS["insight\nperiodic self-coaching"]
+        MEM["memory\nlinked knowledge graph"]
+        STATS["stats\nper-task metrics + footer"]
+        TRACE["traceability\nREQ→FSD→SEC→TICKET→TEST matrix"]
+    end
+
+    GRILL["think/grill"] --> GLOS
+    ELI["think/elicitation"] -.checks first.-> MEM
+    DOCGEN["build/doc-generator"] --> TRACE
+    DOCGEN --> DEC
+    JUDGE["prove/judgment"] --> COMP
+    HEALTH -->|"check-file-hygiene.mjs"| TREE["docs/sdd/ tree"]
+    HEALTH -->|"check-traceability.mjs"| TRACE
+    TRACE -->|"check-traceability.mjs"| CI["enforcement/ci/sdd-check.yml"]
+    STATS --> INDEX["docs/sdd/index.md"]
+    DEC --> INDEX
+```
+
+| Skill | What it does | Calls / feeds | Writes to |
+|---|---|---|---|
+| **comprehension** | Fixed-format post-BUILD explanation: What was built / How it works / Key decisions / Start reading here; capped 15 lines standard | consumed by `prove/judgment` | inline (not persisted) |
+| **decision-log** | **Rule of three** gate (hard to reverse + surprising + real trade-off — all 3) before logging; one file per decision, write-once, `SUPERSEDED by #N` to change; file number IS the `ADR-N` id | `build/doc-generator` (if entry grows too big) | `docs/sdd/decisions/{NNN}-{slug}.md` + `index.md` link |
+| **glossary** | Single source of truth for domain terms; created lazily on first term; challenges conflicting usage live, sharpens vague terms, cross-references code | fed by `grill`, `elicitation`, `doc-generator`, `decision-log` | `docs/sdd/glossary.md` |
+| **handoff** | Provider-neutral produce/validate/consume/resume protocol; reference form points at repo truth, portable form embeds minimum state; checks goal, integrity, capability, authority narrowing, and evidence | `artifact-lifecycle`, canonical work order/specs | replace-only `docs/sdd/HANDOFF.md` or conversational portable package |
+| **health-check** | Read-only scan for code quality plus bounded-state lifecycle: completed transient artifacts, stale active navigation, goal contracts, handoff structure, and actor separation; legacy findings stay separate and migration is preview-only | `check-file-hygiene.mjs`, `meta/traceability` | report only (no file) |
+| **insight** | Every 5 tasks (or on request): "your tendencies" coaching summary from accumulated per-task notes — helpful-coach tone, not a critic; user-disableable | — | `docs/sdd/insights.md` |
+| **memory** | Linked knowledge graph (`INDEX.md` + `<slug>.md` notes, `type: module\|concept\|gotcha\|how-to\|convention\|preference\|override\|pointer`); `INDEX.md` carries a rendered Mermaid `graph LR` of the `[[wikilink]]` structure (mechanically regenerated, capped ~40 nodes), not just a flat list; read index-first; captures durable facts + previously-answered questions so the user is never re-asked | `check-file-hygiene.mjs`; project `CLAUDE.md`/`AGENTS.md` should point here | `docs/sdd/memory/INDEX.md` + notes |
+| **stats** | Per-task metrics (anti-patterns caught, security issues, scope deviations, docs generated…) → vibe-mode 1-line footer + monthly aggregate; never appends a history ledger to `index.md` | — | `docs/sdd/stats/{YYYY-MM}.md` |
+| **traceability** | Owns `docs/sdd/traceability.md`: one row per REQ with 🟢/🟠/🟡/🔴/⚪ status **plus an Evidence column** (the actual command + result + date backing a 🟢 — an empty or stale Evidence cell on a 🟢 row is itself a defect, and evidence older than the code it verifies demotes the row to 🟡); global ID counters; **ship gate** — large/full work can't ship while a Must/Should row is red; gated by task size (large=full matrix, medium=lite inline trail, small/micro=skip) | `check-traceability.mjs` (bundled), `enforcement/ci/sdd-check.yml`, `doc-generator`'s ID spine, `prove/verification` (evidence source) | `docs/sdd/traceability.md` |
+
+**Classic mechanical checker entry points** (zero dependencies and CI-wireable; the Quality Contract runtime is documented separately under the meta skills):
+
+| Script | Lives in | Checks |
+|---|---|---|
+| `check-file-hygiene.mjs` | `skills/meta/health-check/` | `docs/sdd/` tree conventions: allowed root files/subdirs, per-feature-folder filename patterns inside `specs/{NNN}-{slug}/`, frontmatter requirements, orphan-doc detection (every `specs/` feature folder + `changes/` file must be in `index.md`), **duplicate-feature-number detection** (two `specs/` folders sharing a leading number with different slugs — almost always a regenerated-slug bug, not a real second feature), `00-index.md` required once a feature has ticket files |
+| `check-traceability.mjs` | `skills/meta/traceability/` | Spine orphans (REQ/SEC/FSD defined but not in matrix), broken refs, freelance tickets/tests (no upstream ID within 10 lines), duplicate ID definitions, dead relative markdown links |
+| `check-parallel-safety.mjs` | `skills/agents/parallel-work/` | Parses ticket `Files likely touched:`/`Dependencies:`/`Status:`/`Claimed by:`; clusters zero-file-overlap tickets as parallel-safe, flags 1-2-file overlaps for human judgment; `--board` flag prints a live kanban. Read-only — "never spawns anything" |
+| `check-retirement.mjs` | `skills/meta/artifact-lifecycle/` | Read-only retirement preview: canonical outcome exists, no live Markdown reference targets the transient artifact, and committed Git history can recover it; explicit archive policy yields `ARCHIVE REQUIRED` instead of permitting deletion |
+
+---
+
+## 7. Modes — `skills/modes/` (the ceremony dial)
+
+One file per mode declares its activation signal, working posture, and explicit delegation to the unified matrix in `skills/orchestrator/references/behavior.md`. That matrix is the single source of truth for THINK, BUILD, PROVE, and META behavior; mode files must not restate local per-skill policy tables. This keeps the ceremony dial usable for both prototypes and production changes without forcing the full matrix into every non-coding or routing turn.
+
+**What the dial may not reach.** Mode controls *depth and visibility*, never *coverage*. No mode may skip a discovery seat (`commands/discover`'s Why · Constraints · What · Data · Technical), the DoD floor above `micro`, or an `OVERRIDE: none` rule. A seat is skipped only when the product has no such surface, announced with its reason. And ceremony is never inferred from how a message is written — a casual prompt about a payment system is still a payment system, so `vibe`/`prototype` are entered only on request or via `config.md`.
+
+---
+
+## 8. Constraints — `skills/constraints/` (domain rule packs)
+
+Loaded by `build/constraints` in this order: **universal → domain-specific → project overrides (`config.md`) → `CLAUDE.md`/`AGENTS.md`**. Each rule carries a `CHECK: mechanical | judgment` tag that `build/model-router` uses to route it to a cheap or strong model tier.
+
+| Pack | Rule count | Sample rules |
+|---|---|---|
+| **universal** | 10 | YAGNI, dependency limit (3/5/10 by size), no premature abstraction (needs 3+ real impls), no hardcoded secrets (non-negotiable), boundary validation only |
+| **web** | 8 (W1-W8) | XSS/CSRF prevention, responsive 320-1920px, a11y basics, bundle awareness, error boundaries |
+| **api** | 10 (API1-API10) | input validation, rate limiting, pagination, consistent error shape, idempotency keys, resource-level authorization |
+| **cli** | 8 (C1-C8) | exit codes, `--help`, stderr for errors, respect `NO_COLOR`, config precedence, progress for >2s ops |
+| **library** | 7 (LIB1-LIB7) | minimal API surface, semver discipline, tree-shaking, no side effects on import |
+| **mobile** | 7 (M1-M7) | minimum permissions at time-of-use, offline awareness, 44/48pt touch targets, secure storage (Keychain/Keystore) |
+
+---
+
+## 9. Agents — `skills/agents/` (multi-agent orchestration)
+
+```mermaid
+sequenceDiagram
+    participant O as Orchestrator
+    participant CB as orchestration<br/>(cost-benefit gate, cap 6)
+    participant PW as parallel-work
+    participant CK as check-parallel-safety.mjs
+    participant U as User
+    participant A1 as Agent (worktree 1)
+    participant A2 as Agent (worktree 2)
+
+    O->>CB: task size + phase?
+    CB-->>O: parallelize? (table by size×phase)
+    O->>PW: large task, independent tickets
+    PW->>CK: node check-parallel-safety.mjs docs/sdd/specs
+    CK-->>PW: strict-safe clusters + near-safe pairs (read-only plan)
+    PW->>U: confirm plan (every mode, no exception)
+    U-->>PW: yes
+    PW->>A1: claim TICKET-018, git worktree add
+    PW->>A2: claim TICKET-021, git worktree add
+    A1-->>PW: branch ready → 🧪 testing/review
+    A2-->>PW: branch ready → 🧪 testing/review
+    PW->>PW: merge in dependency-wave order,<br/>trial-merge in its own worktree
+```
+
+| Skill | What it does | Calls | Gating |
+|---|---|---|---|
+| **orchestration** | Cost-benefit gate; hard cap 6 parallel agents; capability-based readiness; distinct actor IDs; shared-file patch requests serialized and re-verified | `agents/parallel-work`, `prove/judgment`, `build/ticket-decomposition`, `build/change-plan`, `build/anti-patterns`, `build/constraints` | Uses generic fresh-context dispatch when available; otherwise reports `degraded independence` |
+| **parallel-work** | Implementation-phase-only protocol: git worktree isolation, ticket claiming (`**Claimed by:**` line), Kanban ticket-status flow as the coordination surface, merge in dependency-wave order, trial-merge always in its own worktree (never the main checkout) | `check-parallel-safety.mjs`, `agents/orchestration` (complements, doesn't replace), `build/ticket-decomposition` (ticket field format), `prove/judgment`, `build/git-workflow` | Requires locked contracts (FSD/schema/API) + genuinely independent tickets; plan confirmation required every mode, no exception |
+| **subagent-patterns** | Sequential-simulation patterns for runtimes without real concurrent agents (e.g. OpenCode) | referenced by `agents/orchestration` | single-agent runtimes |
+
+---
+
+## 10. Commands — `skills/commands/` (manual entry points)
+
+The orchestrator usually triggers invisibly, but 8 commands let you start at a specific step deliberately. Each has `disable-model-invocation: true` — they're never auto-triggered.
+
+Every command closes through `meta/workflow-navigation`: outcome first, then
+only material skipped work with its reason, one context-backed next action, and
+at most two alternatives. This is a state transition contract, not a command
+menu: a missing decision or prerequisite blocks downstream routing; a
+recommendation never auto-dispatches another command. `learn`, `docs`,
+`handoff`, and `update` remain utility overlays rather than compulsory stages.
+
+```mermaid
+flowchart LR
+    DISC["/discover\nGear 1: fog → conversation\nGear 2: 5 seats + council"]
+    SPEC["/spec\narch-analysis + specs + threat model\n+ UX + tickets, step by step\n(spec-only is a complete stop)"]
+    IMPL["/implement\nBUILD-phase guardrails on\nan approved ticket / change file"]
+    CHECK["/check\nadaptive QA: verify a fresh change,\naudit the codebase otherwise"]
+
+    DISC -.settled decisions feed.-> SPEC
+    SPEC --> IMPL
+    IMPL --> CHECK
+    CHECK -.gap found.-> IMPL
+    DISC -->|"gear shift announced"| DISC
+    DOCS["/docs\nscan existing codebase,\npropose + generate retroactive docs"]
+    DOCS -.feeds into.-> SPEC
+    DOCS -.feeds into.-> IMPL
+    LEARN["/learn\ndeep-read module/flow/project,\nstructured explanation (read-only)"]
+    LEARN -.understanding feeds.-> DISC
+    LEARN -.understanding feeds.-> SPEC
+```
+
+| Command | Frontmatter description | Branches to | Writes |
+|---|---|---|---|
+| **discover** | "Product discovery — take an idea from fog to settled decisions before anything is written… Absorbs what used to be a separate brainstorm command." | is the manual entry to **`think/grill`**, seeded by its own five-seat agenda | `docs/sdd/glossary.md`, `docs/sdd/decisions/` (rule-of-three gated), optional idea brief — never a spec, ticket, or change file |
+| **spec** | "Deliberate each domain with the user, then write it down — architecture, database, UX, app flows, threat model, and (when large) vertical-slice tickets. Deliberation uses grill mechanics; documents capture what was settled. This is the SPEC step of the pipeline, not visual/UI design." | `think/arch-analyzer`, `think/database-design`, `think/ux-design`, `think/threat-model`, `think/grill` (domain deliberation), `build/doc-generator`, `build/ticket-decomposition` | `docs/sdd/specs/{NNN}-{slug}/` (fsd/sds/erd/threats/ux/tickets, all siblings), `docs/sdd/design-system/design.md`; stops honestly before BUILD if no execution signal |
+| **implement** | "Execute an existing plan, spec, or ticket with build-time guardrails active." | `build/constraints`, `build/anti-patterns`, `build/change-plan`, `build/execution-guard`, `build/model-router` | working code + change summary |
+| **check** | "Adaptive QA — verifies a fresh change if one exists, audits the whole codebase otherwise, always ends with an impact summary." | **VERIFY** branch (fresh diff exists) → `prove/verification` + adversarial + diagnose + performance-check + judgment; **AUDIT** branch (no diff) → `meta/health-check`, read-only | `docs/sdd/reports/{date}-{slug}.md` (verify only) + always an impact digest from `meta/stats` |
+| **docs** | "Generate retroactive documentation for an existing codebase with little or no docs — scan, propose (with a consolidation pass merging small/coupled modules before the plan is shown), deliberate, write." Output is descriptive, never a spec: **writes to `docs/system/`, never `docs/sdd/specs/`** — no spine ID, no `Status: DRAFT/APPROVED/IMPLEMENTED`, no traceability entry, since nothing here drives a ticket the way a real spec does | `think/context-loader` (full scan), `build/doc-generator` (borrows format shapes only), diagram suite (if multi-role) | `docs/system/{slug}/` (overview/component/erd/UC/flows), `docs/system/roles/`, `docs/system/index.md`, `docs/sdd/config.md` (shared) |
+| **learn** | "Deep-read a module, flow, or the whole project and produce a structured explanation — read-only, no code changes." | code scan + `git log` (optional) | conversational output only; optionally `docs/sdd/memory/` notes if user asks to save |
+| **handoff** | "Produce or consume a provider-neutral state transition." | `meta/handoff`, `meta/artifact-lifecycle` | replace-only `docs/sdd/HANDOFF.md` with repo access; portable response otherwise |
+| **update** | "Show the release diff, then update SDD Pipeline after approval." | release/changelog comparison | installed pipeline files after confirmation |
+
+---
+
+## 11. Project file map (`docs/sdd/`)
+
+Every skill's output lands in one convention-enforced tree, checked by `check-file-hygiene.mjs`:
+
+```
+docs/sdd/
+├── index.md              ← read FIRST (relationship graph, updated by doc-generator, decision-log, stats)
+├── config.md              project settings, mode default, SDLC override, constraint overrides
+├── glossary.md            written live by: grill, elicitation, doc-generator, decision-log
+├── traceability.md        owned by: meta/traceability  (large/full only; medium = lite inline trail)
+├── HANDOFF.md             owned by: meta/handoff (overwritten, not appended)
+├── stack-guide.md         owned by: think/stack-conventions
+├── analytics.md           owned by: think/analytics-design
+├── insights.md            owned by: meta/insight
+├── memory/                owned by: meta/memory        → INDEX.md + <slug>.md notes
+├── decisions/             owned by: meta/decision-log   → {NNN}-{slug}.md  (file number IS ADR-N)
+├── specs/                 ONE FOLDER PER FEATURE, owned by build/doc-generator + think/threat-model +
+│                                     think/database-design + think/ux-design + build/test-plan +
+│                                     build/ticket-decomposition
+│   └── {NNN}-{slug}/                → fsd.md · sds.md · prd.md · threats.md · ux.md · erd.md · tests.md ·
+│                                        dod.md — bare filenames, written specs, never visual
+│       └── tickets/                 owned by: build/ticket-decomposition → 00-index.md + {NN}-{slug}.md
+├── design-system/          owned by: think/ux-design     → design.md (required entry doc, the actual visual design)
+│   └── ux-screens/                  → <flow-slug>.md, priority-tagged — project-wide, not one feature's
+├── plans/                  RETIRED — kept for existing projects, nothing new written here
+├── changes/                small/medium work → ONE dated self-contained file per topic
+├── reports/                 owned by: prove/report, commands/check → {date}-{slug}.md
+└── stats/                   owned by: meta/stats           → {YYYY-MM}.md
+```
+
+`docs/user/` (plain language) and `docs/dev/` (architecture/API reference) are separate, audience-split output of `build/doc-generator` — outside the `docs/sdd/` convention tree entirely.
+
+---
+
+## 12. Data Flow Diagrams (DFD)
+
+Everything above is a *control*/*call* graph — who invokes whom. This section is a true DFD: external entities (squares), processes (numbered circles), and data stores (cylinders), connected by named, directional data flows. Three levels: **Level 0** (the whole system as one process), **Level 1** (the 5 top-level processes: Orchestrator + THINK/BUILD/PROVE/META), and **Level 2** (every individual skill inside each phase, decomposed).
+
+Data-store legend used throughout (all under `docs/sdd/` unless noted):
+
+| ID | Store | ID | Store | ID | Store |
+|---|---|---|---|---|---|
+| CFG | `config.md` | TIX | `specs/{NNN}-{slug}/tickets/` | GLO | `glossary.md` |
+| MEM | `memory/` | TST | `specs/{NNN}-{slug}/tests.md` | DEC | `decisions/` |
+| PLN | written record: `specs/{NNN}-{slug}/tickets/` or `changes/` | TRC | `traceability.md` | RPT | `reports/` |
+| DES | `specs/{NNN}-{slug}/` (FSD·SDS·PRD·threats·ux — one folder per feature) | ERD | `specs/{NNN}-{slug}/erd.md` | STA | `stats/` + `index.md` |
+| UXS | `design-system/ux-screens/` | DOD | `specs/{NNN}-{slug}/dod.md` | MISC | `stack-guide.md`, `analytics.md`, `insights.md`, `HANDOFF.md` |
+| COD | the codebase itself (source, tests, git history) | CLA | `CLAUDE.md` / `AGENTS.md` (repo root, not `docs/sdd/`) | EXT | external web / docs (context7, official framework docs) |
+
+### 12.1 Level 0 — Context Diagram
+
+```mermaid
+flowchart LR
+    USER(["🧑 User / Developer"])
+    COD[("Codebase\n+ git history")]
+    CI[("CI / CD\npipeline")]
+    EXTD(["🌐 External docs / web"])
+
+    PIPE((("0.0\nSDD Pipeline")))
+
+    USER -->|"task request,\nanswers, approvals,\noverrides"| PIPE
+    PIPE -->|"questions, plan,\nreport, stats footer"| USER
+    COD -->|"source, tests,\ngit log, conventions"| PIPE
+    PIPE -->|"code, commits,\nbranches, docs"| COD
+    PIPE -->|"CI config,\ngate scripts"| CI
+    CI -->|"pass/fail,\ncoverage %"| PIPE
+    PIPE -->|"research queries"| EXTD
+    EXTD -->|"docs, library facts"| PIPE
+```
+
+### 12.2 Level 1 — Top-Level Processes
+
+```mermaid
+flowchart TD
+    USER(["🧑 User"])
+
+    P1((("1.0\nOrchestrator\n(detect mode/size/\ndomain/SDLC)")))
+    P2((("2.0\nTHINK")))
+    P3((("3.0\nBUILD")))
+    P4((("4.0\nPROVE")))
+    P5((("5.0\nMETA")))
+
+    CFG[("CFG")]
+    MEM[("MEM")]
+    PLN[("PLN")]
+    DES[("DES")]
+    TIX[("TIX")]
+    TST[("TST")]
+    TRC[("TRC")]
+    DEC[("DEC")]
+    GLO[("GLO")]
+    RPT[("RPT")]
+    STA[("STA")]
+    COD[("COD")]
+
+    USER -->|"task request"| P1
+    CFG -->|"mode/SDLC default"| P1
+    P1 -->|"task context"| P2
+    P2 <-->|"read/write context"| MEM
+    P2 -->|"spec, terms, ADRs"| DES
+    P2 -->|"glossary terms"| GLO
+    P2 -->|"grill decisions"| DEC
+    P2 -->|"clarified scope"| P1
+    P1 -->|"plan file"| PLN
+    PLN -->|"approved plan"| P1
+    P1 -->|"go-ahead"| P3
+    P3 <-->|"read/write code"| COD
+    P3 -->|"tickets"| TIX
+    P3 -->|"test plan"| TST
+    P3 -->|"docs, IDs"| DES
+    P3 -->|"built change"| P4
+    P4 <-->|"run tests,\nread source"| COD
+    P4 -->|"test results"| TST
+    P4 -->|"coverage/status"| TRC
+    P4 -->|"verification report"| RPT
+    P4 -->|"verified change +\njudgment"| P5
+    P5 <-->|"matrix rows"| TRC
+    P5 <-->|"ADR entries"| DEC
+    P5 <-->|"terms"| GLO
+    P5 -->|"per-task metrics"| STA
+    P5 -->|"report + footer"| USER
+```
+
+### 12.3 Level 2a — THINK decomposed (per skill)
+
+```mermaid
+flowchart TD
+    USER(["🧑 User"])
+    CLA[("CLA")]
+    CFG[("CFG")]
+    MEM[("MEM")]
+    COD[("COD")]
+    DES[("DES")]
+    UXS[("UXS")]
+    ERD[("ERD")]
+    GLO[("GLO")]
+    DEC[("DEC")]
+    MISC[("MISC")]
+    EXTD(["🌐 external docs"])
+
+    P21(("2.1\nElicitation"))
+    P22(("2.2\nContext Loader"))
+    P23(("2.3\nScope Guard"))
+    P24(("2.4\nComplexity\nAnalyzer"))
+    P25(("2.5\nSDLC Detector"))
+    P26(("2.6\nArch Analyzer"))
+    P27(("2.7\nThreat Model"))
+    P28(("2.8\nDatabase Design"))
+    P29(("2.9\nUX Design"))
+    P210(("2.10\nStack\nConventions"))
+    P211(("2.11\nAnalytics\nDesign"))
+    P212(("2.12\nSDD Grill"))
+
+    USER -->|"task text"| P22
+    CLA -->|"project rules"| P22
+    CFG -->|"saved overrides"| P22
+    MEM -->|"prior answers"| P22
+    COD -->|"stack, structure"| P22
+    P22 -->|"context summary"| P21
+    P22 -->|"context summary"| P23
+    P22 -->|"context summary"| P26
+
+    MEM -->|"settled answers"| P21
+    P21 -->|"questions /\nassumptions"| USER
+
+    P23 -->|"SCOPE:\nIN/OUT/files"| USER
+    P23 -->|"blast-radius table"| P212
+
+    P24 -->|"hidden-scope list,\nsize escalation"| P1_["1.0 Orchestrator"]
+    P24 -->|"complexity table"| P212
+
+    P25 -->|"SDLC context"| P23
+    P25 -->|"SDLC context"| P21
+
+    COD -->|"patterns, git log"| P26
+    DEC -->|"existing ADRs"| P26
+    P26 -->|"consistency report /\nproposal"| P212
+    P26 -->|"ADR-conflict flag"| DEC
+
+    DES -->|"FSD data-flow\ndiagram"| P27
+    P27 -->|"SEC-xxx controls"| DES
+
+    GLO -->|"bounded contexts"| P28
+    DES -->|"read paths"| P28
+    P28 -->|"ERD doc"| ERD
+
+    COD -->|"existing design\nsystem"| P29
+    DES -->|"flow diagrams"| P29
+    P29 -->|"tokens + flows"| DES
+    P29 -->|"per-flow file"| UXS
+
+    DEC -->|"stack ADRs"| P210
+    EXTD -->|"official docs"| P210
+    P210 -->|"version-pinned\nrules"| MISC
+
+    DES -->|"PRD criteria"| P211
+    P211 -->|"metrics tree"| MISC
+
+    P212 -->|"new terms"| GLO
+    P212 -->|"qualifying\ndecisions"| DEC
+    P212 -->|"shared\nunderstanding"| USER
+```
+
+### 12.4 Level 2b — BUILD decomposed (per skill)
+
+```mermaid
+flowchart TD
+    PLN[("PLN")]
+    CFG[("CFG")]
+    CLA[("CLA")]
+    COD[("COD")]
+    DES[("DES")]
+    DOD[("DOD")]
+    TST[("TST")]
+    TIX[("TIX")]
+    TRC[("TRC")]
+    GLO[("GLO")]
+    DEC[("DEC")]
+    CI[("CI config")]
+    USER(["🧑 User"])
+
+    P31(("3.1\nConstraints"))
+    P32(("3.2\nChange Plan"))
+    P33(("3.3\nDoc Generator"))
+    P34(("3.4\nAnti-Patterns"))
+    P35(("3.5\nExecution Guard"))
+    P36(("3.6\nGit Workflow"))
+    P37(("3.7\nInfra"))
+    P38(("3.8\nModel Router"))
+    P39(("3.9\nTest Plan"))
+    P310(("3.10\nTicket\nDecomposition"))
+
+    PLN -->|"approved scope"| P32
+    P32 -->|"CREATE/MODIFY/\nDELETE plan"| USER
+    P32 -->|"actual changes"| COD
+
+    CFG -->|"overrides"| P31
+    CLA -->|"project rules"| P31
+    P31 -->|"flag / auto-fix"| COD
+    P31 -->|"override reason"| DEC
+
+    GLO -->|"canonical terms"| P33
+    TRC -->|"next ID"| P33
+    P33 -->|"FSD/SDS/PRD/DoD"| DES
+    P33 -->|"DoD file"| DOD
+    P33 -->|"ID registered"| TRC
+
+    COD -->|"generated code"| P34
+    P34 -->|"corrected code"| COD
+
+    USER -.->|"session/prompt\ncadence"| P35
+    P35 -->|"loop escalation"| USER
+
+    TIX -->|"ticket IDs"| P36
+    DES -->|"FSD/ADR IDs"| P36
+    P36 -->|"commit, branch, PR"| COD
+
+    DES -->|"threat baseline"| P37
+    DEC -->|"deploy ADR"| P37
+    TST -->|"test command"| P37
+    P37 -->|"CI/IaC config"| CI
+
+    CFG -->|"check: mechanical\n/ judgment tags"| P38
+
+    DES -->|"FSD flows, SEC\ncontrols"| P39
+    TRC -->|"next TEST-xxx"| P39
+    P39 -->|"test plan file"| TST
+    P39 -->|"TEST IDs"| TRC
+
+    TRC -->|"next TICKET-xxx"| P310
+    P310 -->|"ticket files"| TIX
+    P310 -->|"TICKET IDs"| TRC
+```
+
+### 12.5 Level 2c — PROVE decomposed (per skill)
+
+```mermaid
+flowchart TD
+    COD[("COD")]
+    TST[("TST")]
+    TRC[("TRC")]
+    DES[("DES\n(threats)")]
+    RPT[("RPT")]
+    USER(["🧑 User"])
+
+    P41(("4.1\nVerification"))
+    P42(("4.2\nCoverage Check"))
+    P43(("4.3\nAdversarial"))
+    P44(("4.4\nSecurity Check"))
+    P45(("4.5\nPerformance Check"))
+    P46(("4.6\nBrowser QA"))
+    P47(("4.7\nReport"))
+    P48(("4.8\nJudgment"))
+
+    COD -->|"built code"| P41
+    TST -->|"test command"| P41
+    TRC -->|"matrix"| P41
+    P41 -->|"4-layer result"| P47
+    P41 -->|"trigger, medium+"| P42
+
+    TST -->|"threshold, FSD\nerror flows, SEC"| P42
+    P42 -->|"verdict, backlog"| P41
+    P42 -->|"UI honesty check"| P46
+
+    COD -->|"code under test"| P43
+    P43 -->|"generated tests"| P47
+
+    DES -->|"SEC-xxx controls"| P44
+    P44 -->|"PASS/FAIL findings"| P47
+
+    COD -->|"code to scan"| P45
+    P45 -->|"findings"| P47
+
+    TST -->|"Must journeys"| P46
+    DES -->|"FSD flows"| P46
+    P46 -->|"pass/fail,\ncommitted spec"| TRC
+    P46 -->|"committed spec"| COD
+
+    P47 -->|"verdict + report"| RPT
+    RPT -->|"report"| P48
+    P48 -->|"weakest point,\nescalation, comprehension"| USER
+    P48 -->|"judgment block"| RPT
+```
+
+### 12.6 Level 2d — META decomposed (per skill)
+
+```mermaid
+flowchart TD
+    RPT[("RPT")]
+    TRC[("TRC")]
+    DEC[("DEC")]
+    GLO[("GLO")]
+    MEM[("MEM")]
+    STA[("STA")]
+    MISC[("MISC")]
+    COD[("COD")]
+    USER(["🧑 User"])
+
+    P51(("5.1\nComprehension"))
+    P52(("5.2\nDecision Log"))
+    P53(("5.3\nGlossary"))
+    P54(("5.4\nHandoff"))
+    P55(("5.5\nHealth Check"))
+    P56(("5.6\nInsight"))
+    P57(("5.7\nMemory"))
+    P58(("5.8\nStats"))
+    P59(("5.9\nTraceability"))
+
+    RPT -->|"what was built"| P51
+    P51 -->|"plain-language\nexplanation"| USER
+
+    P52 -->|"rule-of-three\nADR"| DEC
+    DEC -->|"link"| STA
+
+    P53 -->|"canonical terms"| GLO
+
+    DEC -->|"pointers"| P54
+    TRC -->|"gate state"| P54
+    P54 -->|"resumable\nsnapshot"| MISC
+
+    COD -->|"existing code"| P55
+    CFG2[("CFG")] -->|"overrides"| P55
+    P55 -->|"critical/warning/\ninfo findings"| USER
+
+    P56 -->|"per-task notes\n(read internally)"| P56
+    P56 -->|"coaching summary,\nevery 5 tasks"| MISC
+
+    P57 -->|"durable facts,\nsettled answers"| MEM
+
+    P58 -->|"per-task metrics"| STA
+    STA -->|"footer"| USER
+
+    DES2[("DES / ERD /\nTIX / TST / DEC")] -->|"spine IDs"| P59
+    P59 -->|"matrix + ship gate"| TRC
+    TRC -->|"coverage summary"| USER
+```
+
+Read order for a newcomer: **12.1 → 12.2** to see the whole shape in under a minute, then whichever **12.3–12.6** matches the phase you're actually touching.
+
+---
+
+## 13. Cross-Agent Skill Discovery — 9 Registered Entry Points
+
+This repo has 65 `SKILL.md` modules. Nine are registered entry points:
+`orchestrator` and the eight files under `skills/commands/`. The rest are
+path-loaded reference modules. The gate is structural, not provider-specific:
+
+> A directory is registered when its `SKILL.md` has valid `name` and
+> `description` frontmatter and the harness discovers or registers it. The
+> other 56 modules are reference content, not standalone commands.
+
+Verified against each tool's own documentation:
+
+| Tool | Discovery mechanism | Where it scans | What happens to the 56 without frontmatter |
+|---|---|---|---|
+| **Claude Code** | `plugin.json`'s `skills` array (marketplace) or `.claude/skills/<name>/SKILL.md` (manual) | The 9 paths listed in `plugin.json` | Reference modules are copied as content and read by path |
+| **OpenCode** | Native skill scanner, requires `name` (alphanumeric+hyphens, matches dir name) + `description` (1-1024 chars) in frontmatter; unknown fields ignored | `.opencode/skills/`, `.claude/skills/`, `.agents/skills/` (+ global `~/.config/opencode/`, `~/.claude/`, `~/.agents/` equivalents) | Fail frontmatter validation → not discovered at all, invisible to the `<available_skills>` list injected into agent context at session start |
+| **Codex CLI** | Same frontmatter requirement (`name` + `description` drive whether/when Codex auto-invokes); explicit picker via `/skills`, or `$name` to mention one directly | `.agents/skills/<name>/SKILL.md` (per this repo's own installer target) | Fail frontmatter validation → don't appear in the `/skills` picker or `$` mention list |
+| **Cursor** (since the Jan 2026 Agent Skills release) | Same frontmatter requirement, including `disable-model-invocation: true` on the 8 commands | `.cursor/skills/`, `.agents/skills/` (project) + global equivalents | Invalid frontmatter prevents discovery |
+
+**A cross-compat side effect worth knowing**: both OpenCode's and Cursor's scan lists include `.agents/skills/` — exactly where this repo's installer puts the Codex CLI install (`./install/install.sh --agent codex`). So a project that installed SDD Pipeline for Codex already has it auto-discoverable by OpenCode *and* Cursor too, with zero extra install step, on any tool released after each added `.agents/skills/` compatibility.
+
+**Net effect for the user**: skill menus expose the orchestrator and eight
+public commands, not every internal reference module.
+
+**Fixed, not just flagged**: `--agent cursor` installs the full skill tree into
+`.cursor/skills/sdd/`; the orchestrator alias and all eight command skills pass
+the folder-name/frontmatter validation.
+
+**A second bug this surfaced**: `skills/orchestrator/SKILL.md` sits in a folder named `orchestrator`, but its own frontmatter says `name: sdd`. Claude Code's plugin-marketplace path doesn't care (it registers skills by path via `plugin.json`), but the native Agent Skills discovery on Claude Code's manual install, OpenCode, Codex, and Cursor all require the immediate parent folder to match `name:` exactly — so as installed, the orchestrator itself was failing discovery validation on all four. The installer now adds a small alias copy at each container's root (`install_orchestrator_alias()` in `install/install.sh`), one per target's actual destination — `~/.claude/skills/sdd/SKILL.md` (claude), `.claude/skills/sdd/SKILL.md` (claude-proj), `.agents/skills/sdd/SKILL.md` (codex), `.opencode/skills/sdd/SKILL.md` (opencode), `.cursor/skills/sdd/SKILL.md` (cursor) — so the folder name matches without renaming the canonical `skills/orchestrator/` path this repo's own cross-references and `.claude-plugin/plugin.json` depend on.
+
+**Also fixed — internal path references now resolve**: reference modules cross-reference their siblings with paths like `skills/think/grill/SKILL.md`, written assuming a project-root-relative `skills/` directory (true only when running straight out of this repo). Since the `codex`/`opencode`/`cursor`/`generic` installers copy that tree into a *nested* destination (`.agents/skills/sdd/`, `.cursor/skills/sdd/`, a custom `--dest`), those references used to point nowhere once installed elsewhere. `install/install.sh` now rewrites every literal `skills/` prefix — across every copied `.md`/`.mjs` file, plus the copied `AGENTS.md` — to the actual install location right after copying (`rewrite_skill_paths()` / `rewrite_skill_paths_in_file()`), computed relative to wherever `AGENTS.md` itself lands (so it also works for a `--dest` whose parent directory isn't the project root). Verified by installing into a scratch repo for every target (`codex`, `opencode`, `cursor`, `claude-proj`, `generic` with both a `skills`-named and non-`skills`-named `--dest`) and mechanically checking that every rewritten reference resolves to a real file or directory on disk — zero broken references in each case, and `--update` re-runs the rewrite from the pristine source each time (no double-rewrite drift).
+
+Sources: [Agent Skills — OpenCode docs](https://opencode.ai/docs/skills/) · [Build skills — Codex / ChatGPT Learn](https://developers.openai.com/codex/skills) · [Slash commands in Codex CLI — OpenAI Developers](https://developers.openai.com/codex/guides/slash-commands) · [Agent Skills — Cursor Docs](https://cursor.com/docs/skills)

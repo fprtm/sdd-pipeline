@@ -1,0 +1,407 @@
+# Ticket Decomposition
+
+Break a large task into independently workable pieces, sized to fit one agent session, ordered by real dependency — not by technical layer.
+
+## When This Runs
+
+Triggered for `large` task size (see orchestrator task-size detection), or when the user explicitly asks to break something down ("split this into tickets", "this is too big for one session").
+
+Skipped for micro/small/medium tasks — those fit in one BUILD pass and don't need decomposition overhead.
+
+## Vertical Slices, Not Layers
+
+The default mistake is splitting by technical layer: "ticket 1: database schema, ticket 2: API endpoints, ticket 3: frontend." This produces tickets that can't be demoed or verified independently — the schema ticket is "done" but proves nothing works end-to-end.
+
+Instead, split into **vertical slices**: each ticket is a narrow but complete path through every layer it touches, demoable and verifiable on its own.
+
+```
+❌ Layered split:
+  1. Database schema for orders
+  2. Order API endpoints
+  3. Order UI
+
+✅ Vertical slice split:
+  1. Create order (schema + endpoint + minimal UI) — end to end, one order type, no discounts
+  2. Apply discount code to order — extends slice 1
+  3. Partial refund on order — extends slice 1
+```
+
+Each vertical slice should be sized to fit in one agent context window — if a slice feels like it needs multiple sessions, split it further.
+
+## The Exception: Wide/Mechanical Refactors
+
+Blast-radius-fanning changes — renames, retyping, framework migrations — don't fit vertical slicing (there's no "layer" to slice; the same trivial change repeats across many files). For these, use **expand → migrate → contract**:
+
+1. **Expand**: add the new thing alongside the old (new field, new function signature with a default) — non-breaking
+2. **Migrate**: batch-convert call sites to the new thing, in small CI-green batches
+3. **Contract**: remove the old thing once nothing references it
+
+Sequence tickets by batch, not by feature — keep the build green at every batch boundary.
+
+## Computing Blocking Edges
+
+After drafting slices, determine which tickets block which:
+
+```
+Ticket 2 (discount code) blocked by: Ticket 1 (create order)
+Ticket 3 (partial refund) blocked by: Ticket 1 (create order)
+Ticket 2 and Ticket 3: no edge between them — can proceed in parallel
+```
+
+Work the **frontier**: at any point, the workable set is every ticket whose blockers are all resolved. This is the same frontier concept as SDD Grill — compute what's unblocked, work it, recompute.
+
+## Right-Sizing — More Files Isn't More Rigor
+
+Splitting further always *feels* like more thoroughness, but a ticket that exists only to say "wire the thing from ticket N" adds a file to open without adding independent value. Before finalizing the breakdown, check each ticket against:
+
+- **Could this be a step inside an adjacent ticket instead of its own file?** If ticket B is never workable, reviewable, or demoable without ticket A being done first *and* B is small (a helper function, a config change, a one-line wiring), it's a strong candidate to fold into A rather than stand alone.
+- **Does the ticket count match the feature's actual seams, or the decomposer's default granularity?** A feature with 3 real vertical slices (distinct user-facing capabilities) shouldn't become 8 tickets because each slice got split by technical layer again inside itself — that's the exact layering mistake this skill's first rule warns against, just recursed one level deeper.
+- **Would a solo builder actually want this many separate handoffs?** Vertical-slice tickets exist for independent workability and parallel dispatch. A solo/small-team project (see `sdlc-detector`) gets less benefit from fine slicing than a team parallelizing across agents — bias toward fewer, more substantial tickets when there's no one to parallelize with.
+
+This is a judgment call, not a hard cap — some features genuinely need 8+ tickets (schema + several distinct endpoints + several distinct UI surfaces, each independently demoable). The check is against **padding**, not against genuine complexity: if every ticket in the breakdown is independently demoable and represents real, distinct work, the count is whatever it is.
+
+## Presenting the Breakdown
+
+Show the full decomposition as a numbered list before publishing, and confirm with the user:
+
+```
+## Proposed Tickets: [Feature Name]
+
+1. Create order (end-to-end, single item, no discounts) — no blockers
+2. Apply discount code to order — blocked by #1
+3. Partial refund on order — blocked by #1
+4. Order history view — blocked by #1
+
+Granularity look right? Any tickets to merge or split further?
+```
+
+Wait for confirmation before writing ticket files. This is a judgment call (how to slice) — always worth a quick check before committing to file.
+
+**The breakdown is also the approval gate for large work** (see orchestrator's "What Gets Approved"): for `large` scope there is no separate plan file, so this list is what the user approves before BUILD. That raises the bar on it — it must be complete enough to reorder, merge, or defer against, not a teaser.
+
+**Confirm, then write, in the same run.** Showing the breakdown and stopping there leaves the work in the worst state available: specs written, every traceability row 🟡 with an empty Ticket column, and no approved work order. If the user confirms, the ticket files get written now. If they don't respond or defer, say explicitly that the run stopped before decomposition and that BUILD has nothing approved to start from — never leave it as a quiet to-do line in `index.md`.
+
+## Ticket Format
+
+**Location**: `docs/sdd/specs/{NNN}-{slug}/tickets/{NN}-{ticket-slug}.md` — inside the same feature folder as its FSD/SDS/ERD, found by the feature's number (per doc-generator's "Number-First Lookup" rule — never a freshly re-derived slug).
+
+### Quality Contract projections (opt-in only)
+
+If the canonical feature document contains exactly one
+`quality-contract-json` block, first run the single facade against the
+**canonical Markdown owner**:
+
+```sh
+node skills/meta/quality-contract/quality-contract.mjs \
+  docs/sdd/specs/{NNN}-{slug}/fsd.md --json
+```
+
+Keep the returned versioned JSON and exit status as observed. The facade
+checks the canonical document's strict parse and read-only eligibility
+envelope; it does **not** materialize or validate a ticket projection, verify
+external events, consume a gateway lease, run tests, or authorize execution
+or acceptance. A facade result must therefore never be copied into a ticket
+as an approval. A malformed/degraded result blocks projection materialization
+until its canonical input is repaired; a legacy feature without the block
+continues through the normal ticket path.
+
+Materialize the ticket projection only through
+`skills/meta/quality-contract/rules/projection.mjs`, with the canonical
+document, an externally verified execution-authority event, and the ticket's
+baseline/stop-condition payload. Record the resulting digest and exact
+canonical owner in the ticket. The projection stays non-authoritative: any
+canonical, scope, landmark, AC-map, or authority drift requires a fresh
+projection and review.
+
+For a vNext delivery handoff, materialize the context-minimal verifier packet
+through `rules/delivery.mjs`: exact base/candidate/spec digests, effective
+assurance, acceptance-criterion evidence classes, and evidence references.
+The packet is non-authoritative and shadow-only. A changed candidate makes
+prior evidence stale; an open defect returns the ticket to rework; A2/A3
+self-reported or self-verified evidence cannot support acceptance.
+
+Also materialize the shadow engineering profile through
+`rules/engineering.mjs`. Every ticket must address architecture fitness,
+dependency/API compatibility, migration/reversibility, maintainability,
+performance budget, and operability. A dimension may be `not-required` only
+with an explicit applicability rationale; it must never disappear. The
+assurance level sets the evidence floor, E5/E6 claims require an environment
+binding, and A2/A3 engineering evidence cannot be self-reported or
+self-verified. This profile informs the delivery verifier packet but cannot
+accept a ticket.
+
+**IDs**: the `{NN}` in the filename orders tickets within the feature, but every ticket ALSO gets a **globally unique `TICKET-xxx`** in its heading (counter in `docs/sdd/traceability.md`) — the matrix, commits (`Refs:`), and tests point at that global ID, which must never collide across features.
+
+**Durability exemption**: tickets are exempt from the no-file-paths rule that governs FSD/SDS/PRD — like test plans and DoD checklists, a ticket is inherently tied to the current state of the code and dies at merge. Concrete paths are *required* here: `Files likely touched:` feeds `check-parallel-safety.mjs` (see `skills/agents/parallel-work/`), and naming exact files/functions is what makes a T1 ticket executable by a junior dev or cheap model without inventing anything. Describe *behavior* end-to-end, but *point* at real files.
+
+```markdown
+# TICKET-012 — [Title]
+
+**Feature**: [parent feature/epic, if any]
+**Refs**: FSD-003 [, SEC-004 if this implements a security control]
+**Tier**: T1 | T2 | T3
+**Risk**: low | moderate | high | critical — [basis]
+**Assurance**: A0 | A1 | A2 | A3 — [effective floor source]
+**Status**: ⬜ todo | 🔨 in progress | 🧪 testing/review | ✅ done | ⛔ blocked
+**Security-sensitive**: true | false
+**Dependencies**: TICKET-011 [global IDs that must land first, or "none"]
+**Files likely touched:** `src/routes/order.ts`, `src/services/order.ts`
+**Claimed by:** _(empty until an agent claims it — `<agent-id>, <worktree path>`; delete when merged)_
+**Implementer**: _(actor/context id when claimed)_
+**Reviewer**: _(distinct actor/context id before 🧪)_
+**Verifier**: _(distinct actor/context id before 🧪)_
+**Security_reviewer**: _(distinct fourth actor when security-sensitive)_
+**Independence**: independent | degraded independence
+
+## Goal
+[Observable capability after this vertical slice lands.]
+
+## Supports
+[REQ/FSD/ADR IDs, or `none — infrastructure-only` with a reason.]
+
+## Success
+- [Observable, testable condition]
+
+## Human Review
+[Required when independence is degraded; list exact risk/spec items. Otherwise
+`none`.]
+
+## What to Build
+[End-to-end behavior this ticket delivers. Not layer-by-layer — describe the
+complete slice: what the user/caller can do once this ticket is done.]
+
+## Deliverables
+[One glance = what this ticket will create/change — file → **its role** →
+the function/component born there. The role tag is what tells a junior dev
+or cheap model *what kind of thing* to write (a service does business logic
+and has no HTTP knowledge; a route only parses/validates the request shape
+and delegates; a helper is a pure, stateless utility) — a bare filename
+alone leaves that guessed. No implementation code, just the manifest:]
+- `src/services/order.ts` (service — order lifecycle business logic, no HTTP concerns) → `createOrder()` (new)
+- `src/routes/order.ts` (route — request parsing/validation only, delegates to the service) → `POST /orders` wired to it (new)
+- `src/lib/pricing.ts` (helper — pure function, no I/O) → `calculateTotal()` (new)
+- `src/services/order.test.ts` → TEST-030, TEST-031 (new)
+
+## Algorithm / Flow
+
+**Required for ALL tiers.** T1 may be brief (3–5 lines), but never empty.
+Even "CRUD glue" has a cascade rule, a validation order, or an error
+response that must be stated. This is what removes the guessing a junior
+dev or cheap model would otherwise do — name the actual steps/branches,
+not just the function signature.
+
+For a function/service, pseudocode-level steps (not full code):
+```
+`createOrder(input)`:
+1. Validate items non-empty, shipping address exists
+2. Begin transaction; for each item, lock stock row, check quantity —
+   insufficient → abort with OUT_OF_STOCK
+3. Insert Order (status=pending) + OrderItem rows
+4. Commit; return { orderId, status, total }
+```
+
+For a schema/table/migration, the fields, constraints, and **validation
+rules** — not just "create the table":
+```
+`orders` table:
+- id (uuid, pk), org_id (uuid, fk orgs, cascade delete), status (enum: pending|paid|cancelled)
+- Validation: org_id must exist and be active before insert (server-side,
+  not just FK — an inactive org should reject with ORG_INACTIVE, not a raw
+  FK error); status transitions are pending→paid or pending→cancelled only,
+  never paid→pending (enforce in the service layer, not just documented)
+```
+
+## Acceptance Criteria (Given/When/Then)
+
+**If `tests.md` exists for this feature**: reference the `TEST-xxx` per
+criterion — don't restate the test's content here, that's what causes the
+two copies to drift. `tests.md` is the source of truth for what the test
+actually asserts. **However, the AC line must still state the decided value
+being tested** (e.g., "422 on duplicate email") — the prohibition is on
+duplicating the full test implementation, not on naming what's being verified.
+- [ ] Given [precondition], when [action], then [observable outcome] — TEST-030
+- [ ] [Testable criterion] — TEST-031
+
+**If no `tests.md` exists for this scope** (small/micro work with no formal
+test plan): write the expectation explicitly and completely here instead —
+this ticket IS the only record of what must be tested, so it can't be a
+vague pointer to a document that doesn't exist.
+- [ ] Given [precondition], when [action], then [observable outcome] — no test-plan for this scope, assert this directly in the ticket's own test file
+
+## Engineering Quality Profile
+
+[For each line record the frozen criterion, applicability rationale, minimum
+evidence level, and evidence reference. Use `not-required` only when genuinely
+inapplicable; never omit a dimension. The machine-readable companion is owned
+by `skills/meta/quality-contract/rules/engineering.mjs` and remains
+non-authoritative.]
+
+- Architecture fitness: [criterion / applicability / evidence]
+- Dependency and API compatibility: [criterion / applicability / evidence]
+- Migration and reversibility: [criterion / applicability / evidence]
+- Maintainability: [criterion / applicability / evidence]
+- Performance budget: [criterion / applicability / evidence]
+- Operability: [criterion / applicability / evidence]
+
+## Evidence Requirements
+
+[Map each acceptance criterion to its evidence class and minimum E0–E6 level.
+Name required negative/security/recovery/realistic-environment evidence from
+effective assurance. A higher level never broadens subject, environment,
+timeframe, or measurement scope.]
+
+- [AC/test ID] → [evidence class, minimum level, exact subject/environment]
+
+## Rollback / Recovery
+
+[How to reverse the code/schema/config/data effect and verify recovery. For a
+genuinely non-mutating T1 slice, state `not required` with the reason; never
+omit this section.]
+
+## Stop Conditions and Deviations
+
+[Conditions that return the ticket to planning/rework or require external
+authority. Record every approved deviation from scope, design, AC, evidence,
+or rollback here; `none` is explicit.]
+
+## Out of Scope
+- [Explicitly excluded from this ticket — usually deferred to a later ticket]
+```
+
+### Acceptance Criteria Are Locked at Approval
+
+Once a ticket is approved (per orchestrator's "What Gets Approved" — shown to the user, moved past 🔨's starting gate), its Acceptance Criteria are **frozen**. The implementer does not get to quietly reshape the AC to match what got built — that turns the 🧪 contract check into theater, since it would just be re-reading criteria the implementer already edited to pass.
+
+- **Need to change AC after approval** (a genuine spec gap surfaced during implementation, not "this is inconvenient to build"): add a visible `**AC revised**: [what changed] — [reason]` line directly below the ticket's status line, and get the same approval level the original ticket got (standard: shown, wait for ack; strict: explicit confirmation). This is the same discipline as the override protocol in `build/constraints` — inform, then proceed, always logged, never silent.
+- **A silent AC edit with no revision line is indistinguishable from an implementer marking its own homework** — treat finding one as a contract-check failure in itself, independent of whether the underlying code is correct.
+
+## The Feature Index (`00-index.md`) — The Human's Entry Point
+
+A `large` feature produces a spec bundle of several documents (FSD, SDS, ERD, threats, UX) plus a directory of tickets — everything living inside `docs/sdd/specs/{NNN}-{slug}/`. Nobody should have to guess which one to open first. `specs/{NNN}-{slug}/tickets/00-index.md` is the **one required entry point** for the whole feature: written alongside the ticket breakdown, in the same run, never skipped for `large` scope. (`check-file-hygiene.mjs` enforces this mechanically — a `tickets/` folder with ticket files but no `00-index.md` is flagged.)
+
+```markdown
+# [Feature Name] — Work Order
+
+**Spec**: `fsd.md`, `sds.md`, `ux.md`, `threats.md`, `erd.md` — siblings in this same folder [only the ones that exist]
+**ADR**: [any decision log entries this feature depends on, if any]
+**Next free ticket ID**: TICKET-0NN
+
+## How to Review This Feature
+[The reading order, tailored to what actually exists for this feature — skip any row whose doc wasn't generated. Each row states what question that doc answers and an honest read-time estimate, so a reviewer can stop once they have what they need instead of reading everything at equal depth:]
+
+1. **FSD** (~3 min) — what this does, user flows, edge cases. Start here always.
+2. **SDS** (~3 min) — the technical shape: architecture, components, key decisions. Read if reviewing the implementation approach.
+3. **ERD** (~2 min) — schema, relationships, cascade behavior. Read if reviewing data changes.
+4. **Threats** (~1 min) — security controls (SEC-xxx). Read if reviewing anything auth/payment/trust-boundary.
+5. **UX spec + ux-screens** (~2 min each) — screens, states, interactions. Read if reviewing UI.
+6. **Tickets below** — in the dependency order shown in Frontier/Blocking Order, only the ones relevant to what you're actually doing. A ticket is self-contained (rule #6 below) — you shouldn't need to re-read the full FSD to understand one.
+
+## Status
+[Ticket table — ID, title, tier, status, dependencies]
+
+## Frontier / Blocking Order
+[Dependency graph — which tickets are unblocked now, which wait on what, which can run in parallel]
+```
+
+**Why this file, not a longer `docs/sdd/index.md` entry**: the project-level `index.md` lists every feature in the whole project with a one-line description each — it's a directory, not a reading guide, and it shouldn't try to be one (it would grow unreadable itself). `00-index.md` is scoped to one feature, so it can afford to actually tell a reader what order to go in. `index.md` links to it; it doesn't duplicate it.
+
+**Applies below `large` too, in a lighter form**: medium-scope work that generates 2+ documents (no tickets) doesn't get a `00-index.md` — the spec run's final chat report includes the same "how to review" ordering instead, inline, at the point the run reports what landed. A single-document task (just an FSD, or just a change file) doesn't need either — there's nothing to order.
+
+## Where Do Tickets Live? Ask, Don't Assume
+
+Before writing ticket files, ask — per `skills/think/elicitation/`'s "How to Ask" rule: native question tool first, plain text only as fallback: **local files only** (default — `docs/sdd/specs/{NNN}-{slug}/tickets/`, no external dependency) or **also mirror to GitHub Issues** (visible on the repo's board, assignable, commentable by the team).
+
+- **The local ticket files are always the traceability SSOT — GitHub Issues, if chosen, is a mirror, never a replacement.** The matrix and `Refs:` point at `TICKET-xxx`; an issue is an additional linked surface, not a second source of truth.
+- **Check the capability actually exists before promising it**: `gh auth status` and `gh repo view`. If either fails, say so and fall back to local-only — don't fake it.
+- **Creating issues is a visible, external action — confirm before doing it** (same native-tool-first rule): show what will be created (titles + count) and get a yes, especially for the first batch.
+- Per mirrored ticket: `gh issue create` with the ticket's title, its **full self-contained body** (same content as the local file, so the issue alone is usable), a tier label (`T1`/`T2`/`T3`), and `Refs: TICKET-xxx, FSD-xxx` in the body. **Record the issue number back in the local ticket** (`GitHub Issue: #42`) — the link goes both ways, never dangles. Commits closing the ticket may then also say `Closes #42` (see `skills/build/git-workflow/`).
+
+## Tiers — Allocate Skill and Cost Deliberately
+
+Tier by the ticket's **intrinsic difficulty and blast radius**, not its size in lines:
+
+- **T1 — trivial/mechanical.** Well-bounded, one obvious way to do it, low blast radius: CRUD glue, a migration, a pure function with clear I/O, wiring an existing pattern. Safe for a junior dev or a **cheap/small model** (pairs with `skills/build/model-router/`'s CHEAP tier). A T1 ticket should read almost paint-by-numbers. Implementation stays single-owner, but code still receives an independent reviewer/verifier when fresh contexts are supported.
+- **T2 — standard.** Some judgment, touches 2–3 components, a couple of edge cases. Most tickets land here. **Role-split before implementing**: a research/check-existing pass first (what's already here, what pattern does the codebase already use for this) *then* implement — sequentially if single-agent (Pattern 1 in `skills/agents/subagent-patterns/`), as separate sub-agents if dispatch is available. Skipping straight to code on a T2 is how "existing pattern reinvented slightly differently" bugs happen.
+- **T3 — complex/risky.** Cross-cutting, concurrency, security-sensitive, ambiguous, or hard to reverse. Senior dev or strong model, usually test-first with extra design attention. **Never hand a T3 to a cheap model unattended.** Security-control tickets (SEC-xxx) are usually T2/T3 — tier them honestly. Same role-split as T2, plus the Red Team pattern (`skills/agents/subagent-patterns/`) before it's considered done.
+
+Summarize the tier split at the top of the breakdown (counts per tier) so the user can plan cost/staffing. When asked "how long / how much", derive a transparent estimate from the tiers — **always ranges with stated assumptions, never false precision** — and re-estimate when the tickets change.
+
+## Review Checkpoint Cadence — Set by Mode, Never Silent
+
+How often the user is actually asked to look at finished work, before more gets built on top of it — this is separate from the 🧪 contract-check above (which always happens), and controls *when the user is pulled in*, not whether quality is checked:
+
+| Mode | Default cadence |
+|------|------------------|
+| `prototype` / `vibe` | Batch — review at the end of the feature (or a few tickets at a time), minimal interruption |
+| `standard` | **Per ticket** — review once each ticket hits ✅, before the next one starts |
+| `strict` | Per logical chunk *within* a ticket (schema change, endpoint, UI surface each get their own checkpoint) — finer than per-ticket |
+| `emergency` | Minimal mid-flight interruption for speed, but a final review is still mandatory before merge — urgency is not a waiver on review, just a deferral of when it happens |
+
+This is a **default, not a lock** — the user can override it explicitly at any point ("just build all the tickets, review at the end" or "stop and show me every change"), and that override holds for the rest of the session. Never silently switch cadence because the mode changed for an unrelated reason (e.g. switching to `strict` for doc depth doesn't retroactively change a review cadence the user already set explicitly).
+
+## Working the Tickets — The Status Flow Is a Kanban
+
+```
+⬜ todo → 🔨 in progress → 🧪 testing/review → ✅ done      (⛔ blocked from anywhere)
+```
+
+1. Claim the next frontier ticket (all blockers resolved) → set 🔨.
+2. Run it through the normal SDD pipeline (THINK/BUILD/PROVE) as its own task.
+3. When the code + tests are written and the branch/PR is open → set 🧪. **This is the handoff state**: a review agent (or the human) picks up 🧪 tickets — the PROVE pass and review happen here, concurrent with other agents' 🔨 work.
+4. **The 🧪 review is a contract check, not a vibe check — mandatory, never skipped**: read the ticket's own `Goal`, `Success`, `Acceptance Criteria`, and `Deliverables` line by line against what was actually built. With fresh contexts, record distinct implementer, reviewer, and verifier actor IDs. The reviewer reports defects; the implementer fixes; the same independent reviewer re-checks. Without fresh contexts, label the result `degraded independence` and expose the human-review items — a cold self-read is useful but not independent.
+5. **Contract check fails → back to 🔨 with a Defect Report, never a silent redo.** Set status back to 🔨 and attach a Defect Report (see below) directly under the ticket's status line — the next work pass reads it before touching code. Looping straight back into implementation with only a verbal "fix this" loses the specifics; the next pass (possibly a different agent, possibly the same one days later) needs the finding on the record.
+6. Review + gates pass and the branch merges → set ✅, recompute the frontier — newly-unblocked tickets become available. Hit a real blocker → set ⛔ with a one-line reason next to it, don't sit on 🔨 silently.
+
+### Defect Report — What a Failed Contract Check Leaves Behind
+
+```markdown
+## Defect Report — [date]
+
+**Finding**: [what's wrong, one sentence]
+**Reproduction**: [exact steps or input that shows the problem]
+**Expected**: [what the AC/spec says should happen]
+**Actual**: [what actually happens]
+**Severity**: P1 (blocks ✅) | P2 (should fix before ✅) | P3 (note, doesn't block)
+```
+
+Rules:
+- Written by whoever ran the failed contract check (sub-agent or single-agent cold-read) — not by the implementer explaining away the gap.
+- Stays attached to the ticket until the next 🧪 pass either closes it (fixed, re-verified) or the ticket is explicitly re-scoped (AC changed, logged per "Acceptance Criteria Are Locked" below — not silently dropped).
+- Multiple defects on one ticket = multiple report blocks, not one blended paragraph — each needs its own repro and severity so the fix pass can triage.
+6. **Update the status the moment it changes, not batched at the end** — the board (see `check-parallel-safety.mjs --board`) is only trustworthy if statuses are live. Also update the feature's status counts row in `index.md`.
+7. **Frontier tickets that are parallel-safe (no shared files, no blocking edge) get dispatched together, not worked one at a time "to be safe."** If multi-agent dispatch is available and the cost-benefit gate (`skills/agents/orchestration/`) clears, spawning the whole safe set at once is the default move for medium/large work, not an optional nicety — say so explicitly when presenting the breakdown, don't just mention it's *possible*. Single-agent environments fall back to sequential frontier order automatically; nothing breaks, it's just slower.
+
+**If mirrored to GitHub Issues**, sync status on every local change: apply a status label (`status:in-progress` / `status:testing` / `status:blocked`) and close the issue when the ticket hits ✅ (the `Closes #42` commit does this automatically at merge). The local file stays the SSOT — the labels are a mirror, updated in the same breath as the local edit, never a substitute.
+
+## Mode Behavior
+
+Defer to the unified mode matrix in `skills/orchestrator/references/behavior.md` on conflict. Skill-specific additions:
+
+| Mode | Ticket Decomposition |
+|------|----------------------|
+| **prototype** | For genuinely small scope: build in one pass, no tickets. For `large` scope (new system, multi-component): still decompose into vertical slices — speed-first doesn't mean losing the ability to parallelize or track what's done vs. what's left. Tickets can be lightweight (title + one-line "what to build" + files + blockers, skip DoD/tier/traceability refs), but they exist. |
+| **vibe** | Decompose silently if task is genuinely large; work tickets in sequence without showing the breakdown unless asked |
+| **standard** | Show the breakdown, confirm granularity, then work tickets one at a time with progress updates |
+| **strict** | Show the breakdown, require explicit approval per ticket before starting, full DoD per ticket |
+| **emergency** | Skip — fix first, decompose the follow-up work later if needed |
+
+## Ticket Lifecycle
+
+- After verification passes, compact the durable outcome into canonical specs,
+  code, tests, and traceability. Remove live references, confirm Git recovery,
+  then retire the completed ticket from the active tree. Do not create a
+  `tickets/archive/` directory by default.
+- Archive only when `artifact-retention: archive`, an explicit audit/compliance
+  policy, or a no-Git environment requires it. See
+  `skills/meta/artifact-lifecycle/`.
+
+## Rules
+
+1. Vertical-slice by default. Layer-splitting is the exception, reserved for mechanical/wide refactors.
+2. Every ticket must be independently demoable when done — if it isn't, it's not a real slice.
+3. Compute and show blocking edges explicitly — don't leave dependency order implicit.
+4. Confirm granularity with the user before writing ticket files — this is a judgment call, not a mechanical process.
+5. Tickets are **exempt** from the no-file-paths durability rule (they die at merge) — `Files likely touched:` is required, and steps should name real files/functions. FSD/SDS/PRD keep the rule.
+6. **Self-containment test**: could someone who never read the PRD finish this ticket from the ticket alone? Every decided value (cascade rule, threshold, status code, error message, column name, validation rule) referenced by the ticket must appear **literally** in the ticket body — not just a pointer. Format: state the value, then cite the source in parentheses (e.g., "cascade = RESTRICT (ERD-001, users.org_id)"). A ticket that only says "Refs: FSD-003" without the actual values is incomplete. If executing the ticket would require guessing a field, a path, or a contract, it isn't ready.
+7. Every ticket traces upward (`Refs:` an FSD, SEC, or ADR) — no freelance tickets; `check-traceability.mjs` flags them.
+8. **Spec → ticket fidelity check**: after writing tickets, for each ticket that references a spec section (FSD/SDS/ERD), verify that every decided value in that spec section appears literally in the ticket. This mirrors the deliberation→document fidelity check from the THINK phase. A ticket whose values don't match the spec it references is a broken handoff — the implementing agent will build against stale or missing data.

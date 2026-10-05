@@ -1,0 +1,17 @@
+{
+  "pack_version": "1", "pack_id": "high-risk-api", "layer": "domain", "content_type": "data-only", "minimum_assurance": "A3",
+  "hard_stops": ["no-secret-output", "no-self-release"], "allowed_paths": ["src/api"], "required_evidence": ["executed", "review", "negative", "security", "rollback"],
+  "controls": [{ "id": "API-AUTHZ", "minimum_assurance": "A3", "evidence_class": "security" }],
+  "privacy": { "allow_raw_source": false, "allow_pii": false },
+  "context": {
+    "approved_stacks": ["versioned-api"], "approved_dependencies": ["approved-lockfile-only"],
+    "architecture_boundaries": ["authorization is enforced server-side at every protected operation"],
+    "coding_conventions": ["deny-by-default", "exact-request-schema"],
+    "data_classification": ["sensitive"], "privacy_and_retention": ["minimum necessary retention with redacted evidence"],
+    "security_baseline": ["owasp-asvs", "nist-ssdf"], "deployment_platform": ["externally-authorized-production"],
+    "slo_templates": ["availability-latency-error-budget"], "incident_severity": ["p0-p1-p2-p3"],
+    "ownership_map": [{ "surface": "src-api", "owner_role": "service-owner" }],
+    "release_authorities": ["release-authority"],
+    "required_assurance_overrides": [{ "trigger": "authz-or-production-change", "minimum_assurance": "A3" }]
+  }
+}

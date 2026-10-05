@@ -1,0 +1,48 @@
+# CI for the SDD Pipeline repo itself: validates skill structure and
+# syntax-checks the bundled enforcement scripts. (Projects that USE the
+# pipeline get their own CI gates via enforcement/ci/sdd-check.yml.)
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  validate-skills:
+    name: Skill structure valid
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate skills
+        run: bash scripts/validate-skills.sh
+
+  scripts-syntax:
+    name: Enforcement scripts parse
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: Syntax-check bundled .mjs scripts
+        run: |
+          set -e
+          found=0
+          while IFS= read -r f; do
+            found=1
+            node --check "$f"
+            echo "OK: $f"
+          done < <(find skills -name '*.mjs' -type f)
+          if [ "$found" -eq 0 ]; then echo "No .mjs scripts found"; fi
+
+  checker-behavior:
+    name: Mechanical checkers behave as documented
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: Run checker, Quality Contract, command, and installer behavior suites
+        run: bash scripts/test-checkers.sh

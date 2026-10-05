@@ -1,0 +1,162 @@
+# SDD Pipeline Project Configuration
+
+Copy this file to `docs/sdd/config.md` in your project to customize SDD Pipeline behavior.
+
+## Default Mode
+
+```
+mode: standard
+```
+
+Options: `prototype`, `vibe`, `standard`, `strict`
+
+## SDLC Methodology
+
+Override auto-detection:
+
+```
+sdlc: agile
+agile-framework: kanban
+sdlc-reason: WIP-limited board found in .github/project.yml
+```
+
+`sdlc` options: `waterfall`, `iterative`, `v-model`, `spiral`, `agile`, `devops`, `rad`, `incremental`, `solo`.
+
+`agile-framework` only applies when `sdlc: agile` — options: `scrum`, `kanban`, `scrumban`, `xp`, `none`. Scrum/Kanban are Agile frameworks, not SDLC models in their own right — see `skills/think/sdlc-detector/` for the full model/framework distinction.
+
+If not set, SDD Pipeline auto-detects from project signals (.github/, .jira/, .linear/, docs/ structure) and always records `sdlc-reason` alongside whatever it finds.
+
+## Requirement ID Prefix
+
+If this project already used a functional-requirement prefix other than `REQ` before adopting SDD Pipeline (e.g. `FR-` per IEEE/BABOK convention), declare it here so `check-traceability.mjs` recognizes it:
+
+```
+req-prefix: FR
+```
+
+Adds the custom prefix as an alias alongside `REQ` — both are recognized, nothing changes for projects that leave this unset. Without it, existing `FR-xxxx` citations are invisible to the checker and every ticket/test citing one is flagged as a false "freelance" item.
+
+## Artifact Lifecycle
+
+New projects and explicitly reactivated work use the bounded-state contract:
+
+```
+artifact-policy-version: 1
+artifact-retention: git-history
+```
+
+`git-history` retires completed transient artifacts after the canonical outcome,
+reference, and recoverability checks pass. Use `archive` only for a declared
+audit/compliance need or when Git is unavailable. Repositories without
+`artifact-policy-version` are treated as legacy/read-only until migration is
+previewed and approved; merely running a check never rewrites them.
+
+Medium/default work exposes at most three active entry documents. Large work
+may raise that budget only with an explicit reason:
+
+Uncomment and set these only when that exception is real:
+
+```text
+# active-entry-budget: 5
+# active-entry-budget-reason: independent BE, FE, security-review, and verification consumers
+```
+
+## Domain
+
+Override auto-detection:
+
+```
+domain: web
+```
+
+Options: `web`, `cli`, `mobile`, `library`, `api`, `mixed`
+
+## Architecture
+
+Override or declare architecture:
+
+```
+architecture: layered
+```
+
+Options: `monolith`, `modular-monolith`, `microservices`, `serverless`, `mvc`, `mvvm`, `layered`, `hexagonal`, `clean`, `event-driven`, `cqrs`, `ddd`
+
+If not set, SDD Pipeline auto-detects from project structure.
+
+## Constraint Overrides
+
+Add rules to override or extend SDD Pipeline defaults:
+
+```
+overrides:
+  - constraint: "no-premature-abstraction"
+    action: disable
+    context: "src/plugins/"
+    reason: "Plugin system requires factory pattern"
+
+  - constraint: "dependency-limit"
+    value: 8
+    reason: "This project has complex requirements"
+```
+
+## SDD Grill
+
+Control auto-suggest behavior for discovery/architecture interviews:
+
+```
+grill:
+  auto-suggest: true
+```
+
+If `false`, SDD Grill only runs when explicitly invoked ("grill this"), never auto-suggested before a casual architecture decision locks in.
+
+## Custom Constraints
+
+Add project-specific constraints:
+
+```
+custom-constraints:
+  - rule: "All API responses must include request_id header"
+    rationale: "Required for distributed tracing"
+    check: mechanical
+
+  - rule: "Database migrations must be reversible"
+    rationale: "Zero-downtime deploy requirement"
+    check: judgment
+```
+
+## External Skills
+
+Declare preferred external skills for auto-install recommendations:
+
+```
+skills:
+  - name: taste
+    for: "UI aesthetics"
+  - name: mattpocock-skills:tdd
+    for: "Test-driven development"
+  - name: security-guidance
+    for: "Pre-commit security scanning"
+```
+
+## Disabled Features
+
+Disable specific SDD Pipeline features:
+
+```
+disable:
+  - insight
+  - performance-check
+  - stats
+  - doc-generator
+```
+
+## Team Settings
+
+When this file is committed to the repo, all team members share the same configuration.
+
+```
+team:
+  shared-decisions: true
+  shared-memory: true
+```

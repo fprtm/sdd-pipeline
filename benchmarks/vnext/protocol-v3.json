@@ -1,0 +1,71 @@
+{
+  "protocol_version": "3",
+  "status": "frozen",
+  "frozen_at": "2026-10-02T16:00:00Z",
+  "supersedes_protocol_digest": "sha256:483e5111b5e499dc94e904ea630b3be13f41e28f219eceea1ff8e7a206a18542",
+  "decision_refs": ["ADR-001", "ADR-002", "ADR-003"],
+  "arms": ["baseline", "candidate"],
+  "cohorts": {
+    "calibration": { "minimum_runs_per_arm_per_segment": 5 },
+    "unseen": { "minimum_runs_per_arm_per_segment": 3 }
+  },
+  "segments": [
+    { "id": "SEG-01", "repository_class": "brownfield-fixture", "work_type": "bugfix", "risk": "low", "assurance": "A1", "executor_class": "capable", "domain": "developer-tooling-library" },
+    { "id": "SEG-02", "repository_class": "brownfield-fixture", "work_type": "feature", "risk": "moderate", "assurance": "A1", "executor_class": "capable", "domain": "developer-tooling-library" },
+    { "id": "SEG-03", "repository_class": "brownfield-fixture", "work_type": "feature", "risk": "high", "assurance": "A2", "executor_class": "capable", "domain": "auth-data-api" },
+    { "id": "SEG-04", "repository_class": "brownfield-fixture", "work_type": "security-fix", "risk": "critical", "assurance": "A3", "executor_class": "specialist", "domain": "auth-data-api" },
+    { "id": "SEG-05", "repository_class": "greenfield-fixture", "work_type": "product-reject", "risk": "moderate", "assurance": "A1", "executor_class": "capable", "domain": "developer-tooling-library" },
+    { "id": "SEG-06", "repository_class": "greenfield-fixture", "work_type": "product-revise", "risk": "high", "assurance": "A2", "executor_class": "capable", "domain": "auth-data-api" }
+  ],
+  "required_case_categories": ["hidden-root-cause-bug", "ambiguous-requirements", "risky-refactor", "schema-data-migration", "authentication-authorization-payment", "concurrency-race-condition", "production-incident", "product-reject", "incorrect-oracle", "external-api-version-drift", "accessibility-usability-failure", "operational-recovery"],
+  "terminal_results": ["PASS", "FAIL", "INSUFFICIENT", "INVALID"],
+  "severity": ["P0", "P1", "P2", "P3"],
+  "metric_dictionary": {
+    "dictionary_version": "1",
+    "required_raw_metrics": ["latency_ms", "review_minutes", "p0", "p1", "p2", "p3", "defects_total", "defects_escaped", "requirements_applicable", "requirements_misunderstood", "regressions_applicable", "regressions", "seeded_faults", "oracle_weaknesses", "unnecessary_complexity_findings", "review_corrections", "recovery_attempted", "recovery_succeeded", "assumptions_adjudicated", "escaped_assumptions", "product_decisions_applicable", "product_decisions_correct", "comprehension_checks", "comprehension_passed", "slo_windows_observed", "slo_windows_healthy", "incidents_observed", "incident_regressions_created", "rework_lines", "change_failures", "outcomes_eligible", "outcomes_achieved"],
+    "distributions": [
+      { "id": "latency_ms", "unit": "milliseconds", "statistics": ["p50", "p90"], "direction": "lower", "gate": "assurance-cost-budget" },
+      { "id": "review_minutes", "unit": "minutes", "statistics": ["p50", "p90"], "direction": "lower", "gate": "assurance-cost-budget" }
+    ],
+    "ratios": [
+      { "id": "defect_escape_rate", "numerator": "defects_escaped", "denominator": "defects_total", "direction": "lower" },
+      { "id": "requirement_misunderstanding_rate", "numerator": "requirements_misunderstood", "denominator": "requirements_applicable", "direction": "lower" },
+      { "id": "regression_rate", "numerator": "regressions", "denominator": "regressions_applicable", "direction": "lower" },
+      { "id": "oracle_weakness_rate", "numerator": "oracle_weaknesses", "denominator": "seeded_faults", "direction": "lower" },
+      { "id": "recovery_success_rate", "numerator": "recovery_succeeded", "denominator": "recovery_attempted", "direction": "higher" },
+      { "id": "escaped_assumption_rate", "numerator": "escaped_assumptions", "denominator": "assumptions_adjudicated", "direction": "lower" },
+      { "id": "product_decision_quality_rate", "numerator": "product_decisions_correct", "denominator": "product_decisions_applicable", "direction": "higher" },
+      { "id": "reviewer_comprehension_rate", "numerator": "comprehension_passed", "denominator": "comprehension_checks", "direction": "higher" },
+      { "id": "slo_health_rate", "numerator": "slo_windows_healthy", "denominator": "slo_windows_observed", "direction": "higher" },
+      { "id": "incident_learning_rate", "numerator": "incident_regressions_created", "denominator": "incidents_observed", "direction": "higher" },
+      { "id": "outcome_achievement_rate", "numerator": "outcomes_achieved", "denominator": "outcomes_eligible", "direction": "higher" }
+    ],
+    "per_attempt_non_regression": ["p0", "p1", "p2", "p3", "defects_escaped", "requirements_misunderstood", "regressions", "oracle_weaknesses", "unnecessary_complexity_findings", "review_corrections", "escaped_assumptions", "rework_lines", "change_failures"],
+    "missing_required_result": "INSUFFICIENT"
+  },
+  "grader_policy": {
+    "minimum_independent_graders": 2,
+    "minimum_raw_agreement_percent": 80,
+    "blind_arm_and_executor_when_practical": true,
+    "retain_pre_adjudication_scores": true
+  },
+  "cost_budgets": {
+    "A0_A1": { "median_latency_regression_percent": 10, "review_time_regression_percent": 15 },
+    "A2": { "median_latency_regression_percent": 25, "review_time_regression_percent": 25 },
+    "A3": { "hard_cap": null, "requires_absolute_and_p90_report": true }
+  },
+  "gates": {
+    "maximum_p0": 0,
+    "maximum_p1": 0,
+    "allow_p2_per_run_regression": false,
+    "missing_required_metric": "INSUFFICIENT",
+    "thin_segment": "INSUFFICIENT",
+    "failing_critical_segment_blocks_aggregate": true
+  },
+  "corpus_policy": {
+    "requires_recorded_license_or_evaluation_authority": true,
+    "forbid_secrets_private_customer_data_and_unconsented_pii": true,
+    "calibration_and_unseen_lineages_disjoint": true,
+    "retain_invalid_stopped_failed_clarified_and_abandoned_attempts": true
+  }
+}
